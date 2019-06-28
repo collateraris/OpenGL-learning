@@ -1,0 +1,23 @@
+﻿  OpenGLLearning.cpp
+LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
+SOIL.lib(image_DXT.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'SOIL.lib(image_DXT.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+SOIL.lib(image_helper.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'SOIL.lib(image_helper.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+SOIL.lib(SOIL.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'SOIL.lib(SOIL.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+SOIL.lib(stb_image_aug.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'SOIL.lib(stb_image_aug.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glew32s.lib(glew.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glew32s.lib(glew.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glfw3.lib(context.obj) : warning LNK4099: PDB 'Ѕ' was not found with 'glfw3.lib(context.obj)' or at 'Ѕ'; linking object as if no debug info
+glfw3.lib(init.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glfw3.lib(init.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glfw3.lib(input.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glfw3.lib(input.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glfw3.lib(monitor.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glfw3.lib(monitor.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glfw3.lib(vulkan.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glfw3.lib(vulkan.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glfw3.lib(window.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glfw3.lib(window.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glfw3.lib(win32_init.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glfw3.lib(win32_init.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glfw3.lib(win32_joystick.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glfw3.lib(win32_joystick.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glfw3.lib(win32_monitor.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glfw3.lib(win32_monitor.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glfw3.lib(win32_time.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glfw3.lib(win32_time.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glfw3.lib(win32_thread.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glfw3.lib(win32_thread.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glfw3.lib(win32_window.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glfw3.lib(win32_window.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glfw3.lib(wgl_context.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glfw3.lib(wgl_context.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glfw3.lib(egl_context.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glfw3.lib(egl_context.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+glfw3.lib(osmesa_context.obj) : warning LNK4099: PDB '㧀ཹ䁰ཷЅ' was not found with 'glfw3.lib(osmesa_context.obj)' or at '㧀ཹ䁰ཷЅ'; linking object as if no debug info
+  OpenGLLearning.vcxproj -> D:\OpenGL\OpenGLLearning\Debug\OpenGLLearning.exe
