@@ -73,8 +73,8 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 
 	// Setup and compile our shaders
-	Shader lightingShader("shaders/2n2/lighting.vs", "shaders/2n2/lighting.frag");
-	Shader lampShader("shaders/2n2/lamp.vs", "shaders/2n2/lamp.frag");
+	Shader lightingShader("shaders/2n3/lighting.vs", "shaders/2n3/lighting.frag");
+	Shader lampShader("shaders/2n3/lamp.vs", "shaders/2n3/lamp.frag");
 
 	// Set up our vertex data (and buffer(s)) and attribute pointers
 	GLfloat vertices[] = {
@@ -168,6 +168,18 @@ int main()
 
 		// Draw our first triangle
 		lightingShader.Use();
+		GLint materialAmbientLoc = glGetUniformLocation(lightingShader.Program, "material.ambient");
+		glUniform3f(materialAmbientLoc, 1.0f, 0.5f, 0.31f);
+
+		GLint materialDiffuseLoc = glGetUniformLocation(lightingShader.Program, "material.diffuse");
+		glUniform3f(materialDiffuseLoc, 1.0f, 0.5f, 0.31f);
+
+		GLint materialSpecularLoc = glGetUniformLocation(lightingShader.Program, "material.specular");
+		glUniform3f(materialSpecularLoc, 0.5f, 0.5f, 0.5f);
+
+		GLint materialShininessLoc = glGetUniformLocation(lightingShader.Program, "material.shininess");
+		glUniform1f(materialShininessLoc, 32.0f);
+
 		GLint objectColorLoc = glGetUniformLocation(lightingShader.Program, "objectColor");
 		glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
 		GLint lightColorLoc = glGetUniformLocation(lightingShader.Program, "lightColor");
