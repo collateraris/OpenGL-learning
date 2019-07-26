@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "GL/glew.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 class Shader
 {
@@ -99,6 +100,13 @@ public:
 		GLint Loc = glGetUniformLocation(this->Program, InShaderVariable);
 		glUniform3f(Loc, x, y, z);
 	}
+
+	void setVec3f(const char* InShaderVariable, glm::vec3 InCoordinates)
+	{
+		GLint Loc = glGetUniformLocation(this->Program, InShaderVariable);
+		glUniform3f(Loc, InCoordinates.x, InCoordinates.y, InCoordinates.z);
+	}
+
 
 	void setFloat(const char* InShaderVariable, GLfloat x)
 	{

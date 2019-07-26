@@ -175,7 +175,18 @@ int main()
 
 
 		lightingShader.setVec3f("objectColor", 1.0f, 0.5f, 0.31f);
-		lightingShader.setVec3f("lightColor", 1.0f, 0.5f, 1.0f);
+		glm::vec3 lightColor;
+		lightColor.x = sin(glfwGetTime() * 2.0f);
+		lightColor.y = sin(glfwGetTime() * 0.7f);
+		lightColor.z = sin(glfwGetTime() * 1.3f);
+
+		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
+
+		lightingShader.setVec3f("light.ambient", ambientColor);
+		lightingShader.setVec3f("light.diffuse", diffuseColor);
+		lightingShader.setVec3f("light.specular", 1.0f, 1.0f, 1.0f);
+
 		glm::vec3 curLightPos = lightPos;
 		curLightPos.x = cos(currentFrame) * lightPos.x;
 		curLightPos.z = sin(currentFrame) * lightPos.z;
