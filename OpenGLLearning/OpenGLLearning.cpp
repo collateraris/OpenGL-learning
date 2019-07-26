@@ -169,11 +169,13 @@ int main()
 		// Draw our first triangle
 		lightingShader.Use();
 		GLint objectColorLoc = glGetUniformLocation(lightingShader.Program, "objectColor");
-		GLint lightColorLoc = glGetUniformLocation(lightingShader.Program, "lightColor");
-		GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "lightPos");
 		glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
+		GLint lightColorLoc = glGetUniformLocation(lightingShader.Program, "lightColor");
 		glUniform3f(lightColorLoc, 1.0f, 0.5f, 1.0f);
+		GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "lightPos");	
 		glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
+		GLint viewPosLoc = glGetUniformLocation(lightingShader.Program, "viewPos");
+		glUniform3f(viewPosLoc, camera.Position.x, camera.Position.y, camera.Position.z);
 		// Create camera transformation
 		glm::mat4 view = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 		view = camera.GetViewMatrix();
@@ -189,6 +191,7 @@ int main()
 
 		glBindVertexArray(lightingVAO); 
 		glm::mat4 model = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		model = glm::scale(model, glm::vec3(1.0f, 1.25f, 0.5f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		glDrawArrays(GL_TRIANGLES, 0 , 36);
 		glBindVertexArray(0);
