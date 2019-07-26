@@ -203,7 +203,10 @@ int main()
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 		model = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-		model = glm::translate(model, lightPos);
+		glm::vec3 curLightPos = lightPos;
+		curLightPos.x = cos(currentFrame) * lightPos.x;
+		curLightPos.z = sin(currentFrame) * lightPos.z;  
+		model = glm::translate(model, curLightPos);
 		model = glm::scale(model, glm::vec3(0.2f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
