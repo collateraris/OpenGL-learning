@@ -93,6 +93,18 @@ public:
 	{
 		glUseProgram(this->Program);
 	}
+
+	void setVec3f(const char* InShaderVariable, GLfloat x, GLfloat y, GLfloat z)
+	{
+		GLint Loc = glGetUniformLocation(this->Program, InShaderVariable);
+		glUniform3f(Loc, x, y, z);
+	}
+
+	void setFloat(const char* InShaderVariable, GLfloat x)
+	{
+		GLint Loc = glGetUniformLocation(this->Program, InShaderVariable);
+		glUniform1f(Loc, x);
+	}
 };
 
 #endif

@@ -168,29 +168,19 @@ int main()
 
 		// Draw our first triangle
 		lightingShader.Use();
-		GLint materialAmbientLoc = glGetUniformLocation(lightingShader.Program, "material.ambient");
-		glUniform3f(materialAmbientLoc, 1.0f, 0.5f, 0.31f);
+		lightingShader.setVec3f("material.ambient", 1.0f, 0.5f, 0.31f);
+		lightingShader.setVec3f("material.diffuse", 1.0f, 0.5f, 0.31f);
+		lightingShader.setVec3f("material.specular", 0.5f, 0.5f, 0.5f);
+		lightingShader.setFloat("material.shininess", 32.0f);
 
-		GLint materialDiffuseLoc = glGetUniformLocation(lightingShader.Program, "material.diffuse");
-		glUniform3f(materialDiffuseLoc, 1.0f, 0.5f, 0.31f);
 
-		GLint materialSpecularLoc = glGetUniformLocation(lightingShader.Program, "material.specular");
-		glUniform3f(materialSpecularLoc, 0.5f, 0.5f, 0.5f);
-
-		GLint materialShininessLoc = glGetUniformLocation(lightingShader.Program, "material.shininess");
-		glUniform1f(materialShininessLoc, 32.0f);
-
-		GLint objectColorLoc = glGetUniformLocation(lightingShader.Program, "objectColor");
-		glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
-		GLint lightColorLoc = glGetUniformLocation(lightingShader.Program, "lightColor");
-		glUniform3f(lightColorLoc, 1.0f, 0.5f, 1.0f);
-		GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "lightPos");	
+		lightingShader.setVec3f("objectColor", 1.0f, 0.5f, 0.31f);
+		lightingShader.setVec3f("lightColor", 1.0f, 0.5f, 1.0f);
 		glm::vec3 curLightPos = lightPos;
 		curLightPos.x = cos(currentFrame) * lightPos.x;
 		curLightPos.z = sin(currentFrame) * lightPos.z;
-		glUniform3f(lightPosLoc, curLightPos.x, curLightPos.y, curLightPos.z);
-		GLint viewPosLoc = glGetUniformLocation(lightingShader.Program, "viewPos");
-		glUniform3f(viewPosLoc, camera.Position.x, camera.Position.y, camera.Position.z);
+		lightingShader.setVec3f("lightPos", curLightPos.x, curLightPos.y, curLightPos.z);
+		lightingShader.setVec3f("viewPos", camera.Position.x, camera.Position.y, camera.Position.z);
 		// Create camera transformation
 		glm::mat4 view = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 		view = camera.GetViewMatrix();
