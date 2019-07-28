@@ -113,6 +113,12 @@ public:
 		GLint Loc = glGetUniformLocation(this->Program, InShaderVariable);
 		glUniform1f(Loc, x);
 	}
+
+	void setInt(const char* InShaderVariable, GLint x)
+	{
+		GLint Loc = glGetUniformLocation(this->Program, InShaderVariable);
+		glUniform1f(Loc, x);
+	}
 };
 
 #endif
