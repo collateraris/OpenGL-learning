@@ -249,6 +249,14 @@ int main()
 		lightingShader.setFloat("pointLights[3].linear", 0.09);
 		lightingShader.setFloat("pointLights[3].quadratic", 0.032);
 
+		//spot
+		lightingShader.setVec3f("spotLight.position", camera.Position);
+		lightingShader.setVec3f("spotLight.direction", camera.Front);
+		lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+		lightingShader.setVec3f("spotLight.ambient", 0.05f, 0.05f, 0.05f);
+		lightingShader.setVec3f("spotLight.diffuse", 0.8f, 0.8f, 0.8f);
+		lightingShader.setVec3f("spotLight.specular", 1.0f, 1.0f, 1.0f);
+
 		glm::vec3 curLightPos = lightPos;
 		//curLightPos.x = cos(currentFrame / 4) * lightPos.x;
 		//curLightPos.z = sin(currentFrame / 4) * lightPos.z;
