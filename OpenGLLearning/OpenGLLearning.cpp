@@ -28,7 +28,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void Do_Movement();
-GLuint loatTexture(const char* path);
+GLuint loadTexture(const char* path);
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -156,9 +156,12 @@ int main()
 
 	glBindVertexArray(0); // Unbind VAO
 
-	GLuint diffuseMap = loatTexture("container2.png");
+	GLuint diffuseMap = loadTexture("container2.png");
+	GLuint specularMap = loadTexture("container2_specular.png");
 	lightingShader.Use();
 	lightingShader.setInt("material.diffuse", 0);
+	lightingShader.setInt("material.specular", 1);
+
 
 	// Game loop
 	while (!glfwWindowShouldClose(window))
@@ -184,14 +187,14 @@ int main()
 
 
 		lightingShader.setVec3f("objectColor", 1.0f, 0.5f, 0.31f);
-		glm::vec3 lightColor = glm::vec3(2.0f, 0.7f, 1.3f);
+		glm::vec3 lightColor = glm::vec3(1.f, 1.f, 1.f);
 
 		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
 		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
 
 		lightingShader.setVec3f("light.ambient", ambientColor);
 		lightingShader.setVec3f("light.diffuse", diffuseColor);
-		lightingShader.setVec3f("light.specular", 1.0f, 1.0f, 1.0f);
+		lightingShader.setVec3f("light.specular", glm::vec3(1.f));
 
 		glm::vec3 curLightPos = lightPos;
 		curLightPos.x = cos(currentFrame / 4) * lightPos.x;
@@ -218,6 +221,9 @@ int main()
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularMap);
 
 		glDrawArrays(GL_TRIANGLES, 0 , 36);
 		glBindVertexArray(0);
@@ -300,7 +306,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	camera.ProcessMouseScroll(yoffset);
 }
 
-GLuint loatTexture(const char* path)
+GLuint loadTexture(const char* path)
 {
 	GLuint textureID;
 	glGenTextures(1, &textureID);
