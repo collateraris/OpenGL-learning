@@ -8,6 +8,7 @@
 
 #include "GL/glew.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 class Shader
 {
@@ -118,6 +119,12 @@ public:
 	{
 		GLint Loc = glGetUniformLocation(this->Program, InShaderVariable);
 		glUniform1f(Loc, x);
+	}
+
+	void setMat4(const char* InShaderVariable, glm::mat4 x)
+	{
+		GLint Loc = glGetUniformLocation(this->Program, InShaderVariable);
+		glUniformMatrix4fv(Loc, 1, GL_FALSE, glm::value_ptr(x));
 	}
 };
 

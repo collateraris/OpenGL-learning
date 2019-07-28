@@ -74,8 +74,8 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 
 	// Setup and compile our shaders
-	Shader lightingShader("shaders/2n4/lighting.vs", "shaders/2n4/lighting.frag");
-	Shader lampShader("shaders/2n4/lamp.vs", "shaders/2n4/lamp.frag");
+	Shader lightingShader("shaders/2n5/lighting.vs", "shaders/2n5/lighting.frag");
+	Shader lampShader("shaders/2n5/lamp.vs", "shaders/2n5/lamp.frag");
 
 	// Set up our vertex data (and buffer(s)) and attribute pointers
 	float vertices[] = {
@@ -121,6 +121,19 @@ int main()
 		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
 		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
 		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
+	};
+
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
 	GLuint VBO, lightingVAO;
@@ -186,20 +199,20 @@ int main()
 		lightingShader.setFloat("material.shininess", 32.0f);
 
 
-		lightingShader.setVec3f("objectColor", 1.0f, 0.5f, 0.31f);
+		//lightingShader.setVec3f("objectColor", 1.0f, 0.5f, 0.31f);
+		
 		glm::vec3 lightColor = glm::vec3(1.f, 1.f, 1.f);
-
 		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
 		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
 
-		lightingShader.setVec3f("light.ambient", ambientColor);
-		lightingShader.setVec3f("light.diffuse", diffuseColor);
-		lightingShader.setVec3f("light.specular", glm::vec3(1.f));
+		lightingShader.setVec3f("dirLight.ambient", ambientColor);
+		lightingShader.setVec3f("dirLight.diffuse", diffuseColor);
+		lightingShader.setVec3f("dirLight.specular", glm::vec3(1.f));
 
 		glm::vec3 curLightPos = lightPos;
-		curLightPos.x = cos(currentFrame / 4) * lightPos.x;
-		curLightPos.z = sin(currentFrame / 4) * lightPos.z;
-		lightingShader.setVec3f("lightPos", curLightPos.x, curLightPos.y, curLightPos.z);
+		//curLightPos.x = cos(currentFrame / 4) * lightPos.x;
+		//curLightPos.z = sin(currentFrame / 4) * lightPos.z;
+		lightingShader.setVec3f("dirLight.direction", -0.2f, -1.0f, -0.3f);
 		lightingShader.setVec3f("viewPos", camera.Position.x, camera.Position.y, camera.Position.z);
 		// Create camera transformation
 		glm::mat4 view = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
@@ -207,17 +220,10 @@ int main()
 		glm::mat4 projection = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 		projection = glm::perspective(camera.Zoom, (float)screenWidth / (float)screenHeight, 0.1f, 1000.0f);
 		// Get the uniform locations
-		GLint modelLoc = glGetUniformLocation(lightingShader.Program, "model");
-		GLint viewLoc = glGetUniformLocation(lightingShader.Program, "view");
-		GLint projLoc = glGetUniformLocation(lightingShader.Program, "projection");
-		// Pass the matrices to the shader
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		lightingShader.setMat4("view", view);
+		lightingShader.setMat4("projection", projection);
 
 		glBindVertexArray(lightingVAO); 
-		glm::mat4 model = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-		model = glm::scale(model, glm::vec3(1.0f, 1.25f, 0.5f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, diffuseMap);
@@ -225,19 +231,27 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, specularMap);
 
-		glDrawArrays(GL_TRIANGLES, 0 , 36);
+		glm::mat4 model = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		unsigned int sizeCubePosion = sizeof(cubePositions) / sizeof(cubePositions[0]);
+
+		for (unsigned int i = 0; i < sizeCubePosion; i++)
+		{
+			model = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			lightingShader.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 		glBindVertexArray(0);
 
 		lampShader.Use();
-		modelLoc = glGetUniformLocation(lampShader.Program, "model");
-		viewLoc = glGetUniformLocation(lampShader.Program, "view");
-		projLoc = glGetUniformLocation(lampShader.Program, "projection");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		lampShader.setMat4("view", view);
+		lampShader.setMat4("projection", projection);
 		model = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 		model = glm::translate(model, curLightPos);
 		model = glm::scale(model, glm::vec3(0.2f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		lampShader.setMat4("model", model);
 
 		glBindVertexArray(lampVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
