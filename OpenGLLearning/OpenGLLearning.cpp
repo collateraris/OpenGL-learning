@@ -74,7 +74,8 @@ int main()
 
 	Shader shaderModel("shaders/3n3/model.vs", "shaders/3n3/model.fs");
 
-	Model model("models/nano/nanosuit.obj");
+	Model model("models/nanosuit/nanosuit.obj");
+	//Model model("models/warehorse/warehouse_OBJ.obj");
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
