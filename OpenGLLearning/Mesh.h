@@ -13,6 +13,10 @@
 
 #include "Shader.h"
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #ifndef __MESH_ASSIMP__
 #define __MESH_ASSIMP__
 
@@ -23,9 +27,11 @@ struct Vertex
 	glm::vec2 TexCoords;
 };
 
-struct Texture {
+struct Texture 
+{
 	unsigned int id;
 	std::string type;
+	aiString path;
 };
 
 class Mesh 

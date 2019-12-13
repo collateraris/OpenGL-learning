@@ -9,17 +9,16 @@
 #include <GLFW/glfw3.h>
 
 // GL includes
+#include "Functions.h"
 #include "Shader.h"
 #include "Camera.h"
-#include "Mesh.h"
+#include "Model.h"
+
 
 // GLM Mathemtics
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-// Other Libs
-#include <SOIL/SOIL.h>
 
 // Properties
 GLuint screenWidth = 800, screenHeight = 600;
@@ -29,7 +28,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void Do_Movement();
-GLuint loadTexture(const char* path);
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -177,8 +175,8 @@ int main()
 
 	glBindVertexArray(0); // Unbind VAO
 
-	GLuint diffuseMap = loadTexture("container2.png");
-	GLuint specularMap = loadTexture("container2_specular.png");
+	GLuint diffuseMap = Functions::loadTexture("container2.png");
+	GLuint specularMap = Functions::loadTexture("container2_specular.png");
 	lightingShader.Use();
 	lightingShader.setInt("material.diffuse", 0);
 	lightingShader.setInt("material.specular", 1);
@@ -200,6 +198,7 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		/*
 		// Draw our first triangle
 		lightingShader.Use();
 		lightingShader.setVec3f("material.diffuse", 1.0f, 0.5f, 0.31f);
@@ -307,6 +306,7 @@ int main()
 			lampShader.setMat4("model", model);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
+		*/
 		glBindVertexArray(0);
 		// Swap the buffers
 		glfwSwapBuffers(window);
@@ -370,34 +370,4 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	camera.ProcessMouseScroll(yoffset);
-}
-
-GLuint loadTexture(const char* path)
-{
-	GLuint textureID;
-	glGenTextures(1, &textureID);
-
-	int width = 0, height = 0;
-	unsigned char* image = SOIL_load_image(path, &width, &height, 0 ,SOIL_LOAD_RGB);
-	if (image)
-	{
-		glBindTexture(GL_TEXTURE_2D, textureID);
-		glTexImage2D(GL_TEXTURE_2D, 0 , GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	}
-	else
-	{
-		std::cout << "Texture failed to load at path: " << path << std::endl;
-	}
-
-	SOIL_free_image_data(image);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	return textureID;
 }
