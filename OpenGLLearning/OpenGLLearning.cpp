@@ -11,6 +11,7 @@
 // GL includes
 #include "Shader.h"
 #include "Camera.h"
+#include "Mesh.h"
 
 // GLM Mathemtics
 #include <glm/glm.hpp>
