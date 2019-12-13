@@ -169,7 +169,9 @@ void Model::loadMaterialTextures(class aiMaterial* mat, aiTextureType type, std:
 		}
 
 		Texture texture;
-		texture.id = Functions::TextureFromFile(str.C_Str(), directory);
+		std::string filename = std::string(str.C_Str());
+		filename = directory + '/' + filename;
+		texture.id = Functions::loadTexture(filename.c_str());
 		texture.type = typeName;
 		texture.path = str;
 		textures_loaded.push_back(texture);
