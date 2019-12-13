@@ -181,7 +181,7 @@ int main()
 	lightingShader.setInt("material.diffuse", 0);
 	lightingShader.setInt("material.specular", 1);
 
-
+	Model model();
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -197,6 +197,8 @@ int main()
 		// Clear the colorbuffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
 
 		/*
 		// Draw our first triangle
