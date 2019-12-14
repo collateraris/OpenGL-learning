@@ -72,10 +72,80 @@ int main()
 	// Setup some OpenGL options
 	glEnable(GL_DEPTH_TEST);
 
-	Shader shaderModel("shaders/3n3/model.vs", "shaders/3n3/model.fs");
+	float skyboxVertices[] = {
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
 
-	Model model("models/nanosuit/nanosuit.obj");
-	//Model model("models/warehorse/warehouse_OBJ.obj");
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f
+	};
+
+	unsigned int skyboxVAO, skyboxVBO;
+	glGenVertexArrays(1, &skyboxVAO);
+	glGenBuffers(1, &skyboxVBO);
+	glBindVertexArray(skyboxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glBindVertexArray(0);
+
+	std::vector<std::string> faces = 
+	{
+		"skyboxes/ely_snow/snow_rt.jpg",
+		"skyboxes/ely_snow/snow_lf.jpg",
+		"skyboxes/ely_snow/snow_up.jpg",
+		"skyboxes/ely_snow/snow_dn.jpg",
+		"skyboxes/ely_snow/snow_ft.jpg",
+		"skyboxes/ely_snow/snow_bk.jpg",
+	};
+	unsigned int skyboxTexture = Functions::loadCubemap(faces);
+	Shader skyboxShader("shaders/4n6/skybox.vs", "shaders/4n6/skybox.fs");
+
+	//Shader shaderModel("shaders/3n3/model.vs", "shaders/3n3/model.fs");
+
+	//Model model("models/nanosuit/nanosuit.obj");
+
+	skyboxShader.Use();
+	skyboxShader.setInt("skybox", 0);
+
+	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -92,26 +162,42 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		shaderModel.Use();
+		/*{
+			shaderModel.Use();
+			glm::mat4 view = camera.GetViewMatrix();
+			shaderModel.setMat4("projection", projection);
+			shaderModel.setMat4("view", view);
 
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-		glm::mat4 view = camera.GetViewMatrix();
-		shaderModel.setMat4("projection", projection);
-		shaderModel.setMat4("view", view);
+		
+			glm::mat4 modelMat = glm::mat4(1.0f);
+			modelMat = glm::translate(modelMat, glm::vec3(0.0f, -1.75f, 0.0f));
+			modelMat = glm::scale(modelMat, glm::vec3(0.2f, 0.2f, 0.2f));
+			shaderModel.setMat4("model", modelMat);
+			model.Draw(&shaderModel);
+		}*/
 
 		{
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f));
-			model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
-			shaderModel.setMat4("model", model);
+			glDepthMask(GL_LEQUAL);
+			skyboxShader.Use();
+
+			glm::mat4 view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+			skyboxShader.setMat4("projection", projection);
+			skyboxShader.setMat4("view", view);
+			glBindVertexArray(skyboxVAO);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glBindVertexArray(0);
+			glDepthMask(GL_LESS);
 		}
-		model.Draw(&shaderModel);
 
 		// Swap the buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 	// Properly de-allocate all resources once they've outlived their purpose
+	glDeleteVertexArrays(1, &skyboxVAO);
+	glDeleteBuffers(1, &skyboxVAO);
 	glfwTerminate();
 	return 0;
 }

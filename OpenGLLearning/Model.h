@@ -140,11 +140,10 @@ Mesh* Model::processMesh(aiMesh* mesh, const aiScene* scene)
 		loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular", specularMaps);
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-		// 3. normal maps
 		std::vector<Texture> normalMaps;
 		loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal", normalMaps);
 		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-		// 4. height maps
+		
 		std::vector<Texture> heightMaps;
 		loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height", heightMaps);
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
@@ -178,9 +177,7 @@ void Model::loadMaterialTextures(class aiMaterial* mat, aiTextureType type, std:
 		}
 
 		Texture texture;
-		std::string filename = std::string(str.C_Str());
-		filename = directory + '/' + filename;
-		texture.id = Functions::loadTexture(filename.c_str());
+		texture.id = Functions::TextureFromFile(str.C_Str(), directory);
 		texture.type = typeName;
 		texture.path = str;
 		textures_loaded.push_back(texture);
