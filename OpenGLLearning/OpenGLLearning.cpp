@@ -197,8 +197,12 @@ int main()
 			modelMat = glm::translate(modelMat, glm::vec3(2.5f, 0.0f, -1.0f));
 			modelMat = glm::scale(modelMat, glm::vec3(0.5f, 0.5f, 0.5f));
 			shaderModel.setMat4("model", modelMat);
-			shaderModel.setVec3f("lightDir", -0.2f, -1.0f, -0.3f);
-			shaderModel.setVec3f("lightColor", 1.0f, 1.0f, 1.0f);
+			shaderModel.setVec3f("viewPos", camera.Position);
+			shaderModel.setVec3f("dirLight.direction", -0.2f, -1.0f, -0.3f);
+			shaderModel.setVec3f("dirLight.ambient", 0.2f, 0.2f, 0.2f);
+			shaderModel.setVec3f("dirLight.diffuse", 0.5f, 0.5f, 0.5f);
+			shaderModel.setVec3f("dirLight.specular", 1.0f, 1.0f, 1.0f);
+			shaderModel.setFloat("material.shininess", 32.0f);
 			model.Draw(&shaderModel);
 		}
 
@@ -212,8 +216,12 @@ int main()
 			glm::mat4 modelMat = glm::mat4(1.0f);
 			modelMat = glm::scale(modelMat, glm::vec3(1.f, 1.f, 1.f));
 			shaderModel2.setMat4("model", modelMat);
-			shaderModel2.setVec3f("lightDir", -0.2f, -1.0f, -0.3f);
-			shaderModel2.setVec3f("lightColor", 1.0f, 1.0f, 1.0f);
+			shaderModel.setVec3f("viewPos", camera.Position);
+			shaderModel2.setVec3f("dirLight.direction", -0.2f, -1.0f, -0.3f);
+			shaderModel2.setVec3f("dirLight.ambient", 0.2f, 0.2f, 0.2f);
+			shaderModel2.setVec3f("dirLight.diffuse", 0.5f, 0.5f, 0.5f);
+			shaderModel2.setVec3f("dirLight.specular", 1.0f, 1.0f, 1.0f);
+			shaderModel2.setFloat("material.shininess", 32.0f);
 			model2.Draw(&shaderModel2);
 		}
 
