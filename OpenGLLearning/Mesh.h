@@ -90,6 +90,7 @@ void Mesh::Draw(Shader* shader)
 {
 	unsigned int diffuseNr = 1;
 	unsigned int specularNr = 1;
+	unsigned int normalNr = 1;
 
 	for (unsigned int i = 0; i < textures.size(); ++i)
 	{
@@ -103,6 +104,8 @@ void Mesh::Draw(Shader* shader)
 			ss << diffuseNr++;
 		else if (name == "texture_specular")
 			ss << specularNr++;
+		else if (name == "texture_normal")
+			ss << normalNr++;
 
 		number = ss.str();
 

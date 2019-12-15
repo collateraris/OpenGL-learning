@@ -39,6 +39,9 @@ GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
 glm::vec3 lightPos(1.2f, 0.5f, 2.0f);
+float elapsedTime = 0.0f;
+unsigned int fps = 0;
+void onUpdate(float deltaTime);
 
 // The MAIN function, from here we start our application and run our Game loop
 int main()
@@ -73,7 +76,7 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 
 	float skyboxVertices[] = {
- -1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
 	-1.0f, -1.0f, -1.0f,
 	 1.0f, -1.0f, -1.0f,
 	 1.0f, -1.0f, -1.0f,
@@ -137,21 +140,28 @@ int main()
 	unsigned int skyboxTexture = Functions::loadCubemap(faces);
 	Shader skyboxShader("shaders/4n6/skybox.vs", "shaders/4n6/skybox.fs");
 
-	//Shader shaderModel("shaders/3n3/model.vs", "shaders/3n3/model.fs");
+	Shader shaderModel("shaders/5n5/model.vs", "shaders/5n5/model.fs");
+	Shader shaderModel2("shaders/5n5/model.vs", "shaders/5n5/model.fs");
 
-	//Model model("models/nanosuit/nanosuit.obj");
+	Model model("models/obiwan/0.obj");
+	Model model2("models/hatka/hatka_local_.obj");
 
 	skyboxShader.Use();
 	skyboxShader.setInt("skybox", 0);
 
 	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 	// Game loop
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// Set frame time
 		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+		onUpdate(deltaTime);
 
 		// Check and call events
 		glfwPollEvents();
@@ -160,20 +170,6 @@ int main()
 		// Clear the colorbuffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		/*{
-			shaderModel.Use();
-			glm::mat4 view = camera.GetViewMatrix();
-			shaderModel.setMat4("projection", projection);
-			shaderModel.setMat4("view", view);
-
-		
-			glm::mat4 modelMat = glm::mat4(1.0f);
-			modelMat = glm::translate(modelMat, glm::vec3(0.0f, -1.75f, 0.0f));
-			modelMat = glm::scale(modelMat, glm::vec3(0.2f, 0.2f, 0.2f));
-			shaderModel.setMat4("model", modelMat);
-			model.Draw(&shaderModel);
-		}*/
 
 		{
 			glDepthMask(GL_FALSE);
@@ -189,6 +185,38 @@ int main()
 			glBindVertexArray(0);
 			glDepthMask(GL_TRUE);
 		}
+
+		{
+			shaderModel.Use();
+			glm::mat4 view = camera.GetViewMatrix();
+			shaderModel.setMat4("projection", projection);
+			shaderModel.setMat4("view", view);
+
+		
+			glm::mat4 modelMat = glm::mat4(1.0f);
+			modelMat = glm::translate(modelMat, glm::vec3(2.5f, 0.0f, -1.0f));
+			modelMat = glm::scale(modelMat, glm::vec3(0.5f, 0.5f, 0.5f));
+			shaderModel.setMat4("model", modelMat);
+			shaderModel.setVec3f("lightDir", -0.2f, -1.0f, -0.3f);
+			shaderModel.setVec3f("lightColor", 1.0f, 1.0f, 1.0f);
+			model.Draw(&shaderModel);
+		}
+
+		{
+			shaderModel2.Use();
+			glm::mat4 view = camera.GetViewMatrix();
+			shaderModel.setMat4("projection", projection);
+			shaderModel.setMat4("view", view);
+
+
+			glm::mat4 modelMat = glm::mat4(1.0f);
+			modelMat = glm::scale(modelMat, glm::vec3(1.f, 1.f, 1.f));
+			shaderModel2.setMat4("model", modelMat);
+			shaderModel2.setVec3f("lightDir", -0.2f, -1.0f, -0.3f);
+			shaderModel2.setVec3f("lightColor", 1.0f, 1.0f, 1.0f);
+			model2.Draw(&shaderModel2);
+		}
+
 
 		// Swap the buffers
 		glfwSwapBuffers(window);
@@ -252,4 +280,17 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	camera.ProcessMouseScroll(yoffset);
+}
+
+void onUpdate(float deltaTime)
+{
+	elapsedTime += deltaTime;
+
+	if (elapsedTime >= 1.0f)
+	{
+		fps = 1.f / deltaTime;
+		std::cout << "FPS: "  << fps << std::endl;
+		fps = 0;
+		elapsedTime = 0.0f;
+	}
 }
