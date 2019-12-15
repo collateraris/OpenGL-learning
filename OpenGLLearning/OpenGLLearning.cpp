@@ -198,11 +198,18 @@ int main()
 			modelMat = glm::scale(modelMat, glm::vec3(0.5f, 0.5f, 0.5f));
 			shaderModel.setMat4("model", modelMat);
 			shaderModel.setVec3f("viewPos", camera.Position);
-			shaderModel.setVec3f("dirLight.direction", -0.2f, -1.0f, -0.3f);
+			shaderModel.setVec3f("dirLight.direction", -1.0f, -1.0f, -1.0f);
 			shaderModel.setVec3f("dirLight.ambient", 0.2f, 0.2f, 0.2f);
 			shaderModel.setVec3f("dirLight.diffuse", 0.5f, 0.5f, 0.5f);
 			shaderModel.setVec3f("dirLight.specular", 1.0f, 1.0f, 1.0f);
-			shaderModel.setFloat("material.shininess", 32.0f);
+			shaderModel.setFloat("material.shininess", 4.0f);
+			shaderModel.setVec3f("spotLight.position", camera.Position);
+			shaderModel.setVec3f("spotLight.direction", camera.Front);
+			shaderModel.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+			shaderModel.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
+			shaderModel.setVec3f("spotLight.ambient", 0.1f, 0.1f, 0.1f);
+			shaderModel.setVec3f("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+			shaderModel.setVec3f("spotLight.specular", 1.0f, 1.0f, 1.0f);
 			model.Draw(&shaderModel);
 		}
 
@@ -217,11 +224,18 @@ int main()
 			modelMat = glm::scale(modelMat, glm::vec3(1.f, 1.f, 1.f));
 			shaderModel2.setMat4("model", modelMat);
 			shaderModel.setVec3f("viewPos", camera.Position);
-			shaderModel2.setVec3f("dirLight.direction", -0.2f, -1.0f, -0.3f);
+			shaderModel2.setVec3f("dirLight.direction", -1.0f, -1.0f, -1.0f);
 			shaderModel2.setVec3f("dirLight.ambient", 0.2f, 0.2f, 0.2f);
 			shaderModel2.setVec3f("dirLight.diffuse", 0.5f, 0.5f, 0.5f);
 			shaderModel2.setVec3f("dirLight.specular", 1.0f, 1.0f, 1.0f);
-			shaderModel2.setFloat("material.shininess", 32.0f);
+			shaderModel2.setFloat("material.shininess", 4.0f);
+			shaderModel2.setVec3f("spotLight.position", camera.Position);
+			shaderModel2.setVec3f("spotLight.direction", camera.Front);
+			shaderModel2.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+			shaderModel2.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
+			shaderModel2.setVec3f("spotLight.ambient", 0.1f, 0.1f, 0.1f);
+			shaderModel2.setVec3f("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+			shaderModel2.setVec3f("spotLight.specular", 1.0f, 1.0f, 1.0f);
 			model2.Draw(&shaderModel2);
 		}
 
