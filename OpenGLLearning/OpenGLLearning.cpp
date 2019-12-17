@@ -150,8 +150,10 @@ int main()
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	Shader shaderModel("shaders/5n5/model.vs", "shaders/5n5/model.fs");
-	Shader shaderModel2("shaders/5n5/model.vs", "shaders/5n5/model.fs");
+	Shader depthShader("shaders/5n4/shadow.vs", "shaders/5n4/shadow.fs", "shaders/5n4/shadow.gs");
+
+	Shader shaderModel("shaders/5n4/model.vs", "shaders/5n4/model.fs");
+	Shader shaderModel2("shaders/5n4/model.vs", "shaders/5n4/model.fs");
 
 	Model model("models/obiwan/0.obj");
 	Model model2("models/hatka/hatka_local_.obj");
@@ -187,7 +189,6 @@ int main()
 		lightPos.z = sin(glfwGetTime() * 0.5) * 3.0;
 		// Clear the colorbuffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glViewport(0, 0, screenWidth, screenHeight);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		std::vector<glm::mat4> shadowTransforms;
@@ -209,9 +210,23 @@ int main()
 			glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 			glClear(GL_DEPTH_BUFFER_BIT);
+			depthShader.Use();
+			for (unsigned int i = 0; i < 6; ++i)
+			{
+				std::string shadowMatr = "shadowMatrices[" + std::to_string(i) + "]";
+				depthShader.setMat4(shadowMatr.c_str(), shadowTransforms[i]);
+			}
+			depthShader.setFloat("farPlane", far);
+			depthShader.setVec3f("lightPos", lightPos);
+			glm::mat4 modelMat = glm::mat4(1.0f);
+			modelMat = glm::scale(modelMat, glm::vec3(1.f, 1.f, 1.f));
+			shaderModel2.setMat4("model", modelMat);
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
+
+		glViewport(0, 0, screenWidth, screenHeight);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		{
 			glDepthMask(GL_FALSE);
@@ -240,6 +255,7 @@ int main()
 			modelMat = glm::scale(modelMat, glm::vec3(0.5f, 0.5f, 0.5f));
 			shaderModel.setMat4("model", modelMat);
 			shaderModel.setVec3f("viewPos", camera.Position);
+			shaderModel.setVec3f("dirLight.position", lightPos);
 			shaderModel.setVec3f("dirLight.direction", -1.0f, -1.0f, -1.0f);
 			shaderModel.setVec3f("dirLight.ambient", 0.2f, 0.2f, 0.2f);
 			shaderModel.setVec3f("dirLight.diffuse", 0.5f, 0.5f, 0.5f);
@@ -252,6 +268,8 @@ int main()
 			shaderModel.setVec3f("spotLight.ambient", 0.1f, 0.1f, 0.1f);
 			shaderModel.setVec3f("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
 			shaderModel.setVec3f("spotLight.specular", 1.0f, 1.0f, 1.0f);
+			shaderModel.setInt("depthMap", depthCubemap);
+			shaderModel.setFloat("farPlane", far);
 			model.Draw(&shaderModel);
 		}
 
@@ -266,6 +284,7 @@ int main()
 			modelMat = glm::scale(modelMat, glm::vec3(1.f, 1.f, 1.f));
 			shaderModel2.setMat4("model", modelMat);
 			shaderModel2.setVec3f("viewPos", camera.Position);
+			shaderModel2.setVec3f("dirLight.position", lightPos);
 			shaderModel2.setVec3f("dirLight.direction", -1.0f, -1.0f, -1.0f);
 			shaderModel2.setVec3f("dirLight.ambient", 0.2f, 0.2f, 0.2f);
 			shaderModel2.setVec3f("dirLight.diffuse", 0.5f, 0.5f, 0.5f);
@@ -278,6 +297,8 @@ int main()
 			shaderModel2.setVec3f("spotLight.ambient", 0.1f, 0.1f, 0.1f);
 			shaderModel2.setVec3f("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
 			shaderModel2.setVec3f("spotLight.specular", 1.0f, 1.0f, 1.0f);
+			shaderModel2.setInt("depthMap", depthCubemap);
+			shaderModel2.setFloat("farPlane", far);
 			model2.Draw(&shaderModel2);
 		}
 
