@@ -223,7 +223,7 @@ int main()
 			glm::mat4 modelMat = glm::mat4(1.0f);
 			modelMat = glm::scale(modelMat, glm::vec3(1.f, 1.f, 1.f));
 			shaderModel2.setMat4("model", modelMat);
-			shaderModel.setVec3f("viewPos", camera.Position);
+			shaderModel2.setVec3f("viewPos", camera.Position);
 			shaderModel2.setVec3f("dirLight.direction", -1.0f, -1.0f, -1.0f);
 			shaderModel2.setVec3f("dirLight.ambient", 0.2f, 0.2f, 0.2f);
 			shaderModel2.setVec3f("dirLight.diffuse", 0.5f, 0.5f, 0.5f);
