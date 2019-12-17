@@ -140,6 +140,16 @@ int main()
 	unsigned int skyboxTexture = Functions::loadCubemap(faces);
 	Shader skyboxShader("shaders/4n6/skybox.vs", "shaders/4n6/skybox.fs");
 
+	unsigned int depthMapFBO;
+	glGenFramebuffers(1, &depthMapFBO);
+	const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+	unsigned int depthCubemap = Functions::createDepthCubemap(SHADOW_WIDTH, SHADOW_HEIGHT);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	Shader shaderModel("shaders/5n5/model.vs", "shaders/5n5/model.fs");
 	Shader shaderModel2("shaders/5n5/model.vs", "shaders/5n5/model.fs");
 
@@ -155,6 +165,13 @@ int main()
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
 
+	glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
+
+	float aspect = static_cast<float>(SHADOW_WIDTH)/SHADOW_HEIGHT;
+	float near = 1.0f;
+	float far = 25.0f;
+	glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, far);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// Set frame time
@@ -167,9 +184,34 @@ int main()
 		glfwPollEvents();
 		Do_Movement();
 
+		lightPos.z = sin(glfwGetTime() * 0.5) * 3.0;
 		// Clear the colorbuffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glViewport(0, 0, screenWidth, screenHeight);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		std::vector<glm::mat4> shadowTransforms;
+		shadowTransforms.reserve(6);
+		shadowTransforms.push_back(shadowProj*
+			glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadowProj*
+			glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadowProj*
+			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+		shadowTransforms.push_back(shadowProj*
+			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+		shadowTransforms.push_back(shadowProj*
+			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadowProj*
+			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+
+		{
+			glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+			glClear(GL_DEPTH_BUFFER_BIT);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		}
 
 		{
 			glDepthMask(GL_FALSE);

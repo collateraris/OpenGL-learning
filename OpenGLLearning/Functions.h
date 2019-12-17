@@ -23,6 +23,8 @@ public:
 	static unsigned int TextureFromFile(const char* path, std::string directory);
 
 	static unsigned int loadCubemap(std::vector<std::string>& faces);
+
+	static unsigned int createDepthCubemap(int width, int height);
 };
 
 GLuint Functions::loadTexture(const char* path)
@@ -91,6 +93,26 @@ unsigned int Functions::loadCubemap(std::vector<std::string>& faces)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	return textureID;
+}
+
+unsigned int Functions::createDepthCubemap(int width, int height)
+{
+	unsigned int depthCubemap;
+	glGenTextures(1, &depthCubemap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+	for (unsigned int i = 0; i < 6; ++i)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
+			width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	}
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return depthCubemap;
 }
 
 #endif
