@@ -173,6 +173,11 @@ int main()
 	//Shader shaderModel("shaders/5n4/model.vs", "shaders/5n4/model.fs");
 	//Shader shaderModel2("shaders/5n4/model.vs", "shaders/5n4/model.fs");
 	Shader pbrShader("shaders/6n2/modelPBR.vs", "shaders/6n2/modelPBR.fs");
+	unsigned int albedo = Functions::loadTexture("materials/rustedIron/basecolor.png");
+	unsigned int normal = Functions::loadTexture("materials/rustedIron/normal.png");
+	unsigned int metallic = Functions::loadTexture("materials/rustedIron/metallic.png");
+	unsigned int roughness = Functions::loadTexture("materials/rustedIron/roughness.png");
+
 
 	//Model object("models/obiwan/0.obj");
 	//Model model2("models/hatka/hatka_local_.obj");
@@ -185,6 +190,10 @@ int main()
 	pbrShader.setMat4("projection", projection);
 	pbrShader.setVec3f("albedo", 0.5f, 0.0f, 0.0f);
 	pbrShader.setFloat("ao", 1.0f);
+	pbrShader.setInt("albedoMap", 0);
+	pbrShader.setInt("normalMap", 1);
+	pbrShader.setInt("metallicMap", 2);
+	pbrShader.setInt("roughnessMap", 3);
 	// Game loop
 	//glEnable(GL_CULL_FACE);
 	//glCullFace(GL_BACK);
@@ -272,6 +281,15 @@ int main()
 			glm::mat4 view = camera.GetViewMatrix();
 			pbrShader.setMat4("view", view);
 			pbrShader.setVec3f("camPos", camera.Position);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, albedo);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, normal);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, metallic);
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, roughness);
 
 			glm::mat4 model = glm::mat4(1.0f);
 			for (int row = 0; row < nrRows; ++row)

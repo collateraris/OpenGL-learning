@@ -5,10 +5,12 @@ out vec4 FragColor;
 in vec2 TexCoords;
 in vec3 WorldPos;
 in vec3 Normal;
+in mat3 TBN;
 
-uniform vec3 albedo;
-uniform float metallic;
-uniform float roughness;
+uniform sampler2D albedoMap;
+uniform sampler2D normalMap;
+uniform sampler2D metallicMap;
+uniform sampler2D roughnessMap;
 uniform float ao;
 
 uniform vec3 lightPositions[4];
@@ -24,9 +26,15 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 
+vec3 getNormalFromNormalMap();
+
 void main()
 {
-	vec3 N = normalize(Normal);
+	vec3 albedo = pow(texture(albedoMap, TexCoords).rgb, vec3(2.2));
+	float metallic = texture(metallicMap, TexCoords).r;
+	float roughness = texture(roughnessMap, TexCoords).r;
+
+	vec3 N = getNormalFromNormalMap();
 	vec3 V = normalize(camPos - WorldPos);
 	
 	vec3 F0 = vec3(0.04);
@@ -106,4 +114,10 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     float ggx1 = GeometrySchlickGGX(NdotL, roughness);
 
 	return ggx1 * ggx2;
+}
+
+vec3 getNormalFromNormalMap()
+{
+	vec3 tangentNormal = texture(normalMap, TexCoords).xyz * 2.0 - 1.0;
+	return normalize(TBN * tangentNormal);
 }
