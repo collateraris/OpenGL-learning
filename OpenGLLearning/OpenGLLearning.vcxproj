@@ -160,6 +160,7 @@
     <ClInclude Include="Functions.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="RenderFunctions.h" />
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>

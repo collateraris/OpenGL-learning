@@ -9,6 +9,7 @@
 #include <GLFW/glfw3.h>
 
 // GL includes
+#include "RenderFunctions.h"
 #include "Functions.h"
 #include "Shader.h"
 #include "Camera.h"
@@ -140,6 +141,23 @@ int main()
 	unsigned int skyboxTexture = Functions::loadCubemap(faces);
 	Shader skyboxShader("shaders/4n6/skybox.vs", "shaders/4n6/skybox.fs");
 
+	glm::vec3 lightPositions[] = {
+		glm::vec3(-10.0f,  10.0f, 10.0f),
+		glm::vec3(10.0f,  10.0f, 10.0f),
+		glm::vec3(-10.0f, -10.0f, 10.0f),
+		glm::vec3(10.0f, -10.0f, 10.0f),
+	};
+	glm::vec3 lightColors[] = {
+		glm::vec3(300.0f, 300.0f, 300.0f),
+		glm::vec3(300.0f, 300.0f, 300.0f),
+		glm::vec3(300.0f, 300.0f, 300.0f),
+		glm::vec3(300.0f, 300.0f, 300.0f)
+	};
+	int nrRows = 7;
+	int nrColumns = 7;
+	float spacing = 2.5;
+
+	/*
 	unsigned int depthMapFBO;
 	glGenFramebuffers(1, &depthMapFBO);
 	const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
@@ -151,28 +169,33 @@ int main()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	Shader depthShader("shaders/5n4/shadow.vs", "shaders/5n4/shadow.fs", "shaders/5n4/shadow.gs");
+	*/
+	//Shader shaderModel("shaders/5n4/model.vs", "shaders/5n4/model.fs");
+	//Shader shaderModel2("shaders/5n4/model.vs", "shaders/5n4/model.fs");
+	Shader pbrShader("shaders/6n2/modelPBR.vs", "shaders/6n2/modelPBR.fs");
 
-	Shader shaderModel("shaders/5n4/model.vs", "shaders/5n4/model.fs");
-	Shader shaderModel2("shaders/5n4/model.vs", "shaders/5n4/model.fs");
-
-	Model model("models/obiwan/0.obj");
-	Model model2("models/hatka/hatka_local_.obj");
+	//Model object("models/obiwan/0.obj");
+	//Model model2("models/hatka/hatka_local_.obj");
 
 	skyboxShader.Use();
 	skyboxShader.setInt("skybox", 0);
 
 	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+	pbrShader.Use();
+	pbrShader.setMat4("projection", projection);
+	pbrShader.setVec3f("albedo", 0.5f, 0.0f, 0.0f);
+	pbrShader.setFloat("ao", 1.0f);
 	// Game loop
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
+	//glFrontFace(GL_CCW);
 
-	glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
+	//glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
 
-	float aspect = static_cast<float>(SHADOW_WIDTH)/SHADOW_HEIGHT;
+	/*float aspect = static_cast<float>(SHADOW_WIDTH)/SHADOW_HEIGHT;
 	float near = 1.0f;
 	float far = 25.0f;
-	glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, far);
+	glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, far);*/
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -186,11 +209,11 @@ int main()
 		glfwPollEvents();
 		Do_Movement();
 
-		lightPos.z = sin(glfwGetTime() * 0.5) * 3.0;
+		//lightPos.z = sin(glfwGetTime() * 0.5) * 3.0;
 		// Clear the colorbuffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+		/*
 		std::vector<glm::mat4> shadowTransforms;
 		shadowTransforms.reserve(6);
 		shadowTransforms.push_back(shadowProj*
@@ -227,7 +250,8 @@ int main()
 
 		glViewport(0, 0, screenWidth, screenHeight);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+		*/
+		
 		{
 			glDepthMask(GL_FALSE);
 			skyboxShader.Use();
@@ -243,6 +267,50 @@ int main()
 			glDepthMask(GL_TRUE);
 		}
 
+		{
+			pbrShader.Use();
+			glm::mat4 view = camera.GetViewMatrix();
+			pbrShader.setMat4("view", view);
+			pbrShader.setVec3f("camPos", camera.Position);
+
+			glm::mat4 model = glm::mat4(1.0f);
+			for (int row = 0; row < nrRows; ++row)
+			{
+				pbrShader.setFloat("metallic", static_cast<float>(row)/ nrRows);
+				for (int col = 0; col < nrColumns; ++col)
+				{
+					pbrShader.setFloat("roughness", glm::clamp(static_cast<float>(col)/ nrColumns, 0.05f, 1.0f));
+
+					model = glm::mat4(1.0f);
+					model = glm::translate(model, glm::vec3(
+						(col - (nrColumns / 2)) * spacing,
+						(row - (nrRows / 2)) * spacing,
+						0.0f
+					));
+					pbrShader.setMat4("model", model);
+					RenderFunctions::RenderSphere();
+				}
+			}
+
+			for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
+			{
+				glm::vec3 newPos = lightPositions[i] + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
+				newPos = lightPositions[i];
+				std::string lightPosStr = "lightPositions[" + std::to_string(i) + "]";
+				pbrShader.setVec3f(lightPosStr.c_str(), newPos);
+				std::string lightColStr = "lightColors[" + std::to_string(i) + "]";
+				pbrShader.setVec3f(lightColStr.c_str(), lightColors[i]);
+
+				model = glm::mat4(1.0f);
+				model = glm::translate(model, newPos);
+				model = glm::scale(model, glm::vec3(0.5f));
+				pbrShader.setMat4("model", model);
+				RenderFunctions::RenderSphere();
+			}
+		}
+
+
+		/*
 		{
 			shaderModel.Use();
 			glm::mat4 view = camera.GetViewMatrix();
@@ -271,8 +339,8 @@ int main()
 			shaderModel.setInt("depthMap", depthCubemap);
 			shaderModel.setFloat("farPlane", far);
 			model.Draw(&shaderModel);
-		}
-
+		}*/
+		/*
 		{
 			shaderModel2.Use();
 			glm::mat4 view = camera.GetViewMatrix();
@@ -300,7 +368,7 @@ int main()
 			shaderModel2.setInt("depthMap", depthCubemap);
 			shaderModel2.setFloat("farPlane", far);
 			model2.Draw(&shaderModel2);
-		}
+		}*/
 
 
 		// Swap the buffers
@@ -379,3 +447,5 @@ void onUpdate(float deltaTime)
 		elapsedTime = 0.0f;
 	}
 }
+
+
