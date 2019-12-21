@@ -29,6 +29,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void Do_Movement();
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -52,13 +53,14 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "LearnOpenGL", nullptr, nullptr); // Windowed
 	glfwMakeContextCurrent(window);
 
 	// Set the required callback functions
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
@@ -70,82 +72,39 @@ int main()
 	glewExperimental = GL_TRUE;
 	glewInit();
 
-	// Define the viewport dimensions
-	glViewport(0, 0, screenWidth, screenHeight);
-
 	// Setup some OpenGL options
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
 
-	float skyboxVertices[] = {
-	-1.0f,  1.0f, -1.0f,
-	-1.0f, -1.0f, -1.0f,
-	 1.0f, -1.0f, -1.0f,
-	 1.0f, -1.0f, -1.0f,
-	 1.0f,  1.0f, -1.0f,
-	-1.0f,  1.0f, -1.0f,
+	Shader equirectangularToCubemapShader("shaders/6n3/EquilRectangularToCubemap.vs", "shaders/6n3/EquilRectangularToCubemap.fs");
+	Shader skyboxShader("shaders/6n3/skybox.vs", "shaders/6n3/skybox.fs");
+	Shader pbrShader("shaders/6n2/modelPBR.vs", "shaders/6n2/modelPBR.fs");
 
-	-1.0f, -1.0f,  1.0f,
-	-1.0f, -1.0f, -1.0f,
-	-1.0f,  1.0f, -1.0f,
-	-1.0f,  1.0f, -1.0f,
-	-1.0f,  1.0f,  1.0f,
-	-1.0f, -1.0f,  1.0f,
+	unsigned int albedo = Functions::loadTexture("materials/rustedIron/basecolor.png");
+	unsigned int normal = Functions::loadTexture("materials/rustedIron/normal.png");
+	unsigned int metallic = Functions::loadTexture("materials/rustedIron/metallic.png");
+	unsigned int roughness = Functions::loadTexture("materials/rustedIron/roughness.png");
 
-	 1.0f, -1.0f, -1.0f,
-	 1.0f, -1.0f,  1.0f,
-	 1.0f,  1.0f,  1.0f,
-	 1.0f,  1.0f,  1.0f,
-	 1.0f,  1.0f, -1.0f,
-	 1.0f, -1.0f, -1.0f,
 
-	-1.0f, -1.0f,  1.0f,
-	-1.0f,  1.0f,  1.0f,
-	 1.0f,  1.0f,  1.0f,
-	 1.0f,  1.0f,  1.0f,
-	 1.0f, -1.0f,  1.0f,
-	-1.0f, -1.0f,  1.0f,
+	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+	pbrShader.Use();
+	pbrShader.setMat4("projection", projection);
+	pbrShader.setVec3f("albedo", 0.5f, 0.0f, 0.0f);
+	pbrShader.setFloat("ao", 1.0f);
+	pbrShader.setInt("albedoMap", 0);
+	pbrShader.setInt("normalMap", 1);
+	pbrShader.setInt("metallicMap", 2);
+	pbrShader.setInt("roughnessMap", 3);
 
-	-1.0f,  1.0f, -1.0f,
-	 1.0f,  1.0f, -1.0f,
-	 1.0f,  1.0f,  1.0f,
-	 1.0f,  1.0f,  1.0f,
-	-1.0f,  1.0f,  1.0f,
-	-1.0f,  1.0f, -1.0f,
-
-	-1.0f, -1.0f, -1.0f,
-	-1.0f, -1.0f,  1.0f,
-	 1.0f, -1.0f, -1.0f,
-	 1.0f, -1.0f, -1.0f,
-	-1.0f, -1.0f,  1.0f,
-	 1.0f, -1.0f,  1.0f
-	};
-
-	unsigned int skyboxVAO, skyboxVBO;
-	glGenVertexArrays(1, &skyboxVAO);
-	glGenBuffers(1, &skyboxVBO);
-	glBindVertexArray(skyboxVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-
-	std::vector<std::string> faces =
-	{
-		"skyboxes/skybox/right.jpg",
-		"skyboxes/skybox/left.jpg",
-		"skyboxes/skybox/top.jpg",
-		"skyboxes/skybox/bottom.jpg",
-		"skyboxes/skybox/front.jpg",
-		"skyboxes/skybox/back.jpg"
-	};
-	unsigned int skyboxTexture = Functions::loadCubemap(faces);
-	Shader skyboxShader("shaders/4n6/skybox.vs", "shaders/4n6/skybox.fs");
+	skyboxShader.Use();
+	skyboxShader.setMat4("projection", projection);
+	skyboxShader.setInt("environmentMap", 0);
 
 	glm::vec3 lightPositions[] = {
-		glm::vec3(-10.0f,  10.0f, 10.0f),
-		glm::vec3(10.0f,  10.0f, 10.0f),
-		glm::vec3(-10.0f, -10.0f, 10.0f),
-		glm::vec3(10.0f, -10.0f, 10.0f),
+	glm::vec3(-10.0f,  10.0f, 10.0f),
+	glm::vec3(10.0f,  10.0f, 10.0f),
+	glm::vec3(-10.0f, -10.0f, 10.0f),
+	glm::vec3(10.0f, -10.0f, 10.0f),
 	};
 	glm::vec3 lightColors[] = {
 		glm::vec3(300.0f, 300.0f, 300.0f),
@@ -157,54 +116,54 @@ int main()
 	int nrColumns = 7;
 	float spacing = 2.5;
 
-	/*
-	unsigned int depthMapFBO;
-	glGenFramebuffers(1, &depthMapFBO);
-	const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-	unsigned int depthCubemap = Functions::createDepthCubemap(SHADOW_WIDTH, SHADOW_HEIGHT);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	unsigned int captureFBO, captureRBO;
+	unsigned int envCubemap;
+	Functions::loadPBRCubemap(captureFBO, captureRBO, envCubemap);
+	unsigned int hdrTexture = Functions::loadHDRTexture("hdr/walk_of_fame/Mans_Outside_Env.hdr");
 
-	Shader depthShader("shaders/5n4/shadow.vs", "shaders/5n4/shadow.fs", "shaders/5n4/shadow.gs");
-	*/
-	//Shader shaderModel("shaders/5n4/model.vs", "shaders/5n4/model.fs");
-	//Shader shaderModel2("shaders/5n4/model.vs", "shaders/5n4/model.fs");
-	Shader pbrShader("shaders/6n2/modelPBR.vs", "shaders/6n2/modelPBR.fs");
-	unsigned int albedo = Functions::loadTexture("materials/rustedIron/basecolor.png");
-	unsigned int normal = Functions::loadTexture("materials/rustedIron/normal.png");
-	unsigned int metallic = Functions::loadTexture("materials/rustedIron/metallic.png");
-	unsigned int roughness = Functions::loadTexture("materials/rustedIron/roughness.png");
+	glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	{
+		std::vector<glm::mat4> captureViews;
+		captureViews.reserve(6);
+		captureViews.push_back(captureProjection *
+			glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		captureViews.push_back(captureProjection *
+			glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		captureViews.push_back(captureProjection *
+			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+		captureViews.push_back(captureProjection *
+			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+		captureViews.push_back(captureProjection *
+			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+		captureViews.push_back(captureProjection *
+			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
 
 
-	//Model object("models/obiwan/0.obj");
-	//Model model2("models/hatka/hatka_local_.obj");
+		equirectangularToCubemapShader.Use();
+		equirectangularToCubemapShader.setInt("equirectangularMap", 0);
+		equirectangularToCubemapShader.setMat4("projection", captureProjection);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, hdrTexture);
 
-	skyboxShader.Use();
-	skyboxShader.setInt("skybox", 0);
+		glViewport(0, 0, 512, 512);
+		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+		for (unsigned int i = 0; i < 6; ++i)
+		{
+			equirectangularToCubemapShader.setMat4("view", captureViews[i]);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			RenderFunctions::RenderCube();
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
 
-	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-	pbrShader.Use();
-	pbrShader.setMat4("projection", projection);
-	pbrShader.setVec3f("albedo", 0.5f, 0.0f, 0.0f);
-	pbrShader.setFloat("ao", 1.0f);
-	pbrShader.setInt("albedoMap", 0);
-	pbrShader.setInt("normalMap", 1);
-	pbrShader.setInt("metallicMap", 2);
-	pbrShader.setInt("roughnessMap", 3);
-	// Game loop
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_BACK);
-	//glFrontFace(GL_CCW);
-
-	//glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
-
-	/*float aspect = static_cast<float>(SHADOW_WIDTH)/SHADOW_HEIGHT;
-	float near = 1.0f;
-	float far = 25.0f;
-	glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, far);*/
+	int scrWidth, scrHeight;
+	glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
+	glViewport(0, 0, scrWidth, scrHeight);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -218,67 +177,13 @@ int main()
 		glfwPollEvents();
 		Do_Movement();
 
-		//lightPos.z = sin(glfwGetTime() * 0.5) * 3.0;
-		// Clear the colorbuffer
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		/*
-		std::vector<glm::mat4> shadowTransforms;
-		shadowTransforms.reserve(6);
-		shadowTransforms.push_back(shadowProj*
-			glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadowProj*
-			glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadowProj*
-			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-		shadowTransforms.push_back(shadowProj*
-			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-		shadowTransforms.push_back(shadowProj*
-			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadowProj*
-			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
-
-		{
-			glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-			glClear(GL_DEPTH_BUFFER_BIT);
-			depthShader.Use();
-			for (unsigned int i = 0; i < 6; ++i)
-			{
-				std::string shadowMatr = "shadowMatrices[" + std::to_string(i) + "]";
-				depthShader.setMat4(shadowMatr.c_str(), shadowTransforms[i]);
-			}
-			depthShader.setFloat("farPlane", far);
-			depthShader.setVec3f("lightPos", lightPos);
-			glm::mat4 modelMat = glm::mat4(1.0f);
-			modelMat = glm::scale(modelMat, glm::vec3(1.f, 1.f, 1.f));
-			shaderModel2.setMat4("model", modelMat);
-
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		}
-
 		glViewport(0, 0, screenWidth, screenHeight);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		*/
 		
-		{
-			glDepthMask(GL_FALSE);
-			skyboxShader.Use();
-
-			glm::mat4 view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-			skyboxShader.setMat4("view", view);
-			skyboxShader.setMat4("projection", projection);
-			glBindVertexArray(skyboxVAO);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-			glBindVertexArray(0);
-			glDepthMask(GL_TRUE);
-		}
+		glm::mat4 view = camera.GetViewMatrix();
 
 		{
 			pbrShader.Use();
-			glm::mat4 view = camera.GetViewMatrix();
 			pbrShader.setMat4("view", view);
 			pbrShader.setVec3f("camPos", camera.Position);
 
@@ -324,75 +229,19 @@ int main()
 			}
 		}
 
-
-		/*
 		{
-			shaderModel.Use();
-			glm::mat4 view = camera.GetViewMatrix();
-			shaderModel.setMat4("projection", projection);
-			shaderModel.setMat4("view", view);
-
-		
-			glm::mat4 modelMat = glm::mat4(1.0f);
-			modelMat = glm::translate(modelMat, glm::vec3(2.5f, 0.0f, -1.0f));
-			modelMat = glm::scale(modelMat, glm::vec3(0.5f, 0.5f, 0.5f));
-			shaderModel.setMat4("model", modelMat);
-			shaderModel.setVec3f("viewPos", camera.Position);
-			shaderModel.setVec3f("dirLight.position", lightPos);
-			shaderModel.setVec3f("dirLight.direction", -1.0f, -1.0f, -1.0f);
-			shaderModel.setVec3f("dirLight.ambient", 0.2f, 0.2f, 0.2f);
-			shaderModel.setVec3f("dirLight.diffuse", 0.5f, 0.5f, 0.5f);
-			shaderModel.setVec3f("dirLight.specular", 1.0f, 1.0f, 1.0f);
-			shaderModel.setFloat("material.shininess", 4.0f);
-			shaderModel.setVec3f("spotLight.position", camera.Position);
-			shaderModel.setVec3f("spotLight.direction", camera.Front);
-			shaderModel.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-			shaderModel.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
-			shaderModel.setVec3f("spotLight.ambient", 0.1f, 0.1f, 0.1f);
-			shaderModel.setVec3f("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-			shaderModel.setVec3f("spotLight.specular", 1.0f, 1.0f, 1.0f);
-			shaderModel.setInt("depthMap", depthCubemap);
-			shaderModel.setFloat("farPlane", far);
-			model.Draw(&shaderModel);
-		}*/
-		/*
-		{
-			shaderModel2.Use();
-			glm::mat4 view = camera.GetViewMatrix();
-			shaderModel2.setMat4("projection", projection);
-			shaderModel2.setMat4("view", view);
-
-
-			glm::mat4 modelMat = glm::mat4(1.0f);
-			modelMat = glm::scale(modelMat, glm::vec3(1.f, 1.f, 1.f));
-			shaderModel2.setMat4("model", modelMat);
-			shaderModel2.setVec3f("viewPos", camera.Position);
-			shaderModel2.setVec3f("dirLight.position", lightPos);
-			shaderModel2.setVec3f("dirLight.direction", -1.0f, -1.0f, -1.0f);
-			shaderModel2.setVec3f("dirLight.ambient", 0.2f, 0.2f, 0.2f);
-			shaderModel2.setVec3f("dirLight.diffuse", 0.5f, 0.5f, 0.5f);
-			shaderModel2.setVec3f("dirLight.specular", 1.0f, 1.0f, 1.0f);
-			shaderModel2.setFloat("material.shininess", 4.0f);
-			shaderModel2.setVec3f("spotLight.position", camera.Position);
-			shaderModel2.setVec3f("spotLight.direction", camera.Front);
-			shaderModel2.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-			shaderModel2.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
-			shaderModel2.setVec3f("spotLight.ambient", 0.1f, 0.1f, 0.1f);
-			shaderModel2.setVec3f("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-			shaderModel2.setVec3f("spotLight.specular", 1.0f, 1.0f, 1.0f);
-			shaderModel2.setInt("depthMap", depthCubemap);
-			shaderModel2.setFloat("farPlane", far);
-			model2.Draw(&shaderModel2);
-		}*/
-
+			skyboxShader.Use();
+			skyboxShader.setMat4("view", view);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+			RenderFunctions::RenderCube();
+		}
 
 		// Swap the buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 	// Properly de-allocate all resources once they've outlived their purpose
-	glDeleteVertexArrays(1, &skyboxVAO);
-	glDeleteBuffers(1, &skyboxVAO);
 	glfwTerminate();
 	return 0;
 }
@@ -461,6 +310,11 @@ void onUpdate(float deltaTime)
 		fps = 0;
 		elapsedTime = 0.0f;
 	}
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	glViewport(0, 0, width, height);
 }
 
 

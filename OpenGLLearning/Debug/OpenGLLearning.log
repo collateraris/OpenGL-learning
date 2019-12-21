@@ -1,9 +1,9 @@
 ﻿  OpenGLLearning.cpp
-D:\pet_project\OpenGL-learning\OpenGLLearning\RenderFunctions.h(47,33): warning C4305: инициализация: усечение из "double" в "float"
-D:\pet_project\OpenGL-learning\OpenGLLearning\RenderFunctions.h(89,21): warning C4018: <: несоответствие типов со знаком и без знака
-D:\pet_project\OpenGL-learning\OpenGLLearning\RenderFunctions.h(113,51): warning C4244: аргумент: преобразование "float" в "GLsizei", возможна потеря данных
-D:\pet_project\OpenGL-learning\OpenGLLearning\RenderFunctions.h(115,57): warning C4244: аргумент: преобразование "float" в "GLsizei", возможна потеря данных
-D:\pet_project\OpenGL-learning\OpenGLLearning\RenderFunctions.h(117,57): warning C4244: аргумент: преобразование "float" в "GLsizei", возможна потеря данных
+D:\pet_project\OpenGL-learning\OpenGLLearning\RenderFunctions.h(48,33): warning C4305: инициализация: усечение из "double" в "float"
+D:\pet_project\OpenGL-learning\OpenGLLearning\RenderFunctions.h(90,21): warning C4018: <: несоответствие типов со знаком и без знака
+D:\pet_project\OpenGL-learning\OpenGLLearning\RenderFunctions.h(114,51): warning C4244: аргумент: преобразование "float" в "GLsizei", возможна потеря данных
+D:\pet_project\OpenGL-learning\OpenGLLearning\RenderFunctions.h(116,57): warning C4244: аргумент: преобразование "float" в "GLsizei", возможна потеря данных
+D:\pet_project\OpenGL-learning\OpenGLLearning\RenderFunctions.h(118,57): warning C4244: аргумент: преобразование "float" в "GLsizei", возможна потеря данных
 D:\pet_project\OpenGL-learning\OpenGLLearning\Shader.h(152,20): warning C4244: аргумент: преобразование "GLint" в "GLfloat", возможна потеря данных
 D:\pet_project\OpenGL-learning\OpenGLLearning\Mesh.h(120,59): warning C4244: аргумент: преобразование "unsigned int" в "GLfloat", возможна потеря данных
 D:\pet_project\OpenGL-learning\OpenGLLearning\Model.h(36,31): warning C4099: aiNode: имя типа, ранее отображенное с помощью "struct", теперь отображено с помощью "class"
@@ -18,15 +18,15 @@ D:\pet_project\OpenGL-learning\OpenGLLearning\Model.h(38,44): warning C4099: aiM
 D:\pet_project\OpenGL-learning\packages\assimp.v140.3.2\build\native\include\assimp\material.h(630): message : см. объявление "aiMaterial"
 D:\pet_project\OpenGL-learning\OpenGLLearning\Model.h(165,50): warning C4099: aiMaterial: имя типа, ранее отображенное с помощью "struct", теперь отображено с помощью "class"
 D:\pet_project\OpenGL-learning\packages\assimp.v140.3.2\build\native\include\assimp\material.h(630): message : см. объявление "aiMaterial"
-D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(212,24): warning C4244: инициализация: преобразование "double" в "GLfloat", возможна потеря данных
-D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(433,11): warning C4244: =: преобразование "double" в "GLfloat", возможна потеря данных
-D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(434,11): warning C4244: =: преобразование "double" в "GLfloat", возможна потеря данных
-D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(438,18): warning C4244: инициализация: преобразование "double" в "GLfloat", возможна потеря данных
-D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(439,18): warning C4244: инициализация: преобразование "double" в "GLfloat", возможна потеря данных
-D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(441,10): warning C4244: =: преобразование "double" в "GLfloat", возможна потеря данных
-D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(442,10): warning C4244: =: преобразование "double" в "GLfloat", возможна потеря данных
-D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(450,28): warning C4244: аргумент: преобразование "double" в "GLfloat", возможна потеря данных
-D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(459,13): warning C4244: =: преобразование "float" в "unsigned int", возможна потеря данных
+D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(171,24): warning C4244: инициализация: преобразование "double" в "GLfloat", возможна потеря данных
+D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(282,11): warning C4244: =: преобразование "double" в "GLfloat", возможна потеря данных
+D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(283,11): warning C4244: =: преобразование "double" в "GLfloat", возможна потеря данных
+D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(287,18): warning C4244: инициализация: преобразование "double" в "GLfloat", возможна потеря данных
+D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(288,18): warning C4244: инициализация: преобразование "double" в "GLfloat", возможна потеря данных
+D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(290,10): warning C4244: =: преобразование "double" в "GLfloat", возможна потеря данных
+D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(291,10): warning C4244: =: преобразование "double" в "GLfloat", возможна потеря данных
+D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(299,28): warning C4244: аргумент: преобразование "double" в "GLfloat", возможна потеря данных
+D:\pet_project\OpenGL-learning\OpenGLLearning\OpenGLLearning.cpp(308,13): warning C4244: =: преобразование "float" в "unsigned int", возможна потеря данных
 LINK : warning LNK4098: библиотека по умолчанию "LIBCMT" конфликтует с использованием других библиотек; используйте /NODEFAULTLIB:library
 glew32s.lib(glew.obj) : warning LNK4099: "vc120.pdb" PDB не найден с "glew32s.lib(glew.obj)" или на "D:\pet_project\OpenGL-learning\Debug\vc120.pdb"; компоновка объекта выполняется как при отсутствии отладочных данных
   OpenGLLearning.vcxproj -> D:\pet_project\OpenGL-learning\Debug\OpenGLLearning.exe
