@@ -294,11 +294,8 @@ int main()
 			glm::mat4 model = glm::mat4(1.0f);
 			for (int row = 0; row < nrRows; ++row)
 			{
-				pbrShader.setFloat("metallic", static_cast<float>(row)/ nrRows);
 				for (int col = 0; col < nrColumns; ++col)
 				{
-					pbrShader.setFloat("roughness", glm::clamp(static_cast<float>(col)/ nrColumns, 0.05f, 1.0f));
-
 					model = glm::mat4(1.0f);
 					model = glm::translate(model, glm::vec3(
 						(col - (nrColumns / 2)) * spacing,
