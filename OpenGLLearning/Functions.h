@@ -30,7 +30,7 @@ public:
 
 	static unsigned int loadHDRTexture(const char* path);
 
-	static unsigned int loadPBRCubemap();
+	static unsigned int loadPBRCubemap(int width = 512, int height = 512);
 };
 
 GLuint Functions::loadTexture(const char* path)
@@ -146,7 +146,7 @@ unsigned int Functions::loadHDRTexture(const char* path)
 	return hdrTexture;
 }
 
-unsigned int Functions::loadPBRCubemap()
+unsigned int Functions::loadPBRCubemap(int width, int height)
 {
 	unsigned int envCubemap;
 	glGenTextures(1, &envCubemap);
@@ -154,7 +154,7 @@ unsigned int Functions::loadPBRCubemap()
 	for (unsigned int i = 0; i < 6; ++i)
 	{
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F,
-			512, 512, 0, GL_RGB, GL_FLOAT, nullptr);
+			width, height, 0, GL_RGB, GL_FLOAT, nullptr);
 	}
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

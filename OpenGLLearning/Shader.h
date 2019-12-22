@@ -68,7 +68,8 @@ public:
 		if (!success)
 		{
 			glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-			std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+			std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog  << std::endl;
+			std::cout << vertexPath << std::endl;
 		};
 
 		fragment = glCreateShader(GL_FRAGMENT_SHADER);
@@ -81,6 +82,7 @@ public:
 		{
 			glGetShaderInfoLog(vertex, 512, NULL, infoLog);
 			std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+			std::cout << fragmentPath << std::endl;
 		};
 
 		if (geometryPath != "")
@@ -95,6 +97,7 @@ public:
 			{
 				glGetShaderInfoLog(vertex, 512, NULL, infoLog);
 				std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << std::endl;
+				std::cout << geometryPath << std::endl;
 			};
 		}
 

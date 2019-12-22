@@ -78,7 +78,8 @@ int main()
 
 	Shader equirectangularToCubemapShader("shaders/6n3/EquilRectangularToCubemap.vs", "shaders/6n3/EquilRectangularToCubemap.fs");
 	Shader skyboxShader("shaders/6n3/skybox.vs", "shaders/6n3/skybox.fs");
-	Shader pbrShader("shaders/6n2/modelPBR.vs", "shaders/6n2/modelPBR.fs");
+	Shader pbrShader("shaders/6n3/modelPBR.vs", "shaders/6n3/modelPBR.fs");
+	Shader irradianceShader("shaders/6n3/irradiance.vs", "shaders/6n3/irradiance.fs");
 
 	unsigned int albedo = Functions::loadTexture("materials/rustedIron/basecolor.png");
 	unsigned int normal = Functions::loadTexture("materials/rustedIron/normal.png");
@@ -121,7 +122,7 @@ int main()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
 	glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 2048, 2048);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
 	
 	const unsigned int hdrTexture = Functions::loadHDRTexture("hdr/walk_of_fame/Mans_Outside_2k.hdr");
@@ -156,7 +157,29 @@ int main()
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	const unsigned int irradianceMap = Functions::loadPBRCubemap(32, 32);
+	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
 
+	irradianceShader.Use();
+	irradianceShader.setInt("environmentMap", 0);
+	irradianceShader.setMat4("projection", captureProjection);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+
+	glViewport(0, 0, 32, 32);
+	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+	for(unsigned int i = 0; i < 6; ++i)
+	{
+		irradianceShader.setMat4("view", captureViews[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceMap, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		RenderFunctions::RenderCube();
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
 	int scrWidth, scrHeight;
 	glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
 	glViewport(0, 0, scrWidth, scrHeight);
@@ -232,11 +255,6 @@ int main()
 			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 			RenderFunctions::RenderCube();
 
-			/*equirectangularToCubemapShader.Use();
-			equirectangularToCubemapShader.setMat4("view", view);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, hdrTexture);
-			RenderFunctions::RenderCube();*/
 		}
 
 		// Swap the buffers
