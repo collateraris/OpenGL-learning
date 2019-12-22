@@ -85,7 +85,6 @@ int main()
 	unsigned int metallic = Functions::loadTexture("materials/rustedIron/metallic.png");
 	unsigned int roughness = Functions::loadTexture("materials/rustedIron/roughness.png");
 
-
 	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 	pbrShader.Use();
 	pbrShader.setMat4("projection", projection);
@@ -117,49 +116,46 @@ int main()
 	float spacing = 2.5;
 
 	unsigned int captureFBO, captureRBO;
-	unsigned int envCubemap;
-	Functions::loadPBRCubemap(captureFBO, captureRBO, envCubemap);
-	unsigned int hdrTexture = Functions::loadHDRTexture("hdr/walk_of_fame/Mans_Outside_Env.hdr");
+	glGenFramebuffers(1, &captureFBO);
+	glGenRenderbuffers(1, &captureRBO);
 
-	glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
+	
+	const unsigned int hdrTexture = Functions::loadHDRTexture("hdr/walk_of_fame/Mans_Outside_2k.hdr");
+	const unsigned int envCubemap = Functions::loadPBRCubemap();
 
+	const glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+	glm::mat4 captureViews[] =
 	{
-		std::vector<glm::mat4> captureViews;
-		captureViews.reserve(6);
-		captureViews.push_back(captureProjection *
-			glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-		captureViews.push_back(captureProjection *
-			glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-		captureViews.push_back(captureProjection *
-			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-		captureViews.push_back(captureProjection *
-			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-		captureViews.push_back(captureProjection *
-			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-		captureViews.push_back(captureProjection *
-			glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+	};
 
+	equirectangularToCubemapShader.Use();
+	equirectangularToCubemapShader.setInt("equirectangularMap", 0);
+	equirectangularToCubemapShader.setMat4("projection", captureProjection);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, hdrTexture);
 
-		equirectangularToCubemapShader.Use();
-		equirectangularToCubemapShader.setInt("equirectangularMap", 0);
-		equirectangularToCubemapShader.setMat4("projection", captureProjection);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, hdrTexture);
-
-		glViewport(0, 0, 512, 512);
-		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-		for (unsigned int i = 0; i < 6; ++i)
-		{
-			equirectangularToCubemapShader.setMat4("view", captureViews[i]);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			RenderFunctions::RenderCube();
-		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, 512, 512);
+	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+	for (unsigned int i = 0; i < 6; ++i)
+	{
+		equirectangularToCubemapShader.setMat4("view", captureViews[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		RenderFunctions::RenderCube();
 	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
 	int scrWidth, scrHeight;
 	glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
@@ -168,7 +164,7 @@ int main()
 	while (!glfwWindowShouldClose(window))
 	{
 		// Set frame time
-		GLfloat currentFrame = glfwGetTime();
+		const GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		onUpdate(deltaTime);
@@ -177,10 +173,10 @@ int main()
 		glfwPollEvents();
 		Do_Movement();
 
-		glViewport(0, 0, screenWidth, screenHeight);
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		glm::mat4 view = camera.GetViewMatrix();
+		const glm::mat4 view = camera.GetViewMatrix();
 
 		{
 			pbrShader.Use();
@@ -235,6 +231,12 @@ int main()
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 			RenderFunctions::RenderCube();
+
+			/*equirectangularToCubemapShader.Use();
+			equirectangularToCubemapShader.setMat4("view", view);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, hdrTexture);
+			RenderFunctions::RenderCube();*/
 		}
 
 		// Swap the buffers
