@@ -76,10 +76,12 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
-	Shader equirectangularToCubemapShader("shaders/6n3/EquilRectangularToCubemap.vs", "shaders/6n3/EquilRectangularToCubemap.fs");
-	Shader skyboxShader("shaders/6n3/skybox.vs", "shaders/6n3/skybox.fs");
-	Shader pbrShader("shaders/6n3/modelPBR.vs", "shaders/6n3/modelPBR.fs");
-	Shader irradianceShader("shaders/6n3/irradiance.vs", "shaders/6n3/irradiance.fs");
+	Shader equirectangularToCubemapShader("shaders/6n4/EquilRectangularToCubemap.vs", "shaders/6n4/EquilRectangularToCubemap.fs");
+	Shader skyboxShader("shaders/6n4/skybox.vs", "shaders/6n4/skybox.fs");
+	Shader pbrShader("shaders/6n4/modelPBR.vs", "shaders/6n4/modelPBR.fs");
+	Shader irradianceShader("shaders/6n4/irradiance.vs", "shaders/6n4/irradiance.fs");
+	Shader prefilterShader("shaders/6n4/prefilteredColor.vs", "shaders/6n4/prefilteredColor.fs");
+	Shader brdfShader("shaders/6n4/brdf.vs", "shaders/6n4/brdf.fs");
 
 	unsigned int albedo = Functions::loadTexture("materials/rustedIron/basecolor.png");
 	unsigned int normal = Functions::loadTexture("materials/rustedIron/normal.png");
@@ -89,12 +91,11 @@ int main()
 	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 	pbrShader.Use();
 	pbrShader.setMat4("projection", projection);
+	pbrShader.setInt("irradianceMap", 0);
+	pbrShader.setInt("prefilterMap", 1);
+	pbrShader.setInt("brdfLUT", 2);
 	pbrShader.setVec3f("albedo", 0.5f, 0.0f, 0.0f);
 	pbrShader.setFloat("ao", 1.0f);
-	pbrShader.setInt("albedoMap", 0);
-	pbrShader.setInt("normalMap", 1);
-	pbrShader.setInt("metallicMap", 2);
-	pbrShader.setInt("roughnessMap", 3);
 
 	skyboxShader.Use();
 	skyboxShader.setMat4("projection", projection);
@@ -179,6 +180,51 @@ int main()
 		RenderFunctions::RenderCube();
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	const unsigned int prefilterMap = Functions::loadPBRCubemapWithMipMap(128, 128);
+	prefilterShader.Use();
+	prefilterShader.setInt("environmentMap", 0);
+	prefilterShader.setMat4("projection", captureProjection);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+	const unsigned int maxMipLevels = 5;
+	for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
+	{
+		const unsigned int mipWidth = 128 * std::pow(0.5, mip);
+		const unsigned int mipHeight = mipWidth;
+		glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+		glViewport(0, 0, mipWidth, mipHeight);
+
+		const float roughness = static_cast<float>(mip) / (maxMipLevels - 1);
+		prefilterShader.setFloat("roughness", roughness);
+		for (unsigned int i = 0; i < 6; ++i)
+		{
+			prefilterShader.setMat4("view", captureViews[i]);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			
+			RenderFunctions::RenderCube();
+		}
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	const unsigned int brdfLUTTexture = Functions::genTexture16F(512, 512);
+	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
+
+	glViewport(0, 0, 512, 512);
+	brdfShader.Use();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	RenderFunctions::RenderQuad();
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	
 	int scrWidth, scrHeight;
 	glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
@@ -218,8 +264,10 @@ int main()
 			glm::mat4 model = glm::mat4(1.0f);
 			for (int row = 0; row < nrRows; ++row)
 			{
+				pbrShader.setFloat("metallic", (float)row / (float)nrRows);
 				for (int col = 0; col < nrColumns; ++col)
 				{
+					pbrShader.setFloat("roughness", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
 					model = glm::mat4(1.0f);
 					model = glm::translate(model, glm::vec3(
 						(col - (nrColumns / 2)) * spacing,
@@ -252,7 +300,7 @@ int main()
 			skyboxShader.Use();
 			skyboxShader.setMat4("view", view);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
 			RenderFunctions::RenderCube();
 
 		}
