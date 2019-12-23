@@ -13,6 +13,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+
 #ifndef __MODEL_ASSIMP__
 #define __MODEL_ASSIMP__
 
@@ -157,6 +158,11 @@ Mesh* Model::processMesh(aiMesh* mesh, const aiScene* scene)
 		std::vector<Texture> heightMaps;
 		loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height", heightMaps);
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+
+		std::vector<Texture> unknowMaps;
+		loadMaterialTextures(material, aiTextureType_UNKNOWN, "texture_unknow", unknowMaps);
+		textures.insert(textures.end(), unknowMaps.begin(), unknowMaps.end());
+
 	}
 
 	return new Mesh(vertices, indices, textures);

@@ -12,6 +12,8 @@ d 1.000000
 illum 1
 map_Bump tex\\branch_Normal_OpenGL.png
 map_Kd tex\\branch_Base_Color.png
+map_Pm tex\\branch_Metallic.png
+map_Pr tex\\branch_Roughness.png
 
 newmtl grass
 Ns 10.000002
@@ -23,7 +25,6 @@ Ni 1.500000
 d 1.000000
 illum 1
 map_Kd tex\\grass.jpg
-map_d tex\\grass.jpg
 
 newmtl grunt
 Ns 10.000002

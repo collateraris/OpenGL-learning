@@ -5,9 +5,6 @@
 
 #include <GLFW/glfw3.h>
 
-// Other Libs
-#include <SOIL/SOIL.h>
-
 #include <string>
 #include <iostream>
 #include <vector>
@@ -42,12 +39,20 @@ GLuint Functions::loadTexture(const char* path)
 	GLuint textureID;
 	glGenTextures(1, &textureID);
 
-	int width = 0, height = 0;
-	unsigned char* image = SOIL_load_image(path, &width, &height, 0, SOIL_LOAD_RGB);
+	int width = 0, height = 0, nrComponents;
+	unsigned char* image = stbi_load(path, &width, &height, &nrComponents, 0);
 	if (image)
 	{
+		GLenum format;
+		if (nrComponents == 1)
+			format = GL_RED;
+		else if (nrComponents == 3)
+			format = GL_RGB;
+		else if (nrComponents == 4)
+			format = GL_RGBA;
+		
 		glBindTexture(GL_TEXTURE_2D, textureID);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, image);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -61,7 +66,7 @@ GLuint Functions::loadTexture(const char* path)
 		std::cout << "Texture failed to load at path: " << path << std::endl;
 	}
 
-	SOIL_free_image_data(image);
+	stbi_image_free(image);
 
 	return textureID;
 }
@@ -80,20 +85,28 @@ unsigned int Functions::loadCubemap(std::vector<std::string>& faces)
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
-	int width = 0, height = 0;
+	int width = 0, height = 0, nrComponents;
 
 	for (unsigned  int i = 0; i < faces.size(); ++i)
 	{
-		unsigned char* image = SOIL_load_image(faces[i].c_str(), &width, &height, 0, SOIL_LOAD_RGB);
+		unsigned char* image = stbi_load(faces[i].c_str(), &width, &height, &nrComponents, 0);
 		if (image)
 		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+			GLenum format;
+			if (nrComponents == 1)
+				format = GL_RED;
+			else if (nrComponents == 3)
+				format = GL_RGB;
+			else if (nrComponents == 4)
+				format = GL_RGBA;
+			
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, image);
 		}
 		else
 		{
 			std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
 		}
-		SOIL_free_image_data(image);
+		stbi_image_free(image);
 	}
 
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

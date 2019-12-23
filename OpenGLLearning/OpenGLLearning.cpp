@@ -82,12 +82,16 @@ int main()
 	Shader irradianceShader("shaders/6n4/irradiance.vs", "shaders/6n4/irradiance.fs");
 	Shader prefilterShader("shaders/6n4/prefilteredColor.vs", "shaders/6n4/prefilteredColor.fs");
 	Shader brdfShader("shaders/6n4/brdf.vs", "shaders/6n4/brdf.fs");
+	Shader pbrModelShader("shaders/6n4/complexModelPBR.vs", "shaders/6n4/complexModelPBR.fs");
 
-	unsigned int albedo = Functions::loadTexture("materials/rustedIron/basecolor.png");
-	unsigned int normal = Functions::loadTexture("materials/rustedIron/normal.png");
-	unsigned int metallic = Functions::loadTexture("materials/rustedIron/metallic.png");
-	unsigned int roughness = Functions::loadTexture("materials/rustedIron/roughness.png");
 
+	unsigned int SciFiAlbedoMap = Functions::loadTexture("materials/sci-fi/sci-fi-panel1-albedo.png");
+	unsigned int SciFiNormalMap = Functions::loadTexture("materials/sci-fi/sci-fi-panel1-normal-dx.png");
+	unsigned int SciFiMetallicMap = Functions::loadTexture("materials/sci-fi/sci-fi-panel1-metallic.png");
+	unsigned int SciFiRoughnessMap = Functions::loadTexture("materials/sci-fi/sci-fi-panel1-roughness.png");
+	unsigned int SciFiAOMap = Functions::loadTexture("materials/sci-fi/sci-fi-panel1-ao.png");
+
+	
 	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 	pbrShader.Use();
 	pbrShader.setMat4("projection", projection);
@@ -96,6 +100,16 @@ int main()
 	pbrShader.setInt("brdfLUT", 2);
 	pbrShader.setVec3f("albedo", 0.5f, 0.0f, 0.0f);
 	pbrShader.setFloat("ao", 1.0f);
+
+	pbrModelShader.Use();
+	pbrModelShader.setInt("irradianceMap", 0);
+	pbrModelShader.setInt("prefilterMap", 1);
+	pbrModelShader.setInt("brdfLUT", 2);
+	pbrModelShader.setInt("albedoMap", 3);
+	pbrModelShader.setInt("normalMap", 4);
+	pbrModelShader.setInt("metallicMap", 5);
+	pbrModelShader.setInt("roughnessMap", 6);
+	pbrModelShader.setInt("aoMap", 7);
 
 	skyboxShader.Use();
 	skyboxShader.setMat4("projection", projection);
@@ -246,22 +260,51 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		const glm::mat4 view = camera.GetViewMatrix();
+		glm::mat4 model = glm::mat4(1.0f);
 
 		{
+			pbrModelShader.setMat4("view", view);
+			pbrModelShader.setVec3f("camPos", camera.Position);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, SciFiAlbedoMap);
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_2D, SciFiNormalMap);
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_2D, SciFiMetallicMap);
+			glActiveTexture(GL_TEXTURE6);
+			glBindTexture(GL_TEXTURE_2D, SciFiRoughnessMap);
+			glActiveTexture(GL_TEXTURE7);
+			glBindTexture(GL_TEXTURE_2D, SciFiAOMap);
+
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, glm::vec3(-5.0, 0.0, 2.0));
+			pbrModelShader.setMat4("model", model);
+			RenderFunctions::RenderSphere();
+		}
+
+		{
+			
 			pbrShader.Use();
 			pbrShader.setMat4("view", view);
 			pbrShader.setVec3f("camPos", camera.Position);
 
-			glActiveTexture(GL_TEXTURE0);
+			/*glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, albedo);
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, normal);
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, metallic);
 			glActiveTexture(GL_TEXTURE3);
-			glBindTexture(GL_TEXTURE_2D, roughness);
+			glBindTexture(GL_TEXTURE_2D, roughness);*/
 
-			glm::mat4 model = glm::mat4(1.0f);
 			for (int row = 0; row < nrRows; ++row)
 			{
 				pbrShader.setFloat("metallic", (float)row / (float)nrRows);
@@ -277,7 +320,7 @@ int main()
 					pbrShader.setMat4("model", model);
 					RenderFunctions::RenderSphere();
 				}
-			}
+			}			
 
 			for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
 			{
@@ -296,11 +339,12 @@ int main()
 			}
 		}
 
+		
 		{
 			skyboxShader.Use();
 			skyboxShader.setMat4("view", view);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 			RenderFunctions::RenderCube();
 
 		}
