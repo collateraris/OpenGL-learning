@@ -25,6 +25,8 @@ public:
 
 	static unsigned int createDepthCubemap(int width, int height);
 
+	static unsigned int createDepthTexDir(int width, int height);
+
 	static unsigned int loadHDRTexture(const char* path);
 
 	static unsigned int loadPBRCubemap(int width = 512, int height = 512);
@@ -116,6 +118,20 @@ unsigned int Functions::loadCubemap(std::vector<std::string>& faces)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	return textureID;
+}
+
+unsigned int Functions::createDepthTexDir(int width, int height)
+{
+	unsigned int depthMap;
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	return depthMap;
 }
 
 unsigned int Functions::createDepthCubemap(int width, int height)

@@ -76,173 +76,56 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
-	Shader equirectangularToCubemapShader("shaders/6n4/EquilRectangularToCubemap.vs", "shaders/6n4/EquilRectangularToCubemap.fs");
-	Shader skyboxShader("shaders/6n4/skybox.vs", "shaders/6n4/skybox.fs");
-	Shader pbrShader("shaders/6n4/modelPBR.vs", "shaders/6n4/modelPBR.fs");
-	Shader irradianceShader("shaders/6n4/irradiance.vs", "shaders/6n4/irradiance.fs");
-	Shader prefilterShader("shaders/6n4/prefilteredColor.vs", "shaders/6n4/prefilteredColor.fs");
-	Shader brdfShader("shaders/6n4/brdf.vs", "shaders/6n4/brdf.fs");
-	Shader pbrModelShader("shaders/6n4/complexModelPBR.vs", "shaders/6n4/complexModelPBR.fs");
-
-
-	unsigned int SciFiAlbedoMap = Functions::loadTexture("materials/sci-fi/sci-fi-panel1-albedo.png");
-	unsigned int SciFiNormalMap = Functions::loadTexture("materials/sci-fi/sci-fi-panel1-normal-dx.png");
-	unsigned int SciFiMetallicMap = Functions::loadTexture("materials/sci-fi/sci-fi-panel1-metallic.png");
-	unsigned int SciFiRoughnessMap = Functions::loadTexture("materials/sci-fi/sci-fi-panel1-roughness.png");
-	unsigned int SciFiAOMap = Functions::loadTexture("materials/sci-fi/sci-fi-panel1-ao.png");
-
+	Shader depthShader("shaders/5n3/shadow.vs", "shaders/5n3/shadow.fs");
+	Shader shadowShader("shaders/5n3/modelSimple.vs", "shaders/5n3/modelSimple.fs");
 	
-	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-	pbrShader.Use();
-	pbrShader.setMat4("projection", projection);
-	pbrShader.setInt("irradianceMap", 0);
-	pbrShader.setInt("prefilterMap", 1);
-	pbrShader.setInt("brdfLUT", 2);
-	pbrShader.setVec3f("albedo", 0.5f, 0.0f, 0.0f);
-	pbrShader.setFloat("ao", 1.0f);
-
-	pbrModelShader.Use();
-	pbrModelShader.setInt("irradianceMap", 0);
-	pbrModelShader.setInt("prefilterMap", 1);
-	pbrModelShader.setInt("brdfLUT", 2);
-	pbrModelShader.setInt("albedoMap", 3);
-	pbrModelShader.setInt("normalMap", 4);
-	pbrModelShader.setInt("metallicMap", 5);
-	pbrModelShader.setInt("roughnessMap", 6);
-	pbrModelShader.setInt("aoMap", 7);
-
-	skyboxShader.Use();
-	skyboxShader.setMat4("projection", projection);
-	skyboxShader.setInt("environmentMap", 0);
-
-	glm::vec3 lightPositions[] = {
-	glm::vec3(-10.0f,  10.0f, 10.0f),
-	glm::vec3(10.0f,  10.0f, 10.0f),
-	glm::vec3(-10.0f, -10.0f, 10.0f),
-	glm::vec3(10.0f, -10.0f, 10.0f),
-	};
-	glm::vec3 lightColors[] = {
-		glm::vec3(300.0f, 300.0f, 300.0f),
-		glm::vec3(300.0f, 300.0f, 300.0f),
-		glm::vec3(300.0f, 300.0f, 300.0f),
-		glm::vec3(300.0f, 300.0f, 300.0f)
-	};
-	int nrRows = 7;
-	int nrColumns = 7;
-	float spacing = 2.5;
-
-	unsigned int captureFBO, captureRBO;
-	glGenFramebuffers(1, &captureFBO);
-	glGenRenderbuffers(1, &captureRBO);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 2048, 2048);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
-	
-	const unsigned int hdrTexture = Functions::loadHDRTexture("hdr/walk_of_fame/Mans_Outside_2k.hdr");
-	const unsigned int envCubemap = Functions::loadPBRCubemap();
-
-	const glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-	glm::mat4 captureViews[] =
-	{
-	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
-	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
-	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-	   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(2.0f, 5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f, 3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f, 2.0f, -2.5f),
+		glm::vec3(1.5f, 0.2f, -1.5f),
+		glm::vec3(-1.3f, 1.0f, -1.5f)
 	};
 
-	equirectangularToCubemapShader.Use();
-	equirectangularToCubemapShader.setInt("equirectangularMap", 0);
-	equirectangularToCubemapShader.setMat4("projection", captureProjection);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, hdrTexture);
+	unsigned int girlTexture = Functions::loadTexture("girl.jpg");
 
-	glViewport(0, 0, 512, 512);
-	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-	for (unsigned int i = 0; i < 6; ++i)
-	{
-		equirectangularToCubemapShader.setMat4("view", captureViews[i]);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		RenderFunctions::RenderCube();
-	}
+	unsigned int depthMapFBO;
+	glGenFramebuffers(1, &depthMapFBO);
+
+	const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+	unsigned int depthMap = Functions::createDepthTexDir(SHADOW_WIDTH, SHADOW_HEIGHT);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	const unsigned int irradianceMap = Functions::loadPBRCubemap(32, 32);
-	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
+	float nearPlane = 1.0f;
+	float fatPlane = 7.5f;
+	glm::mat4 lightProjection = glm::ortho(-10.f, 10.f, -10.f, 10.f, nearPlane, fatPlane);
 
-	irradianceShader.Use();
-	irradianceShader.setInt("environmentMap", 0);
-	irradianceShader.setMat4("projection", captureProjection);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+	glm::mat4 lightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f),
+									glm::vec3(0.0f, 0.0f, 0.0f),
+									glm::vec3(0.0f, 1.0f, 0.0f));
 
-	glViewport(0, 0, 32, 32);
-	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-	for(unsigned int i = 0; i < 6; ++i)
-	{
-		irradianceShader.setMat4("view", captureViews[i]);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceMap, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
-		RenderFunctions::RenderCube();
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glm::mat4 model = glm::mat4(1.0f);
 
-	const unsigned int prefilterMap = Functions::loadPBRCubemapWithMipMap(128, 128);
-	prefilterShader.Use();
-	prefilterShader.setInt("environmentMap", 0);
-	prefilterShader.setMat4("projection", captureProjection);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+	shadowShader.Use();
+	shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+	shadowShader.setVec3f("lightPos", glm::vec3(-10.f, 10.f, -10.f));
+	shadowShader.setInt("diffuseTexture", 0);
+	shadowShader.setInt("shadowMap", 1);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-	const unsigned int maxMipLevels = 5;
-	for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
-	{
-		const unsigned int mipWidth = 128 * std::pow(0.5, mip);
-		const unsigned int mipHeight = mipWidth;
-		glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
-		glViewport(0, 0, mipWidth, mipHeight);
-
-		const float roughness = static_cast<float>(mip) / (maxMipLevels - 1);
-		prefilterShader.setFloat("roughness", roughness);
-		for (unsigned int i = 0; i < 6; ++i)
-		{
-			prefilterShader.setMat4("view", captureViews[i]);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			
-			RenderFunctions::RenderCube();
-		}
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	const unsigned int brdfLUTTexture = Functions::genTexture16F(512, 512);
-	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
-
-	glViewport(0, 0, 512, 512);
-	brdfShader.Use();
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	RenderFunctions::RenderQuad();
-	
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	
-	int scrWidth, scrHeight;
-	glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
-	glViewport(0, 0, scrWidth, scrHeight);
+	depthShader.Use();
+	depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -259,96 +142,31 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		const glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 model = glm::mat4(1.0f);
-
+		shadowShader.Use();
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		shadowShader.setMat4("view", camera.GetViewMatrix());
+		shadowShader.setVec3f("viewPos", camera.Position);
+		for (GLuint i = 0; i < 10; i++)
 		{
-			pbrModelShader.setMat4("view", view);
-			pbrModelShader.setVec3f("camPos", camera.Position);
-
+			// Calculate the model matrix for each object and pass it to shader before drawing
+			glm::mat4 model = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+			model = glm::translate(model, cubePositions[i]);
+			GLfloat angle = 20.0f * i;
+			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
+			depthShader.Use();
+			depthShader.setMat4("model", model);
+			shadowShader.Use();
+			shadowShader.setMat4("model", model);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+			glBindTexture(GL_TEXTURE_2D, girlTexture);
 			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
-
-			glActiveTexture(GL_TEXTURE3);
-			glBindTexture(GL_TEXTURE_2D, SciFiAlbedoMap);
-			glActiveTexture(GL_TEXTURE4);
-			glBindTexture(GL_TEXTURE_2D, SciFiNormalMap);
-			glActiveTexture(GL_TEXTURE5);
-			glBindTexture(GL_TEXTURE_2D, SciFiMetallicMap);
-			glActiveTexture(GL_TEXTURE6);
-			glBindTexture(GL_TEXTURE_2D, SciFiRoughnessMap);
-			glActiveTexture(GL_TEXTURE7);
-			glBindTexture(GL_TEXTURE_2D, SciFiAOMap);
-
-			model = glm::mat4(1.0f);
-			model = glm::translate(model, glm::vec3(-5.0, 0.0, 2.0));
-			pbrModelShader.setMat4("model", model);
+			glBindTexture(GL_TEXTURE_2D, depthMap);
 			RenderFunctions::RenderSphere();
 		}
 
-		{
-			
-			pbrShader.Use();
-			pbrShader.setMat4("view", view);
-			pbrShader.setVec3f("camPos", camera.Position);
-
-			/*glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, albedo);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, normal);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, metallic);
-			glActiveTexture(GL_TEXTURE3);
-			glBindTexture(GL_TEXTURE_2D, roughness);*/
-
-			for (int row = 0; row < nrRows; ++row)
-			{
-				pbrShader.setFloat("metallic", (float)row / (float)nrRows);
-				for (int col = 0; col < nrColumns; ++col)
-				{
-					pbrShader.setFloat("roughness", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
-					model = glm::mat4(1.0f);
-					model = glm::translate(model, glm::vec3(
-						(col - (nrColumns / 2)) * spacing,
-						(row - (nrRows / 2)) * spacing,
-						0.0f
-					));
-					pbrShader.setMat4("model", model);
-					RenderFunctions::RenderSphere();
-				}
-			}			
-
-			for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
-			{
-				glm::vec3 newPos = lightPositions[i] + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
-				newPos = lightPositions[i];
-				std::string lightPosStr = "lightPositions[" + std::to_string(i) + "]";
-				pbrShader.setVec3f(lightPosStr.c_str(), newPos);
-				std::string lightColStr = "lightColors[" + std::to_string(i) + "]";
-				pbrShader.setVec3f(lightColStr.c_str(), lightColors[i]);
-
-				model = glm::mat4(1.0f);
-				model = glm::translate(model, newPos);
-				model = glm::scale(model, glm::vec3(0.5f));
-				pbrShader.setMat4("model", model);
-				RenderFunctions::RenderSphere();
-			}
-		}
-
-		
-		{
-			skyboxShader.Use();
-			skyboxShader.setMat4("view", view);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
-			RenderFunctions::RenderCube();
-
-		}
-
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// Swap the buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
