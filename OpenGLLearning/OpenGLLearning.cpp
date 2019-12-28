@@ -92,7 +92,7 @@ int main()
 		glm::vec3(-1.3f, 1.0f, -1.5f)
 	};
 
-	unsigned int girlTexture = Functions::loadTexture("girl.jpg");
+	unsigned int girlTexture = Functions::loadTexture("bricks.jpg");
 
 	float planeVertices[] = {
 		// positions            // normals         // texcoords
@@ -177,22 +177,28 @@ int main()
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
 
-		glm::mat4 model = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		// floor
+		glm::mat4 model = glm::mat4(1.0f);
 		depthShader.setMat4("model", model);
 		glBindVertexArray(planeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		for (GLuint i = 0; i < 10; i++)
-		{
-			// Calculate the model matrix for each object and pass it to shader before drawing
-			glm::mat4 model = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-			model = glm::translate(model, cubePositions[i]);
-			GLfloat angle = 20.0f * i;
-			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
-			depthShader.Use();
-			depthShader.setMat4("model", model);
-			RenderFunctions::RenderCube();
-		}
+		// cubes
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
+		model = glm::scale(model, glm::vec3(0.5f));
+		depthShader.setMat4("model", model);
+		RenderFunctions::RenderCube();
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0));
+		model = glm::scale(model, glm::vec3(0.5f));
+		depthShader.setMat4("model", model);
+		RenderFunctions::RenderCube();
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-1.0f, 0.0f, 2.0));
+		model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+		model = glm::scale(model, glm::vec3(0.25));
+		depthShader.setMat4("model", model);
+		RenderFunctions::RenderCube();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
@@ -214,16 +220,29 @@ int main()
 		glBindVertexArray(planeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		
-		for (GLuint i = 0; i < 10; i++)
-		{
-			// Calculate the model matrix for each object and pass it to shader before drawing
-			glm::mat4 model = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-			model = glm::translate(model, cubePositions[i]);
-			GLfloat angle = 20.0f * i;
-			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
-			shadowShader.setMat4("model", model);
-			RenderFunctions::RenderCube();
-		}
+		// floor
+		model = glm::mat4(1.0f);
+		shadowShader.setMat4("model", model);
+		glBindVertexArray(planeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		// cubes
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
+		model = glm::scale(model, glm::vec3(0.5f));
+		shadowShader.setMat4("model", model);
+		RenderFunctions::RenderCube();
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0));
+		model = glm::scale(model, glm::vec3(0.5f));
+		shadowShader.setMat4("model", model);
+		RenderFunctions::RenderCube();
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-1.0f, 0.0f, 2.0));
+		model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+		model = glm::scale(model, glm::vec3(0.25));
+		shadowShader.setMat4("model", model);
+		RenderFunctions::RenderCube();
+		
 
 		// Swap the buffers
 		glfwSwapBuffers(window);
@@ -304,5 +323,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
+
+
 
 
