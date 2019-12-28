@@ -94,6 +94,31 @@ int main()
 
 	unsigned int girlTexture = Functions::loadTexture("girl.jpg");
 
+	float planeVertices[] = {
+		// positions            // normals         // texcoords
+		 25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
+		-25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+		-25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
+
+		 25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
+		-25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
+		 25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,  25.0f, 25.0f
+	};
+	// plane VAO
+	unsigned int planeVBO, planeVAO;
+	glGenVertexArrays(1, &planeVAO);
+	glGenBuffers(1, &planeVBO);
+	glBindVertexArray(planeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glBindVertexArray(0);
+
 	unsigned int depthMapFBO;
 	glGenFramebuffers(1, &depthMapFBO);
 
@@ -115,12 +140,14 @@ int main()
 									glm::vec3(0.0f, 1.0f, 0.0f));
 
 	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+	glm::vec3 lightPos(-2.0f, 10.0f, -1.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 
 	glm::mat4 model = glm::mat4(1.0f);
 
 	shadowShader.Use();
 	shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-	shadowShader.setVec3f("lightPos", glm::vec3(-10.f, 10.f, -10.f));
+	shadowShader.setVec3f("lightPos", lightPos);
 	shadowShader.setInt("diffuseTexture", 0);
 	shadowShader.setInt("shadowMap", 1);
 
@@ -142,12 +169,19 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		shadowShader.Use();
+		depthShader.Use();
 		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		shadowShader.setMat4("view", camera.GetViewMatrix());
-		shadowShader.setVec3f("viewPos", camera.Position);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+
+		glm::mat4 model = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		depthShader.setMat4("model", model);
+		glBindVertexArray(planeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
 		for (GLuint i = 0; i < 10; i++)
 		{
 			// Calculate the model matrix for each object and pass it to shader before drawing
@@ -157,16 +191,40 @@ int main()
 			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
 			depthShader.Use();
 			depthShader.setMat4("model", model);
-			shadowShader.Use();
+			RenderFunctions::RenderCube();
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+		glViewport(0, 0, screenWidth, screenHeight);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		shadowShader.Use();
+		shadowShader.setMat4("projection", projection);
+		shadowShader.setMat4("view", camera.GetViewMatrix());
+		shadowShader.setVec3f("viewPos", camera.Position);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, girlTexture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+
+		model = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		shadowShader.setMat4("model", model);
+		glBindVertexArray(planeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		
+		for (GLuint i = 0; i < 10; i++)
+		{
+			// Calculate the model matrix for each object and pass it to shader before drawing
+			glm::mat4 model = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+			model = glm::translate(model, cubePositions[i]);
+			GLfloat angle = 20.0f * i;
+			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
 			shadowShader.setMat4("model", model);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, girlTexture);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, depthMap);
-			RenderFunctions::RenderSphere();
+			RenderFunctions::RenderCube();
 		}
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// Swap the buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
