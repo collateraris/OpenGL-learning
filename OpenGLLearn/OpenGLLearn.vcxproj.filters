@@ -23,5 +23,8 @@
     <ClInclude Include="Lessons\1n3\main1n3.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="Lessons\1n4\main1n4.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
