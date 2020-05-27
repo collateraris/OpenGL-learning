@@ -63,28 +63,41 @@ namespace lesson_1n6
 		glEnableVertexAttribArray(2);
 
 		glBindVertexArray(0);
+		
+		GLuint texture , texture1;
+		{
+			glGenTextures(1, &texture);
+			glBindTexture(GL_TEXTURE_2D, texture);
 
-		GLfloat texCoords[] = {
-			0.0f, 0.0f,  // Нижний левый угол 
-			1.0f, 0.0f,  // Нижний правый угол
-			0.5f, 1.0f   // Верхняя центральная сторона
-		};
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
-		int width, height, nrComponents;
-		unsigned char* image = stbi_load("content/tex/container.jpg", &width, &height, &nrComponents, 0);
+			int width, height, nrComponents;
+			unsigned char* image = stbi_load("content/tex/container.jpg", &width, &height, &nrComponents, 0);
 
-		GLuint texture;
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+			glGenerateMipmap(GL_TEXTURE_2D);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+			stbi_image_free(image);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-		glGenerateMipmap(GL_TEXTURE_2D);
+		{
+			glGenTextures(1, &texture1);
+			glBindTexture(GL_TEXTURE_2D, texture1);
 
-		stbi_image_free(image);
-		glBindTexture(GL_TEXTURE_2D, 0);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+			int width, height, nrComponents;
+			unsigned char* image = stbi_load("content/tex/awesomeface.png", &width, &height, &nrComponents, 0);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+			glGenerateMipmap(GL_TEXTURE_2D);
+
+			stbi_image_free(image);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
 
 		//wireframe
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -99,7 +112,15 @@ namespace lesson_1n6
 
 			// Команды отрисовки здесь
 			triangleShader.Use();
+
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, texture);
+			glUniform1i(glGetUniformLocation(triangleShaderProgram, "ourTexture"), 0);
+
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, texture1);
+			glUniform1i(glGetUniformLocation(triangleShaderProgram, "ourTexture1"), 1);
+
 			glBindVertexArray(VAO);
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
@@ -107,6 +128,10 @@ namespace lesson_1n6
 			// Меняем буферы местами
 			glfwSwapBuffers(window);
 		}
+
+		glDeleteVertexArrays(1, &VAO);
+		glDeleteBuffers(1, &VBO);
+		glDeleteBuffers(1, &EBO);
 
 		glfwTerminate();
 		return 0;		
