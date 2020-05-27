@@ -95,19 +95,19 @@ namespace lesson_1n4
 			 0.5f,  0.5f, 0.0f,  // Верхний правый угол
 			 0.5f, -0.5f, 0.0f,  // Нижний правый угол
 			-0.5f,  0.5f, 0.0f,  // Верхний левый угол
+		};
+
+		GLfloat vertices2[] = {
 			// Второй треугольник
 			 0.5f, -0.5f, 0.0f,  // Нижний правый угол
 			-0.5f, -0.5f, 0.0f,  // Нижний левый угол
 			-0.5f,  0.5f, 0.0f   // Верхний левый угол
 		};
 
-		GLuint VBO;
-		glGenBuffers(1, &VBO);
-
-		GLuint VAO;
+		GLuint VAO, VBO;
 		glGenVertexArrays(1, &VAO);
+		glGenBuffers(1, &VBO);
 		glBindVertexArray(VAO);
-
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
@@ -115,8 +115,19 @@ namespace lesson_1n4
 
 		glBindVertexArray(0);
 
+		GLuint VAO2, VBO2;
+		glGenVertexArrays(1, &VAO2);
+		glGenBuffers(1, &VBO2);
+		glBindVertexArray(VAO2);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
+
+		glBindVertexArray(0);
+
 		//wireframe
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		//игровой цикл
 		while (!glfwWindowShouldClose(window))
@@ -128,7 +139,10 @@ namespace lesson_1n4
 			glUseProgram(shaderProgram);
 			glBindVertexArray(VAO);
 			glDrawArrays(GL_TRIANGLES, 0, 3);
-			glDrawArrays(GL_TRIANGLES, 3, 3);
+			glBindVertexArray(0);
+
+			glBindVertexArray(VAO2);
+			glDrawArrays(GL_TRIANGLES, 0, 3);
 			glBindVertexArray(0);
 
 			// Меняем буферы местами
