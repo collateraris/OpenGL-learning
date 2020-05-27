@@ -3,11 +3,11 @@
 
 #include <GLFW\glfw3.h>
 
-#include "Lessons/1n4/main1n4.h"
+#include "Lessons/1n5_shaders/main1n5.h"
 
 int main()
 {
-	return lesson_1n4::lesson_main();
+	return lesson_1n5::lesson_main();
 }
 
 
