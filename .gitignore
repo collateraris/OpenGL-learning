@@ -47,3 +47,6 @@
 *.pdb
 *.log
 *.log
+*.opendb
+*.db-shm
+*.db-wal
