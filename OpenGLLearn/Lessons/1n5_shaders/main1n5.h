@@ -50,7 +50,10 @@ namespace lesson_1n5
 		//wireframe
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+		GLfloat rightShiftInt = 0.5f;
+
 		GLuint triangleShaderProgram = triangleShader.GetProgramID();
+
 		//игровой цикл
 		while (!glfwWindowShouldClose(window))
 		{
@@ -59,6 +62,7 @@ namespace lesson_1n5
 
 			//  оманды отрисовки здесь
 			triangleShader.Use();
+			glUniform1f(glGetUniformLocation(triangleShaderProgram, "rightShiftX"), rightShiftInt);
 			glBindVertexArray(VAO);
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 			glBindVertexArray(0);
