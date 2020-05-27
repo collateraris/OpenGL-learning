@@ -27,9 +27,12 @@ namespace lesson_1n5
 
 		const GLchar* vertexShaderSource = "#version 330 core\n"
 			"layout (location = 0) in vec3 position;\n"
+			"layout (location = 1) in vec3 color;"
+			"out vec3 ourColor;"
 			"void main()\n"
 			"{\n"
 			"gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
+			"ourColor = color;\n"
 			"}\0";
 		glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
 		glCompileShader(vertexShader);
@@ -51,11 +54,11 @@ namespace lesson_1n5
 		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
 		const GLchar* fragmentShaderSource = "#version 330 core\n"
+			"in vec3 ourColor;\n"
 			"out vec4 color;\n"
-			"uniform vec4 ourColor;\n"
 			"void main()\n"
 			"{\n"
-			"color = ourColor;\n"
+			"color = vec4(ourColor, 1.0f);\n"
 			"}\n\0";
 		glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
 		glCompileShader(fragmentShader);
@@ -92,10 +95,10 @@ namespace lesson_1n5
 		glDeleteShader(fragmentShader);
 
 		GLfloat vertices[] = {
-			// Первый треугольник
-			 0.5f,  0.5f, 0.0f,  // Верхний правый угол
-			 0.5f, -0.5f, 0.0f,  // Нижний правый угол
-			-0.5f,  0.5f, 0.0f,  // Верхний левый угол
+			// Позиции         // Цвета
+			 0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // Нижний правый угол
+			-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // Нижний левый угол
+			 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // Верхний угол
 		};
 
 		GLuint VAO, VBO;
@@ -104,8 +107,10 @@ namespace lesson_1n5
 		glBindVertexArray(VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(1);
 
 		glBindVertexArray(0);
 
