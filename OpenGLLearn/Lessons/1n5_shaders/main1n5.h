@@ -7,6 +7,8 @@
 
 #include <iostream>
 
+#include "Shader.h"
+
 namespace lesson_1n5
 {
 	int lesson_main();
@@ -15,84 +17,15 @@ namespace lesson_1n5
 
 	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
-
 	int lesson_main()
 	{
 		GLFWwindow* window;
 		if ((window = init()) == nullptr) return -1;
 
 		//Сборка шейдера
-		GLuint vertexShader;
-		vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		CShader triangleShader;
+		if (!triangleShader.Init("Lessons/1n5_shaders/shaders/triangle.vs", "Lessons/1n5_shaders/shaders/triangle.fs")) return -1;
 
-		const GLchar* vertexShaderSource = "#version 330 core\n"
-			"layout (location = 0) in vec3 position;\n"
-			"layout (location = 1) in vec3 color;"
-			"out vec3 ourColor;"
-			"void main()\n"
-			"{\n"
-			"gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
-			"ourColor = color;\n"
-			"}\0";
-		glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-		glCompileShader(vertexShader);
-
-
-		{
-			GLint success;
-			GLchar infoLog[512];
-			glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-			if (!success)
-			{
-				glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-				std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-				return -1;
-			}
-		}
-
-		GLuint fragmentShader;
-		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-		const GLchar* fragmentShaderSource = "#version 330 core\n"
-			"in vec3 ourColor;\n"
-			"out vec4 color;\n"
-			"void main()\n"
-			"{\n"
-			"color = vec4(ourColor, 1.0f);\n"
-			"}\n\0";
-		glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-		glCompileShader(fragmentShader);
-
-		{
-			GLint success;
-			GLchar infoLog[512];
-			glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-			if (!success)
-			{
-				glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-				std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-				return -1;
-			}
-		}
-
-		GLuint shaderProgram;
-		shaderProgram = glCreateProgram();
-
-		glAttachShader(shaderProgram, vertexShader);
-		glAttachShader(shaderProgram, fragmentShader);
-		glLinkProgram(shaderProgram);
-
-		{
-			GLint success;
-			GLchar infoLog[512];
-			glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-			if (!success) {
-				glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-			}
-		}
-
-		glDeleteShader(vertexShader);
-		glDeleteShader(fragmentShader);
 
 		GLfloat vertices[] = {
 			// Позиции         // Цвета
@@ -117,6 +50,7 @@ namespace lesson_1n5
 		//wireframe
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+		GLuint triangleShaderProgram = triangleShader.GetProgramID();
 		//игровой цикл
 		while (!glfwWindowShouldClose(window))
 		{
@@ -124,12 +58,7 @@ namespace lesson_1n5
 			glfwPollEvents();
 
 			// Команды отрисовки здесь
-			GLfloat timeValue = glfwGetTime();
-			GLfloat greenValue = (sin(timeValue) / 2) + 0.5;
-			GLint vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-
-			glUseProgram(shaderProgram);
-			glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+			triangleShader.Use();
 			glBindVertexArray(VAO);
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 			glBindVertexArray(0);
