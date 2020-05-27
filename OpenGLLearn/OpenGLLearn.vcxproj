@@ -150,6 +150,8 @@
     <ClInclude Include="Lessons\1n4\main1n4.h" />
     <ClInclude Include="Lessons\1n5_shaders\main1n5.h" />
     <ClInclude Include="Lessons\1n5_shaders\Shader.h" />
+    <ClInclude Include="Lessons\1n6_textures\main1n6.h" />
+    <ClInclude Include="ThirdParty\include\stb_image\stb_image.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
