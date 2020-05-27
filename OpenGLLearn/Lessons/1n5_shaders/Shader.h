@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GL/glew.h>;
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace lesson_1n5
 {
@@ -15,6 +16,12 @@ namespace lesson_1n5
 		void Use();
 
 		GLuint GetProgramID();
+
+		void setFloat(const char* uniformString, GLfloat value);
+
+		void setInt(const char* uniformString, GLint value);
+
+		void setMatrix4fv(const char* uniformString, glm::mat4 value);
 
 	private:
 

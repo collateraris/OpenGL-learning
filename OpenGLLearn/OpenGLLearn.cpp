@@ -3,11 +3,11 @@
 
 #include <GLFW\glfw3.h>
 
-#include "Lessons/1n6_textures/main1n6.h"
+#include "Lessons/1n7_transformation/main1n7.h"
 
 int main()
 {
-	return lesson_1n6::lesson_main();
+	return lesson_1n7::lesson_main();
 }
 
 

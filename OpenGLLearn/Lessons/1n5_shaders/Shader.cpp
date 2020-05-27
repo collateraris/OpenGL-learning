@@ -5,6 +5,8 @@
 #include <sstream>
 #include <iostream>
 
+#include <glm/gtc/type_ptr.hpp>
+
 using namespace lesson_1n5;
 
 bool CShader::Init(const GLchar* vertexPath, const GLchar* fragmentPath)
@@ -108,4 +110,20 @@ void CShader::Use()
 GLuint CShader::GetProgramID()
 {
     return this->mProgramID;
+}
+
+void CShader::setFloat(const char* uniformString, GLfloat value)
+{
+    glUniform1f(glGetUniformLocation(this->mProgramID, uniformString), value);
+}
+
+void CShader::setInt(const char* uniformString, GLint value)
+{
+    glUniform1i(glGetUniformLocation(this->mProgramID, uniformString), value);
+}
+
+void CShader::setMatrix4fv(const char* uniformString, glm::mat4 value)
+{
+    GLuint Loc = glGetUniformLocation(this->mProgramID, uniformString);
+    glUniformMatrix4fv(Loc, 1, GL_FALSE, glm::value_ptr(value));
 }

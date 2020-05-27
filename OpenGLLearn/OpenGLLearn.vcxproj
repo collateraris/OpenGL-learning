@@ -152,7 +152,34 @@
     <ClInclude Include="Lessons\1n5_shaders\main1n5.h" />
     <ClInclude Include="Lessons\1n5_shaders\Shader.h" />
     <ClInclude Include="Lessons\1n6_textures\main1n6.h" />
+    <ClInclude Include="Lessons\1n7_transformation\main1n7.h" />
+    <ClInclude Include="ThirdParty\include\glm\common.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\exponential.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\ext.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\fwd.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\geometric.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\glm.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\integer.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat2x2.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat2x3.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat2x4.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat3x2.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat3x3.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat3x4.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat4x2.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat4x3.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat4x4.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\matrix.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\packing.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\trigonometric.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\vec2.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\vec3.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\vec4.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\vector_relational.hpp" />
     <ClInclude Include="ThirdParty\include\stb_image\stb_image.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ThirdParty\include\glm\CMakeLists.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
