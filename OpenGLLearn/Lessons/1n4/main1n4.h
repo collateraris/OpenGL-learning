@@ -62,7 +62,7 @@ namespace lesson_1n4
 		{
 			GLint success;
 			GLchar infoLog[512];
-			glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+			glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
 			if (!success)
 			{
 				glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
@@ -87,8 +87,49 @@ namespace lesson_1n4
 			}
 		}
 
+		GLuint fragmentShader2;
+		fragmentShader2 = glCreateShader(GL_FRAGMENT_SHADER);
+
+		const GLchar* fragmentShaderSource2= "#version 330 core\n"
+			"out vec4 color;\n"
+			"void main()\n"
+			"{\n"
+			"color = vec4(1.0f, 1.0f, 0.0f, 1.0f);\n"
+			"}\n\0";
+		glShaderSource(fragmentShader2, 1, &fragmentShaderSource2, NULL);
+		glCompileShader(fragmentShader2);
+
+		{
+			GLint success;
+			GLchar infoLog[512];
+			glGetShaderiv(fragmentShader2, GL_COMPILE_STATUS, &success);
+			if (!success)
+			{
+				glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+				std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+				return -1;
+			}
+		}
+
+		GLuint shaderProgram2;
+		shaderProgram2 = glCreateProgram();
+
+		glAttachShader(shaderProgram2, vertexShader);
+		glAttachShader(shaderProgram2, fragmentShader2);
+		glLinkProgram(shaderProgram2);
+
+		{
+			GLint success;
+			GLchar infoLog[512];
+			glGetProgramiv(shaderProgram2, GL_LINK_STATUS, &success);
+			if (!success) {
+				glGetProgramInfoLog(shaderProgram2, 512, NULL, infoLog);
+			}
+		}
+
 		glDeleteShader(vertexShader);
 		glDeleteShader(fragmentShader);
+		glDeleteShader(fragmentShader2);
 
 		GLfloat vertices[] = {
 			// Первый треугольник
@@ -141,6 +182,7 @@ namespace lesson_1n4
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 			glBindVertexArray(0);
 
+			glUseProgram(shaderProgram2);
 			glBindVertexArray(VAO2);
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 			glBindVertexArray(0);
