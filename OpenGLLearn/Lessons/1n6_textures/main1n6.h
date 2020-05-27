@@ -9,11 +9,14 @@
 #include <stb_image\stb_image.h>
 
 #include <iostream>
+#include <algorithm>
 
 #include "../1n5_shaders/Shader.h"
 
 namespace lesson_1n6
 {
+	GLfloat g_mixTexture = 0.2f;
+
 	int lesson_main();
 
 	GLFWwindow* init();
@@ -128,6 +131,8 @@ namespace lesson_1n6
 			glBindTexture(GL_TEXTURE_2D, texture1);
 			glUniform1i(glGetUniformLocation(triangleShaderProgram, "ourTexture1"), 1);
 
+			glUniform1f(glGetUniformLocation(triangleShaderProgram, "mixTexture"), g_mixTexture);
+
 			glBindVertexArray(VAO);
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
@@ -195,5 +200,11 @@ namespace lesson_1n6
 		// и приложение после этого закроется
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, GL_TRUE);
+
+		if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS)
+			g_mixTexture = std::clamp(g_mixTexture - 0.1f, 0.0f, 1.0f);
+
+		if(key == GLFW_KEY_KP_ADD && action == GLFW_PRESS)
+			g_mixTexture = std::clamp(g_mixTexture + 0.1f, 0.0f, 1.0f);
 	}
 }
