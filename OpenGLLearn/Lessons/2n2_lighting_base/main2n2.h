@@ -45,47 +45,47 @@ namespace lesson_2n2
 		if (!lampShader.Init("Lessons/2n2_lighting_base/shaders/main.vs", "Lessons/2n2_lighting_base/shaders/lamp.fs")) return -1;
 
 		float vertices[] = {
-			-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-			 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-			 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+			 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+			 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+			 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+			-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-			 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-			 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-			 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-			-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+			-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+			 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+			 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+			 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+			-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+			-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
-			-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-			-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-			-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+			-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+			-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+			-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+			-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+			-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-			 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-			 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-			 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+			 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+			 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+			 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+			 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+			 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-			 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-			 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+			 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+			 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+			 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+			-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-			 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-			 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-			-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+			-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+			 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+			 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+			 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+			-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+			-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 		};
 
 		GLuint VAO, VBO;
@@ -95,10 +95,10 @@ namespace lesson_2n2
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 		
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
 
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 		glEnableVertexAttribArray(1);
 
 		glBindVertexArray(0);
@@ -139,28 +139,11 @@ namespace lesson_2n2
 
 			glEnable(GL_DEPTH_TEST);
 
-
-			mainShader.Use();
-
-			mainShader.setVec3f("objectColor", coral);
-			mainShader.setVec3f("lightColor", lightColor);
-
 			GLfloat radius = 10.0f;
 			GLfloat camX = sin(glfwGetTime()) * radius;
 			GLfloat camZ = cos(glfwGetTime()) * radius;
 			view = lesson_1n9::CCamera::Get().GetView();
 			projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
-
-			mainShader.setMatrix4fv("view", view);
-			mainShader.setMatrix4fv("projection", projection);
-
-			glBindVertexArray(VAO);
-			model = glm::mat4(1.0f);
-			model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-			mainShader.setMatrix4fv("model", model);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-			glBindVertexArray(0);
-
 
 			lampShader.Use();
 
@@ -171,9 +154,25 @@ namespace lesson_2n2
 			model = glm::mat4(1.0f);
 			model = glm::translate(model, lightPos);
 			model = glm::scale(model, glm::vec3(0.2f));
-			model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+			//model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 
 			lampShader.setMatrix4fv("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glBindVertexArray(0);
+
+			mainShader.Use();
+
+			mainShader.setVec3f("objectColor", coral);
+			mainShader.setVec3f("lightColor", lightColor);
+			mainShader.setVec3f("lightPos", lightPos);
+
+			mainShader.setMatrix4fv("view", view);
+			mainShader.setMatrix4fv("projection", projection);
+
+			glBindVertexArray(VAO);
+			model = glm::mat4(1.0f);
+			//model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+			mainShader.setMatrix4fv("model", model);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
 
