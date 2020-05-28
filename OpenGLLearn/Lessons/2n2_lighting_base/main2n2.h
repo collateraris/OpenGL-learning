@@ -169,9 +169,6 @@ namespace lesson_2n2
 			mainShader.setVec3f("lightColor", lightColor);
 			mainShader.setVec3f("lightPos", lightPos);
 
-			cameraPos = lesson_1n9::CCamera::Get().GetCameraPosition();
-			mainShader.setVec3f("viewPos", cameraPos);
-
 			mainShader.setMatrix4fv("view", view);
 			mainShader.setMatrix4fv("projection", projection);
 
