@@ -90,3 +90,8 @@ float CCamera::GetFov()
 {
     return this->fov;
 }
+
+glm::vec3 CCamera::GetCameraPosition()
+{
+    return this->mCameraPos;
+}

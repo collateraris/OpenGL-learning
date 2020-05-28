@@ -22,6 +22,8 @@ namespace lesson_1n9
 
 		float GetFov();
 
+		glm::vec3 GetCameraPosition();
+
 	private:
 
 		const bool bPRESS = true;

@@ -127,6 +127,7 @@ namespace lesson_2n2
 		glm::vec3 coral(1.0f, 0.5f, 0.31f);
 		glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 		glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+		glm::vec3 cameraPos;
 
 		while (!glfwWindowShouldClose(window))
 		{
@@ -165,6 +166,9 @@ namespace lesson_2n2
 			mainShader.setVec3f("objectColor", coral);
 			mainShader.setVec3f("lightColor", lightColor);
 			mainShader.setVec3f("lightPos", lightPos);
+
+			cameraPos = lesson_1n9::CCamera::Get().GetCameraPosition();
+			mainShader.setVec3f("viewPos", cameraPos);
 
 			mainShader.setMatrix4fv("view", view);
 			mainShader.setMatrix4fv("projection", projection);
