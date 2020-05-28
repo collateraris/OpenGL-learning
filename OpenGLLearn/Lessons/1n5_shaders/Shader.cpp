@@ -127,3 +127,8 @@ void CShader::setMatrix4fv(const char* uniformString, glm::mat4 value)
     GLuint Loc = glGetUniformLocation(this->mProgramID, uniformString);
     glUniformMatrix4fv(Loc, 1, GL_FALSE, glm::value_ptr(value));
 }
+
+void CShader::setVec3f(const char* uniformString, glm::vec3 value)
+{
+    glUniform3f(glGetUniformLocation(this->mProgramID, uniformString), value.x, value.y, value.z);
+}

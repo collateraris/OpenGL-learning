@@ -23,6 +23,8 @@ namespace lesson_1n5
 
 		void setMatrix4fv(const char* uniformString, glm::mat4 value);
 
+		void setVec3f(const char* uniformString, glm::vec3 value);
+
 	private:
 
 		GLuint mProgramID = -1;

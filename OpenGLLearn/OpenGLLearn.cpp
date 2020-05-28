@@ -3,11 +3,11 @@
 
 #include <GLFW\glfw3.h>
 
-#include "Lessons/1n9_camera/main1n9.h"
+#include "Lessons/2n1_colors/main2n1.h"
 
 int main()
 {
-	return lesson_1n9::lesson_main();
+	return lesson_2n1::lesson_main();
 }
 
 
