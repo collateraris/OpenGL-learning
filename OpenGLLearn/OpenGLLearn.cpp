@@ -3,11 +3,11 @@
 
 #include <GLFW\glfw3.h>
 
-#include "Lessons/2n2_lighting_base/main2n2.h"
+#include "Lessons/2n3_materials/main2n3.h"
 
 int main()
 {
-	return lesson_2n2::lesson_main();
+	return lesson_2n3::lesson_main();
 }
 
 
