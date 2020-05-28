@@ -154,7 +154,7 @@ namespace lesson_2n2
 			model = glm::mat4(1.0f);
 			model = glm::translate(model, lightPos);
 			model = glm::scale(model, glm::vec3(0.2f));
-			//model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+			model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 
 			lampShader.setMatrix4fv("model", model);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -171,7 +171,7 @@ namespace lesson_2n2
 
 			glBindVertexArray(VAO);
 			model = glm::mat4(1.0f);
-			//model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+			model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 			mainShader.setMatrix4fv("model", model);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
