@@ -140,9 +140,11 @@ namespace lesson_2n2
 
 			glEnable(GL_DEPTH_TEST);
 
-			GLfloat radius = 10.0f;
+			GLfloat radius = 5.0f;
 			GLfloat camX = sin(glfwGetTime()) * radius;
 			GLfloat camZ = cos(glfwGetTime()) * radius;
+			lightPos = glm::vec3(camX, lightPos.y, camZ);
+
 			view = lesson_1n9::CCamera::Get().GetView();
 			projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
 
