@@ -113,6 +113,9 @@
     <ClInclude Include="ThirdParty\include\glm\vector_relational.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="Lessons\1n8_coordsystem\main1n8.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />

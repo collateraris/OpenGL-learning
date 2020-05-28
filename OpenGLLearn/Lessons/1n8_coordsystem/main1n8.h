@@ -17,7 +17,7 @@
 
 #include "../1n5_shaders/Shader.h"
 
-namespace lesson_1n7
+namespace lesson_1n8
 {
 	GLfloat g_mixTexture = 0.2f;
 
@@ -32,42 +32,68 @@ namespace lesson_1n7
 		GLFWwindow* window;
 		if ((window = init()) == nullptr) return -1;
 
-		//Сборка шейдера
+		//пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		lesson_1n5::CShader triangleShader;
-		if (!triangleShader.Init("Lessons/1n7_transformation/shaders/triangle.vs", "Lessons/1n7_transformation/shaders/triangle.fs")) return -1;
+		if (!triangleShader.Init("Lessons/1n8_coordsystem/shaders/triangle.vs", "Lessons/1n8_coordsystem/shaders/triangle.fs")) return -1;
 
 
-		GLfloat vertices[] = {
-			// Позиции          // Цвета             // Текстурные координаты
-			 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Верхний правый
-			 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // Нижний правый
-			-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // Нижний левый
-			-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // Верхний левый
+		float vertices[] = {
+			-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+			 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+			 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+			 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+			 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+			 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+			-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+			-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+			-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+			 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+			 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+			 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+			 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+			 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 		};
 
-		GLuint indices[] = {  // Note that we start from 0!
-			0, 1, 3, // First Triangle
-			1, 2, 3  // Second Triangle
-		};
 
-		GLuint VAO, VBO, EBO;
+		GLuint VAO, VBO;
 		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &EBO);
 		glGenBuffers(1, &VBO);
 		glBindVertexArray(VAO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		// Позиции
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+		
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
-		// Цвета 
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 		glEnableVertexAttribArray(1);
-		// Текстурные координаты
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(2);
 
 		glBindVertexArray(0);
 		
@@ -118,16 +144,26 @@ namespace lesson_1n7
 
 		GLuint triangleShaderProgram = triangleShader.GetProgramID();
 
-		//игровой цикл
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+		glm::mat4 view = glm::mat4(1.0f);
+		// note that we're translating the scene in the reverse direction of where we want to move
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+		glm::mat4 projection;
+		projection = glm::perspective(glm::radians(60.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
 		while (!glfwWindowShouldClose(window))
 		{
-			// Проверяем события и вызываем функции обратного вызова.
+
 			glfwPollEvents();
 
 			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			// Команды отрисовки здесь
+			glEnable(GL_DEPTH_TEST);
+
 			triangleShader.Use();
 
 			glActiveTexture(GL_TEXTURE0);
@@ -141,22 +177,21 @@ namespace lesson_1n7
 
 			triangleShader.setFloat("mixTexture", g_mixTexture);
 
-			glm::mat4 transform = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-			transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-			transform = glm::rotate(transform, (GLfloat)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-			triangleShader.setMatrix4fv("transform", transform);
+			//model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+
+			triangleShader.setMatrix4fv("model", model);
+			triangleShader.setMatrix4fv("view", view);
+			triangleShader.setMatrix4fv("projection", projection);
 
 			glBindVertexArray(VAO);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
 
-			// Меняем буферы местами
 			glfwSwapBuffers(window);
 		}
 
 		glDeleteVertexArrays(1, &VAO);
 		glDeleteBuffers(1, &VBO);
-		glDeleteBuffers(1, &EBO);
 
 		glfwTerminate();
 		return 0;		
@@ -164,20 +199,20 @@ namespace lesson_1n7
 
 	GLFWwindow* init()
 	{
-		//Инициализация GLFW
+		//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ GLFW
 		glfwInit();
-		//Настройка GLFW
-		//Задается минимальная требуемая версия OpenGL. 
-		//Мажорная 
+		//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ GLFW
+		//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ OpenGL. 
+		//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		//Минорная
+		//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-		//Установка профайла для которого создается контекст
+		//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		//Выключение возможности изменения размера окна
+		//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 		glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
-		//создать объект окна
+		//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 		GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr);
 		if (window == nullptr)
 		{
@@ -190,7 +225,7 @@ namespace lesson_1n7
 		//keycallback
 		glfwSetKeyCallback(window, key_callback);
 
-		//инициализировать GLEW
+		//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ GLEW
 		glewExperimental = GL_TRUE;
 		if (glewInit() != GLEW_OK)
 		{
@@ -209,8 +244,8 @@ namespace lesson_1n7
 
 	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 	{
-		// Когда пользователь нажимает ESC, мы устанавливаем свойство WindowShouldClose в true, 
-		// и приложение после этого закроется
+		// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ESC, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ WindowShouldClose пїЅ true, 
+		// пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, GL_TRUE);
 
