@@ -15,7 +15,7 @@
 #include "../1n5_shaders/Shader.h"
 #include "../1n9_camera/Camera.h"
 
-namespace lesson_2n1
+namespace lesson_2n2
 {
 	GLfloat g_mixTexture = 0.2f;
 
@@ -39,11 +39,10 @@ namespace lesson_2n1
 		GLFWwindow* window;
 		if ((window = init()) == nullptr) return -1;
 
-		//������ �������
 		lesson_1n5::CShader mainShader;
 		lesson_1n5::CShader lampShader;
-		if (!mainShader.Init("Lessons/2n1_colors/shaders/main.vs", "Lessons/2n1_colors/shaders/main.fs")) return -1;
-		if (!lampShader.Init("Lessons/2n1_colors/shaders/main.vs", "Lessons/2n1_colors/shaders/lamp.fs")) return -1;
+		if (!mainShader.Init("Lessons/2n2_lighting_base/shaders/main.vs", "Lessons/2n2_lighting_base/shaders/main.fs")) return -1;
+		if (!lampShader.Init("Lessons/2n2_lighting_base/shaders/main.vs", "Lessons/2n2_lighting_base/shaders/lamp.fs")) return -1;
 
 		float vertices[] = {
 			-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -103,6 +102,7 @@ namespace lesson_2n1
 		glEnableVertexAttribArray(1);
 
 		glBindVertexArray(0);
+
 
 		GLuint lightVAO;
 		glGenVertexArrays(1, &lightVAO);
@@ -189,17 +189,10 @@ namespace lesson_2n1
 
 	GLFWwindow* init()
 	{
-		//������������� GLFW
 		glfwInit();
-		//��������� GLFW
-		//�������� ����������� ��������� ������ OpenGL. 
-		//�������� 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		//��������
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-		//��������� �������� ��� �������� ��������� ��������
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		//���������� ����������� ��������� ������� ����
 		glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
 
