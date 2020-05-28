@@ -155,6 +155,28 @@ namespace lesson_2n4
 		}
 
 
+		GLuint emissionMap;
+		{
+			glGenTextures(1, &emissionMap);
+			glBindTexture(GL_TEXTURE_2D, emissionMap);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+			int width, height, nrComponents;
+			unsigned char* image = stbi_load("content/tex/matrix.jpg", &width, &height, &nrComponents, 0);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+			glGenerateMipmap(GL_TEXTURE_2D);
+
+			stbi_image_free(image);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+
+
 		GLuint lightVAO;
 		glGenVertexArrays(1, &lightVAO);
 		glBindVertexArray(lightVAO);
@@ -183,6 +205,12 @@ namespace lesson_2n4
 
 		glm::vec3 diffuseColor;
 		glm::vec3 ambientColor;
+
+		lightingShader.Use();
+		lightingShader.setInt("material.diffuse", 0);
+		lightingShader.setInt("material.specular", 1);
+		lightingShader.setInt("material.emission", 2);
+		lightingShader.setFloat("material.shininess", 64);
 
 
 		while (!glfwWindowShouldClose(window))
@@ -221,10 +249,6 @@ namespace lesson_2n4
 
 			lightingShader.Use();
 
-			lightingShader.setInt("material.diffuse", 0);
-			lightingShader.setInt("material.specular", 1);
-			lightingShader.setFloat("material.shininess", 32);
-
 			lightingShader.setVec3f("light.ambient", lightColor);
 			lightingShader.setVec3f("light.diffuse", lightColor); 
 			lightingShader.setVec3f("light.specular", lightColor);
@@ -239,6 +263,9 @@ namespace lesson_2n4
 
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, specularMap);
+
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, emissionMap);
 
 			glBindVertexArray(VAO);
 			model = glm::mat4(1.0f);
