@@ -22,7 +22,6 @@ out vec4 color;
 
 uniform mat4 model;
 
-uniform vec3 objectColor;
 uniform Material material;
 uniform Light light;
 
@@ -33,13 +32,13 @@ void main()
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(LightPos - FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * light.diffuse;
+    vec3 diffuse = diff * material.diffuse * light.diffuse;
 
     vec3 viewDir = normalize(-FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     vec3 specular =  ( material.specular * spec ) * light.specular;
 
-    vec3 result = (ambient + diffuse + specular) * objectColor;
-    color = vec4(result * objectColor, 1.0f);
+    vec3 result = (ambient + diffuse + specular);
+    color = vec4(result, 1.0f);
 }

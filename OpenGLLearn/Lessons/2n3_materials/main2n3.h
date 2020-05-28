@@ -22,6 +22,14 @@ namespace lesson_2n3
 	GLfloat g_screenWidth = 800.0f;
 	GLfloat g_screenHeight = 600.0f;
 
+	struct Material
+	{
+		glm::vec3 ambient;
+		glm::vec3 diffuse;
+		glm::vec3 specular;
+		float shininess;
+	};
+
 	int lesson_main();
 
 	GLFWwindow* init();
@@ -132,6 +140,39 @@ namespace lesson_2n3
 		glm::vec3 diffuseColor;
 		glm::vec3 ambientColor;
 
+
+		Material emerald;
+		emerald.ambient = glm::vec3(0.0215,	0.1745,	0.0215);
+		emerald.diffuse = glm::vec3(0.07568, 0.61424, 0.07568);
+		emerald.specular = glm::vec3(0.633, 0.727811, 0.633);
+		emerald.shininess = 77;
+
+		Material silver;
+		silver.ambient = glm::vec3(0.19225, 0.19225, 0.19225);
+		silver.diffuse = glm::vec3(0.50754,	0.50754, 0.50754);
+		silver.specular = glm::vec3(0.508273, 0.508273,	0.508273);
+		silver.shininess = 52;
+
+		Material cyanPlastic;
+		cyanPlastic.ambient = glm::vec3(0.0f, 0.1f, 0.06f);
+		cyanPlastic.diffuse = glm::vec3(0.0f, 0.50980392f, 0.50980392f);
+		cyanPlastic.specular = glm::vec3(0.50196078f, 0.50196078f, 0.50196078f);
+		cyanPlastic.shininess = 32;
+
+		Material turquoise;
+		turquoise.ambient = glm::vec3(0.1, 0.18725, 0.1745);
+		turquoise.diffuse = glm::vec3(0.396, 0.74151, 0.69102);
+		turquoise.specular = glm::vec3(0.297254, 0.30829, 0.306678);
+		turquoise.shininess = 128 * 0.1;
+
+		Material chrome;
+		chrome.ambient = glm::vec3(0.25, 0.25, 0.25);
+		chrome.diffuse = glm::vec3(0.4, 0.4, 0.4);
+		chrome.specular = glm::vec3(0.774597, 0.774597, 0.774597);
+		chrome.shininess = 128 * 0.6;
+
+		Material currMaterial = chrome;
+
 		while (!glfwWindowShouldClose(window))
 		{
 			glfwPollEvents();
@@ -147,13 +188,6 @@ namespace lesson_2n3
 			GLfloat camX = sin(glfwGetTime()) * radius;
 			GLfloat camZ = cos(glfwGetTime()) * radius;
 			lightPos = glm::vec3(camX, lightPos.y, camZ);
-
-			lightColor.x = sin(glfwGetTime() * 2.0f);
-			lightColor.y = sin(glfwGetTime() * 0.7f);
-			lightColor.z = sin(glfwGetTime() * 1.3f);
-
-			diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
-			ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
 
 			view = lesson_1n9::CCamera::Get().GetView();
 			projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
@@ -175,16 +209,15 @@ namespace lesson_2n3
 
 			lightingShader.Use();
 
-			lightingShader.setVec3f("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
-			lightingShader.setVec3f("material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));
-			lightingShader.setVec3f("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-			lightingShader.setFloat("material.shininess", 32.0f);
+			lightingShader.setVec3f("material.ambient", currMaterial.ambient);
+			lightingShader.setVec3f("material.diffuse", currMaterial.diffuse);
+			lightingShader.setVec3f("material.specular", currMaterial.specular);
+			lightingShader.setFloat("material.shininess", currMaterial.shininess);
 
-			lightingShader.setVec3f("light.ambient", ambientColor);
-			lightingShader.setVec3f("light.diffuse", diffuseColor); // darken the light a bit to fit the scene
-			lightingShader.setVec3f("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+			lightingShader.setVec3f("light.ambient", lightColor);
+			lightingShader.setVec3f("light.diffuse", lightColor); 
+			lightingShader.setVec3f("light.specular", lightColor);
 
-			lightingShader.setVec3f("objectColor", coral);
 			lightingShader.setVec3f("lightPos", lightPos);
 
 			lightingShader.setMatrix4fv("view", view);
