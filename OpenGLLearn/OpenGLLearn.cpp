@@ -3,11 +3,11 @@
 
 #include <GLFW\glfw3.h>
 
-#include "Lessons/1n8_coordsystem/main1n8.h"
+#include "Lessons/1n9_camera/main1n9.h"
 
 int main()
 {
-	return lesson_1n8::lesson_main();
+	return lesson_1n9::lesson_main();
 }
 
 

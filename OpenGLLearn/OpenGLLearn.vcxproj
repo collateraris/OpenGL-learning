@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Lessons\1n5_shaders\Shader.cpp" />
+    <ClCompile Include="Lessons\1n9_camera\Camera.cpp" />
     <ClCompile Include="OpenGLLearn.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -154,6 +155,8 @@
     <ClInclude Include="Lessons\1n6_textures\main1n6.h" />
     <ClInclude Include="Lessons\1n7_transformation\main1n7.h" />
     <ClInclude Include="Lessons\1n8_coordsystem\main1n8.h" />
+    <ClInclude Include="Lessons\1n9_camera\Camera.h" />
+    <ClInclude Include="Lessons\1n9_camera\main1n9.h" />
     <ClInclude Include="ThirdParty\include\glm\common.hpp" />
     <ClInclude Include="ThirdParty\include\glm\exponential.hpp" />
     <ClInclude Include="ThirdParty\include\glm\ext.hpp" />
