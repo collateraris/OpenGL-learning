@@ -57,6 +57,16 @@ void CCamera::MouseProcessing(float xpos, float ypos)
     this->mCameraFront = glm::normalize(front);
 }
 
+void CCamera::ScrollProcessing(float xoffset, float yoffset)
+{
+    if (fov >= 1.0f && fov <= 45.0f)
+        fov -= yoffset;
+    if (fov <= 1.0f)
+        fov = 1.0f;
+    if (fov >= 45.0f)
+        fov = 45.0f;
+}
+
 void CCamera::Movement(float deltaTime)
 {
     GLfloat cameraSpeed = 5.0f * deltaTime;
@@ -74,4 +84,9 @@ void CCamera::Movement(float deltaTime)
 glm::mat4 CCamera::GetView()
 {
 	return glm::lookAt(mCameraPos, mCameraPos + mCameraFront, mCameraUp);
+}
+
+float CCamera::GetFov()
+{
+    return this->fov;
 }

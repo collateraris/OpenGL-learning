@@ -33,6 +33,8 @@ namespace lesson_1n9
 
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
+	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
 	float GetDeltaTime();
 
 	int lesson_main()
@@ -170,7 +172,6 @@ namespace lesson_1n9
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
 		glm::mat4 projection;
-		projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.1f, 100.0f);
 
 		while (!glfwWindowShouldClose(window))
 		{
@@ -201,6 +202,7 @@ namespace lesson_1n9
 			GLfloat camX = sin(glfwGetTime()) * radius;
 			GLfloat camZ = cos(glfwGetTime()) * radius;
 			view = CCamera::Get().GetView();
+			projection = glm::perspective(glm::radians(CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
 
 			triangleShader.setMatrix4fv("view", view);
 			triangleShader.setMatrix4fv("projection", projection);
@@ -265,6 +267,8 @@ namespace lesson_1n9
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		glfwSetCursorPosCallback(window, mouse_callback);
 
+		//scrollcallback
+		glfwSetScrollCallback(window, scroll_callback);
 
 		glewExperimental = GL_TRUE;
 		if (glewInit() != GLEW_OK)
@@ -299,6 +303,11 @@ namespace lesson_1n9
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	{
 		CCamera::Get().MouseProcessing(xpos, ypos);
+	}
+
+	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+	{
+		CCamera::Get().ScrollProcessing(xoffset, yoffset);
 	}
 
 	float GetDeltaTime()

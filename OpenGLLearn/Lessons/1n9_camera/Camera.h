@@ -14,9 +14,13 @@ namespace lesson_1n9
 
 		void MouseProcessing(float xpos, float ypos);
 
+		void ScrollProcessing(float xoffset, float yoffset);
+
 		void Movement(float deltaTime);
 
 		glm::mat4 GetView();
+
+		float GetFov();
 
 	private:
 
@@ -33,5 +37,7 @@ namespace lesson_1n9
 		glm::vec3 mCameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 		glm::vec3 mCameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 		glm::vec3 mCameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+		float fov = 45.0f;
 	};
 }
