@@ -160,6 +160,7 @@
     <ClInclude Include="Lessons\2n1_colors\main2n1.h" />
     <ClInclude Include="Lessons\2n2_lighting_base\main2n2.h" />
     <ClInclude Include="Lessons\2n3_materials\main2n3.h" />
+    <ClInclude Include="Lessons\2n4_textures\main2n4.h" />
     <ClInclude Include="ThirdParty\include\glm\common.hpp" />
     <ClInclude Include="ThirdParty\include\glm\exponential.hpp" />
     <ClInclude Include="ThirdParty\include\glm\ext.hpp" />
