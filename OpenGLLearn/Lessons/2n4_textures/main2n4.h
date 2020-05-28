@@ -25,14 +25,6 @@ namespace lesson_2n4
 	GLfloat g_screenWidth = 800.0f;
 	GLfloat g_screenHeight = 600.0f;
 
-	struct Material
-	{
-		glm::vec3 ambient;
-		glm::vec3 diffuse;
-		glm::vec3 specular;
-		float shininess;
-	};
-
 	int lesson_main();
 
 	GLFWwindow* init();
@@ -141,6 +133,28 @@ namespace lesson_2n4
 		}
 
 
+		GLuint specularMap;
+		{
+			glGenTextures(1, &specularMap);
+			glBindTexture(GL_TEXTURE_2D, specularMap);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+			int width, height, nrComponents;
+			unsigned char* image = stbi_load("content/tex/container2_specular.png", &width, &height, &nrComponents, 0);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+			glGenerateMipmap(GL_TEXTURE_2D);
+
+			stbi_image_free(image);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+
+
 		GLuint lightVAO;
 		glGenVertexArrays(1, &lightVAO);
 		glBindVertexArray(lightVAO);
@@ -170,38 +184,6 @@ namespace lesson_2n4
 		glm::vec3 diffuseColor;
 		glm::vec3 ambientColor;
 
-
-		Material emerald;
-		emerald.ambient = glm::vec3(0.0215,	0.1745,	0.0215);
-		emerald.diffuse = glm::vec3(0.07568, 0.61424, 0.07568);
-		emerald.specular = glm::vec3(0.633, 0.727811, 0.633);
-		emerald.shininess = 77;
-
-		Material silver;
-		silver.ambient = glm::vec3(0.19225, 0.19225, 0.19225);
-		silver.diffuse = glm::vec3(0.50754,	0.50754, 0.50754);
-		silver.specular = glm::vec3(0.508273, 0.508273,	0.508273);
-		silver.shininess = 52;
-
-		Material cyanPlastic;
-		cyanPlastic.ambient = glm::vec3(0.0f, 0.1f, 0.06f);
-		cyanPlastic.diffuse = glm::vec3(0.0f, 0.50980392f, 0.50980392f);
-		cyanPlastic.specular = glm::vec3(0.50196078f, 0.50196078f, 0.50196078f);
-		cyanPlastic.shininess = 32;
-
-		Material turquoise;
-		turquoise.ambient = glm::vec3(0.1, 0.18725, 0.1745);
-		turquoise.diffuse = glm::vec3(0.396, 0.74151, 0.69102);
-		turquoise.specular = glm::vec3(0.297254, 0.30829, 0.306678);
-		turquoise.shininess = 128 * 0.1;
-
-		Material chrome;
-		chrome.ambient = glm::vec3(0.25, 0.25, 0.25);
-		chrome.diffuse = glm::vec3(0.4, 0.4, 0.4);
-		chrome.specular = glm::vec3(0.774597, 0.774597, 0.774597);
-		chrome.shininess = 128 * 0.6;
-
-		Material currMaterial = emerald;
 
 		while (!glfwWindowShouldClose(window))
 		{
@@ -240,8 +222,8 @@ namespace lesson_2n4
 			lightingShader.Use();
 
 			lightingShader.setInt("material.diffuse", 0);
-			lightingShader.setVec3f("material.specular", currMaterial.specular);
-			lightingShader.setFloat("material.shininess", currMaterial.shininess);
+			lightingShader.setInt("material.specular", 1);
+			lightingShader.setFloat("material.shininess", 32);
 
 			lightingShader.setVec3f("light.ambient", lightColor);
 			lightingShader.setVec3f("light.diffuse", lightColor); 
@@ -254,6 +236,9 @@ namespace lesson_2n4
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, specularMap);
 
 			glBindVertexArray(VAO);
 			model = glm::mat4(1.0f);
