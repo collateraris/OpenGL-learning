@@ -41,7 +41,7 @@ namespace lesson_2n2
 
 		lesson_1n5::CShader mainShader;
 		lesson_1n5::CShader lampShader;
-		if (!mainShader.Init("Lessons/2n2_lighting_base/shaders/main.vs", "Lessons/2n2_lighting_base/shaders/main.fs")) return -1;
+		if (!mainShader.Init("Lessons/2n2_lighting_base/shaders/gouraud.vs", "Lessons/2n2_lighting_base/shaders/gouraud.fs")) return -1;
 		if (!lampShader.Init("Lessons/2n2_lighting_base/shaders/main.vs", "Lessons/2n2_lighting_base/shaders/lamp.fs")) return -1;
 
 		float vertices[] = {
