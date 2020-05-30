@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="Lessons\1n5_shaders\Shader.cpp" />
     <ClCompile Include="Lessons\1n9_camera\Camera.cpp" />
+    <ClCompile Include="Lessons\2n6_multy_lights\LightStates.cpp" />
     <ClCompile Include="OpenGLLearn.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -162,6 +163,7 @@
     <ClInclude Include="Lessons\2n3_materials\main2n3.h" />
     <ClInclude Include="Lessons\2n4_textures\main2n4.h" />
     <ClInclude Include="Lessons\2n5_light_casters\main2n5.h" />
+    <ClInclude Include="Lessons\2n6_multy_lights\LightStates.h" />
     <ClInclude Include="Lessons\2n6_multy_lights\main2n6.h" />
     <ClInclude Include="ThirdParty\include\glm\common.hpp" />
     <ClInclude Include="ThirdParty\include\glm\exponential.hpp" />
