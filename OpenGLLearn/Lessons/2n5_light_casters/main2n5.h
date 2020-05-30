@@ -179,6 +179,7 @@ namespace lesson_2n5
 		lightingShader.setInt("material.specular", 1);
 		lightingShader.setFloat("material.shininess", 32);
 		lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+		lightingShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
 		lightingShader.setVec3f("light.ambient", lightAmbient);
 		lightingShader.setVec3f("light.diffuse", lightDiffuse);
 		lightingShader.setVec3f("light.specular", lightSpecular);
