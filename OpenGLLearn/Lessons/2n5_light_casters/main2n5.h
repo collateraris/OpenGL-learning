@@ -211,7 +211,8 @@ namespace lesson_2n5
 
 		glm::vec3 coral(1.0f, 0.5f, 0.31f);
 		glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
-		glm::vec3 lightDir(-0.2f, -1.0f, -0.3f);
+		//glm::vec3 lightDir(-0.2f, -1.0f, -0.3f);
+		glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 		glm::vec3 cameraPos;
 
 		glm::vec3 diffuseColor;
@@ -262,7 +263,11 @@ namespace lesson_2n5
 			lightingShader.setVec3f("light.diffuse", lightColor); 
 			lightingShader.setVec3f("light.specular", lightColor);
 
-			lightingShader.setVec3f("light.direction", lightDir);
+			lightingShader.setVec3f("light.position", lightPos);
+
+			lightingShader.setFloat("light.constant", 1.0f);
+			lightingShader.setFloat("light.linear", 0.09f);
+			lightingShader.setFloat("light.quadratic", 0.032f);
 
 			lightingShader.setMatrix4fv("view", view);
 			lightingShader.setMatrix4fv("projection", projection);
