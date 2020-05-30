@@ -71,9 +71,9 @@ void CCamera::Movement(float deltaTime)
 {
     GLfloat cameraSpeed = 5.0f * deltaTime;
     if (keys[GLFW_KEY_W])
-        mCameraPos += cameraSpeed * glm::vec3(mCameraFront.x, 0.0f, mCameraFront.z);
+        mCameraPos += cameraSpeed * mCameraFront;
     if (keys[GLFW_KEY_S])
-        mCameraPos -= cameraSpeed * glm::vec3(mCameraFront.x, 0.0f, mCameraFront.z);
+        mCameraPos -= cameraSpeed * mCameraFront;
     if (keys[GLFW_KEY_A])
         mCameraPos -= glm::normalize(glm::cross(mCameraFront, mCameraUp)) * cameraSpeed;
     if (keys[GLFW_KEY_D])
@@ -94,4 +94,9 @@ float CCamera::GetFov()
 glm::vec3 CCamera::GetCameraPosition()
 {
     return this->mCameraPos;
+}
+
+glm::vec3 CCamera::GetCameraFront()
+{
+    return this->mCameraFront;
 }

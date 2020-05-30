@@ -24,6 +24,8 @@ namespace lesson_1n9
 
 		glm::vec3 GetCameraPosition();
 
+		glm::vec3 GetCameraFront();
+
 	private:
 
 		const bool bPRESS = true;

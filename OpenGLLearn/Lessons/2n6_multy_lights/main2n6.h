@@ -18,7 +18,7 @@
 #include "../1n5_shaders/Shader.h"
 #include "../1n9_camera/Camera.h"
 
-namespace lesson_2n5
+namespace lesson_2n6
 {
 	GLfloat g_screenWidth = 800.0f;
 	GLfloat g_screenHeight = 600.0f;
@@ -41,7 +41,9 @@ namespace lesson_2n5
 		if ((window = init()) == nullptr) return -1;
 
 		lesson_1n5::CShader lightingShader;
-		if (!lightingShader.Init("Lessons/2n5_light_casters/shaders/main.vs", "Lessons/2n5_light_casters/shaders/main.fs")) return -1;
+		lesson_1n5::CShader lampShader;
+		if (!lightingShader.Init("Lessons/2n6_multy_lights/shaders/main.vs", "Lessons/2n6_multy_lights/shaders/main.fs")) return -1;
+		if (!lampShader.Init("Lessons/2n6_multy_lights/shaders/main.vs", "Lessons/2n6_multy_lights/shaders/lamp.fs")) return -1;
 
 		float vertices[] = {
 			// positions          // normals           // texture coords
@@ -163,6 +165,31 @@ namespace lesson_2n5
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 
+		glm::vec3 pointLightPositions[] = {
+			glm::vec3(0.7f,  0.2f,  2.0f),
+			glm::vec3(2.3f, -3.3f, -4.0f),
+			glm::vec3(-4.0f,  2.0f, -12.0f),
+			glm::vec3(0.0f,  0.0f, -3.0f)
+		};
+
+		GLuint lampVAO, lampVBO;
+		glGenVertexArrays(1, &lampVAO);
+		glGenBuffers(1, &lampVBO);
+		glBindVertexArray(lampVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, lampVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(2);
+
+		glBindVertexArray(0);
+
 		GLuint triangleShaderProgram = lightingShader.GetProgramID();
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
@@ -170,20 +197,53 @@ namespace lesson_2n5
 		glm::mat4 view = glm::mat4(1.0f);
 		glm::mat4 projection;
 
-		glm::vec3 lightAmbient(0.1f, 0.1f, 0.1f);
-		glm::vec3 lightDiffuse(0.8f, 0.8f, 0.8f);
-		glm::vec3 lightSpecular(1.0f, 1.0f, 1.0f);
-
 		lightingShader.Use();
 		lightingShader.setInt("material.diffuse", 0);
 		lightingShader.setInt("material.specular", 1);
 		lightingShader.setFloat("material.shininess", 32);
-		lightingShader.setFloat("cutOff", glm::cos(glm::radians(12.5f)));
-		lightingShader.setVec3f("light.ambient", lightAmbient);
-		lightingShader.setVec3f("light.diffuse", lightDiffuse);
-		lightingShader.setVec3f("light.specular", lightSpecular);
+		lightingShader.setVec3f("dirLight.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
+		lightingShader.setVec3f("dirLight.ambient", glm::vec3(0.05f, 0.05f, 0.05f));
+		lightingShader.setVec3f("dirLight.diffuse", glm::vec3(0.4f, 0.4f, 0.4f));
+		lightingShader.setVec3f("dirLight.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+
+		// point light 1
+		lightingShader.setVec3f("pointLights[0].position", pointLightPositions[0]);
+		lightingShader.setVec3f("pointLights[0].ambient", glm::vec3(0.05f, 0.05f, 0.05f));
+		lightingShader.setVec3f("pointLights[0].diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
+		lightingShader.setVec3f("pointLights[0].specular", glm::vec3(1.0f, 1.0f, 1.0f));
+		lightingShader.setFloat("pointLights[0].constant", 1.0f);
+		lightingShader.setFloat("pointLights[0].linear", 0.09);
+		lightingShader.setFloat("pointLights[0].quadratic", 0.032);
+		// point light 2
+		lightingShader.setVec3f("pointLights[1].position", pointLightPositions[1]);
+		lightingShader.setVec3f("pointLights[1].ambient", glm::vec3(0.05f, 0.05f, 0.05f));
+		lightingShader.setVec3f("pointLights[1].diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
+		lightingShader.setVec3f("pointLights[1].specular", glm::vec3(1.0f, 1.0f, 1.0f));
+		lightingShader.setFloat("pointLights[1].constant", 1.0f);
+		lightingShader.setFloat("pointLights[1].linear", 0.09);
+		lightingShader.setFloat("pointLights[1].quadratic", 0.032);
+		// point light 3
+		lightingShader.setVec3f("pointLights[2].position", pointLightPositions[2]);
+		lightingShader.setVec3f("pointLights[2].ambient", glm::vec3(0.05f, 0.05f, 0.05f));
+		lightingShader.setVec3f("pointLights[2].diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
+		lightingShader.setVec3f("pointLights[2].specular", glm::vec3(1.0f, 1.0f, 1.0f));
+		lightingShader.setFloat("pointLights[2].constant", 1.0f);
+		lightingShader.setFloat("pointLights[2].linear", 0.09);
+		lightingShader.setFloat("pointLights[2].quadratic", 0.032);
+		// point light 4
+		lightingShader.setVec3f("pointLights[3].position", pointLightPositions[3]);
+		lightingShader.setVec3f("pointLights[3].ambient", glm::vec3(0.05f, 0.05f, 0.05f));
+		lightingShader.setVec3f("pointLights[3].diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
+		lightingShader.setVec3f("pointLights[3].specular", glm::vec3(1.0f, 1.0f, 1.0f));
+		lightingShader.setFloat("pointLights[3].constant", 1.0f);
+		lightingShader.setFloat("pointLights[3].linear", 0.09);
+		lightingShader.setFloat("pointLights[3].quadratic", 0.032);
+
 		projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
 		lightingShader.setMatrix4fv("projection", projection);
+
+		lampShader.Use();
+		lampShader.setMatrix4fv("projection", projection);
 
 		while (!glfwWindowShouldClose(window))
 		{
@@ -198,11 +258,24 @@ namespace lesson_2n5
 
 			view = lesson_1n9::CCamera::Get().GetView();
 
-			lightingShader.Use();
+			lampShader.Use();
 
-			lightingShader.setVec3f("light.position", lesson_1n9::CCamera::Get().GetCameraPosition());
-			lightingShader.setVec3f("light.direction", lesson_1n9::CCamera::Get().GetCameraFront());
-			
+			lampShader.setMatrix4fv("view", view);
+
+			glBindVertexArray(lampVAO);
+			for (unsigned int i = 0; i < 4; i++)
+			{
+				glm::mat4 model(1.);
+				model = glm::translate(model, pointLightPositions[i]);
+				model = glm::scale(model, glm::vec3(0.2f));
+				lightingShader.setMatrix4fv("model", model);
+
+				glDrawArrays(GL_TRIANGLES, 0, 36);
+			}
+			glBindVertexArray(0);
+
+			lightingShader.Use();
+	
 			lightingShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
 			lightingShader.setMatrix4fv("view", view);
 			model = glm::mat4(1.0f);
@@ -232,6 +305,8 @@ namespace lesson_2n5
 
 		glDeleteVertexArrays(1, &VAO);
 		glDeleteBuffers(1, &VBO);
+		glDeleteVertexArrays(1, &lampVAO);
+		glDeleteBuffers(1, &lampVBO);
 
 		glfwTerminate();
 		return 0;		
