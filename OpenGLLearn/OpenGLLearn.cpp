@@ -3,11 +3,11 @@
 
 #include <GLFW\glfw3.h>
 
-#include "Lessons/2n6_multy_lights/main2n6.h"
+#include "Lessons/3n1_assimp/main3n1.h"
 
 int main()
 {
-	return lesson_2n6::lesson_main();
+	return lesson_3n1::lesson_main();
 }
 
 

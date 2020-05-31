@@ -27,6 +27,12 @@
     <ClCompile Include="Lessons\2n6_multy_lights\LightStates.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="Lessons\3n1_assimp\AssimpData.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Lessons\3n1_assimp\LoadTexture.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lessons\1n3\main1n3.h">
@@ -147,6 +153,15 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Lessons\2n6_multy_lights\LightStates.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Lessons\3n1_assimp\main3n1.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Lessons\3n1_assimp\AssimpData.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Lessons\3n1_assimp\LoadTexture.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

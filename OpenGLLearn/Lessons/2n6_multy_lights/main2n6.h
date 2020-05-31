@@ -210,13 +210,11 @@ namespace lesson_2n6
 
 		while (!glfwWindowShouldClose(window))
 		{
-			specialLighting.SetClearColorParam();
-
 			glfwPollEvents();
 
 			lesson_1n9::CCamera::Get().Movement(GetDeltaTime());
 
-			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+			specialLighting.SetClearColorParam();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			glEnable(GL_DEPTH_TEST);

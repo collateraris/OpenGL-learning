@@ -49,7 +49,6 @@ const std::vector<glm::vec3>& CCommonLightState::GetPointLightColors()
 
 void CCommonLightState::SetShaderParams(lesson_1n5::CShader& lightingShader)
 {
-	lightingShader.Use();
 	lightingShader.setVec3f("dirLight.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
 	lightingShader.setVec3f("dirLight.ambient", glm::vec3(0.05f, 0.05f, 0.05f));
 	lightingShader.setVec3f("dirLight.diffuse", glm::vec3(0.4f, 0.4f, 0.4f));
@@ -101,7 +100,6 @@ const std::vector<glm::vec3>& CDesertLightState::GetPointLightColors()
 
 void CDesertLightState::SetShaderParams(lesson_1n5::CShader& lightingShader)
 {
-	lightingShader.Use();
 	lightingShader.setVec3f("dirLight.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
 	lightingShader.setVec3f("dirLight.ambient", glm::vec3(0.3f, 0.24f, 0.14f));
 	lightingShader.setVec3f("dirLight.diffuse", glm::vec3(0.7f, 0.42f, 0.26f));
@@ -153,7 +151,6 @@ const std::vector<glm::vec3>& CFactoryLightState::GetPointLightColors()
 
 void CFactoryLightState::SetShaderParams(lesson_1n5::CShader& lightingShader)
 {
-	lightingShader.Use();
 	lightingShader.setVec3f("dirLight.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
 	lightingShader.setVec3f("dirLight.ambient", glm::vec3(0.05f, 0.05f, 0.1f));
 	lightingShader.setVec3f("dirLight.diffuse", glm::vec3(0.2f, 0.2f, 0.7));
@@ -205,7 +202,6 @@ const std::vector<glm::vec3>& CHorrorLightState::GetPointLightColors()
 
 void CHorrorLightState::SetShaderParams(lesson_1n5::CShader& lightingShader)
 {
-	lightingShader.Use();
 	lightingShader.setVec3f("dirLight.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
 	lightingShader.setVec3f("dirLight.ambient", glm::vec3(0.0f, 0.0f, 0.0f));
 	lightingShader.setVec3f("dirLight.diffuse", glm::vec3(0.05f, 0.05f, 0.05f));
@@ -257,7 +253,6 @@ const std::vector<glm::vec3>& CBioLabLightState::GetPointLightColors()
 
 void CBioLabLightState::SetShaderParams(lesson_1n5::CShader& lightingShader)
 {
-	lightingShader.Use();
 	lightingShader.setVec3f("dirLight.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
 	lightingShader.setVec3f("dirLight.ambient", glm::vec3(0.5f, 0.5f, 0.5f));
 	lightingShader.setVec3f("dirLight.diffuse", glm::vec3(1.0f, 1.0f, 1.0f));
