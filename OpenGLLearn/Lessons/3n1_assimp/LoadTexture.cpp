@@ -47,6 +47,43 @@ unsigned int CLoadTexture::loadTexture(const char* path)
 	return textureID;
 }
 
+unsigned int CLoadTexture::loadTexture(const char* path, int wrap_s_par, int wrap_t_par, int min_filter_par, int max_filter_par)
+{
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+
+	int width = 0, height = 0, nrComponents;
+	unsigned char* image = stbi_load(path, &width, &height, &nrComponents, 0);
+	if (image)
+	{
+		GLenum format;
+		if (nrComponents == 1)
+			format = GL_RED;
+		else if (nrComponents == 3)
+			format = GL_RGB;
+		else if (nrComponents == 4)
+			format = GL_RGBA;
+
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, image);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s_par);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t_par);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter_par);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, max_filter_par);
+	}
+	else
+	{
+		std::cout << "Texture failed to load at path: " << path << std::endl;
+	}
+
+	stbi_image_free(image);
+
+	return textureID;
+}
+
 unsigned int CLoadTexture::TextureFromFile(const char* path, std::string directory)
 {
 	std::string filename = std::string(path);

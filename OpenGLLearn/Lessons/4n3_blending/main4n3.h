@@ -162,7 +162,7 @@ namespace lesson_4n3
 
 		unsigned int cubeTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/marble.jpg");
 		unsigned int floorTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/metal.png");
-		unsigned int grassTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/grass.png");
+		unsigned int grassTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/grass.png", GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR);
 
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 

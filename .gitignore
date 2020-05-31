@@ -10,3 +10,6 @@
 *.ilk
 *.ipch
 OpenGLLearn/.vs/OpenGLLearn/v16/.suo
+OpenGLLearn/Debug/
+OpenGLLearn/x64/
+
