@@ -244,7 +244,10 @@ void CDrawFileMeshData::DeleteAfterLoop(SFileMeshData& fileMesh)
     for (std::size_t i = 0; i < meshesSize; i++)
     {
         VAO = meshes[i].GetVAO();
+        glDeleteVertexArrays(1, &VAO);
         VBO = meshes[i].GetVBO();
+        glDeleteBuffers(1, &VBO);
         EBO = meshes[i].GetEBO();
+        glDeleteBuffers(1, &EBO);
     }
 }
