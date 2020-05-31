@@ -176,6 +176,7 @@
     <ClInclude Include="Lessons\3n1_assimp\main3n1.h" />
     <ClInclude Include="Lessons\4n1_depth_testing\main4n1.h" />
     <ClInclude Include="Lessons\4n2_stencil_testing\main4n2.h" />
+    <ClInclude Include="Lessons\4n3_blending\main4n3.h" />
     <ClInclude Include="ThirdParty\include\glm\common.hpp" />
     <ClInclude Include="ThirdParty\include\glm\exponential.hpp" />
     <ClInclude Include="ThirdParty\include\glm\ext.hpp" />

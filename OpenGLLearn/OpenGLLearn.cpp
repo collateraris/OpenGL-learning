@@ -3,11 +3,11 @@
 
 #include <GLFW\glfw3.h>
 
-#include "Lessons/4n2_stencil_testing/main4n2.h"
+#include "Lessons/4n3_blending/main4n3.h"
 
 int main()
 {
-	return lesson_4n2::lesson_main();
+	return lesson_4n3::lesson_main();
 }
 
 

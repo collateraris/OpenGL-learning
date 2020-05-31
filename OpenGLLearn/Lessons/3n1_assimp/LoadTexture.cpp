@@ -12,8 +12,6 @@ using namespace lesson_3n1;
 
 unsigned int CLoadTexture::loadTexture(const char* path)
 {
-	stbi_set_flip_vertically_on_load(true);
-
 	GLuint textureID;
 	glGenTextures(1, &textureID);
 
