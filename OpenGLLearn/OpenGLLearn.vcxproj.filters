@@ -167,6 +167,9 @@
     <ClInclude Include="Lessons\4n1_depth_testing\main4n1.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="Lessons\4n2_stencil_testing\main4n2.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />
