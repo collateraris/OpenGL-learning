@@ -42,8 +42,8 @@ namespace lesson_4n3
 		lesson_1n5::CShader sceneShader;
 		if (!sceneShader.Init("Lessons/4n3_blending/shaders/scene.vs", "Lessons/4n3_blending/shaders/scene.fs")) return -1;
 
-		lesson_1n5::CShader grassShader;
-		if (!grassShader.Init("Lessons/4n3_blending/shaders/grass.vs", "Lessons/4n3_blending/shaders/grass.fs")) return -1;
+		lesson_1n5::CShader transparentShader;
+		if (!transparentShader.Init("Lessons/4n3_blending/shaders/transparent.vs", "Lessons/4n3_blending/shaders/transparent.fs")) return -1;
 		// set up vertex data (and buffer(s)) and configure vertex attributes
 // ------------------------------------------------------------------
 		float cubeVertices[] = {
@@ -113,7 +113,7 @@ namespace lesson_4n3
 			1.0f,  0.5f,  0.0f,  1.0f,  0.0f
 		};
 
-		std::vector<glm::vec3> vegetation = {
+		std::vector<glm::vec3> transparentObjPos = {
 			glm::vec3(-1.5f, 0.0f, -0.48f),
 			glm::vec3(1.5f, 0.0f, 0.51f),
 			glm::vec3(0.0f, 0.0f, 0.7f),
@@ -162,7 +162,7 @@ namespace lesson_4n3
 
 		unsigned int cubeTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/marble.jpg");
 		unsigned int floorTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/metal.png");
-		unsigned int grassTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/grass.png", GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR);
+		unsigned int grassTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/blending_transparent_window.png", GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR);
 
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
@@ -175,12 +175,15 @@ namespace lesson_4n3
 		sceneShader.setMatrix4fv("projection", projection);
 		sceneShader.setInt("texture1", 0);
 
-		grassShader.Use();
-		grassShader.setMatrix4fv("projection", projection);
-		grassShader.setInt("texture1", 0);
+		transparentShader.Use();
+		transparentShader.setMatrix4fv("projection", projection);
+		transparentShader.setInt("texture1", 0);
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		while (!glfwWindowShouldClose(window))
 		{
@@ -190,8 +193,9 @@ namespace lesson_4n3
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 			sceneShader.Use();
-	
-			sceneShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
+			
+			const glm::vec3& cameraPos = lesson_1n9::CCamera::Get().GetCameraPosition();
+			sceneShader.setVec3f("viewPos", cameraPos);
 			view = lesson_1n9::CCamera::Get().GetView();
 			sceneShader.setMatrix4fv("view", view);
 
@@ -216,17 +220,26 @@ namespace lesson_4n3
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
 
-			//grass
-			grassShader.Use();
-			grassShader.setMatrix4fv("view", view);
+			//transparent object
+			transparentShader.Use();
+			transparentShader.setMatrix4fv("view", view);
 			glBindVertexArray(grassVAO);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, grassTexture);
-			for (unsigned int i = 0; i < vegetation.size(); i++)
+
+			std::sort(transparentObjPos.begin(), transparentObjPos.end(), [&](glm::vec3& a, glm::vec3& b) {
+
+				float distanceA = glm::length(cameraPos - a);
+				float distanceB = glm::length(cameraPos - b);
+
+				return distanceA > distanceB;
+			});
+
+			for (unsigned int i = 0; i < transparentObjPos.size(); i++)
 			{
 				model = glm::mat4(1.0f);
-				model = glm::translate(model, vegetation[i]);
-				grassShader.setMatrix4fv("model", model);
+				model = glm::translate(model, transparentObjPos[i]);
+				transparentShader.setMatrix4fv("model", model);
 				glDrawArrays(GL_TRIANGLES, 0, 6);
 			}
 			glBindVertexArray(0);
