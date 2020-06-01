@@ -17,10 +17,10 @@
 #include "../1n9_camera/Camera.h"
 #include "../3n1_assimp/LoadTexture.h"
 
-namespace lesson_4n4
+namespace lesson_4n5
 {
-	GLfloat g_screenWidth = 1200.0f;
-	GLfloat g_screenHeight = 800.0f;
+	GLfloat g_screenWidth = 800.0f;
+	GLfloat g_screenHeight = 600.0f;
 
 	int lesson_main();
 
@@ -32,6 +32,8 @@ namespace lesson_4n4
 
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
+	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+
 	float GetDeltaTime();
 
 	int lesson_main()
@@ -40,10 +42,13 @@ namespace lesson_4n4
 		if ((window = init()) == nullptr) return -1;
 
 		lesson_1n5::CShader sceneShader;
-		if (!sceneShader.Init("Lessons/4n4_face_culing/shaders/scene.vs", "Lessons/4n4_face_culing/shaders/scene.fs")) return -1;
+		if (!sceneShader.Init("Lessons/4n5_framebuffer/shaders/scene.vs", "Lessons/4n5_framebuffer/shaders/scene.fs")) return -1;
 
 		lesson_1n5::CShader transparentShader;
-		if (!transparentShader.Init("Lessons/4n4_face_culing/shaders/transparent.vs", "Lessons/4n4_face_culing/shaders/transparent.fs")) return -1;
+		if (!transparentShader.Init("Lessons/4n5_framebuffer/shaders/transparent.vs", "Lessons/4n5_framebuffer/shaders/transparent.fs")) return -1;
+
+		lesson_1n5::CShader framebufferShader;
+		if (!framebufferShader.Init("Lessons/4n5_framebuffer/shaders/framebuffer.vs", "Lessons/4n5_framebuffer/shaders/framebuffer.fs")) return -1;
 		// set up vertex data (and buffer(s)) and configure vertex attributes
 // ------------------------------------------------------------------
 		float cubeVertices[] = {
@@ -122,7 +127,16 @@ namespace lesson_4n4
 			glm::vec3(0.5f, 0.0f, -0.6f)
 		};
 
+		float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+		// positions   // texCoords
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
 
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f
+		};
 		// cube VAO
 		unsigned int cubeVAO, cubeVBO;
 		glGenVertexArrays(1, &cubeVAO);
@@ -148,12 +162,12 @@ namespace lesson_4n4
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 		glBindVertexArray(0);
 
-		// grass VAO
-		unsigned int grassVAO, grassVBO;
-		glGenVertexArrays(1, &grassVAO);
-		glGenBuffers(1, &grassVBO);
-		glBindVertexArray(grassVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, grassVBO);
+		// transparent VAO
+		unsigned int transparentVAO, transparentVBO;
+		glGenVertexArrays(1, &transparentVAO);
+		glGenBuffers(1, &transparentVBO);
+		glBindVertexArray(transparentVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, transparentVBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices), &transparentVertices, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -161,9 +175,42 @@ namespace lesson_4n4
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 		glBindVertexArray(0);
 
+		// quad VAO
+		unsigned int quadVAO, quadVBO;
+		glGenVertexArrays(1, &quadVAO);
+		glGenBuffers(1, &quadVBO);
+		glBindVertexArray(quadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+		glBindVertexArray(0);
+
+		unsigned int framebuffer;
+		glGenFramebuffers(1, &framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		unsigned int framebufferTexture = lesson_3n1::CLoadTexture::GetFBOTexture(g_screenWidth, g_screenHeight);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0);
+
+		unsigned int rbo;
+		glGenRenderbuffers(1, &rbo);
+		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, g_screenWidth, g_screenHeight);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		{
+			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+			return -1;
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 		unsigned int cubeTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/marble.jpg");
 		unsigned int floorTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/metal.png");
-		unsigned int grassTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/blending_transparent_window.png", GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR);
+		unsigned int transparentTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/blending_transparent_window.png", GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR);
 
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
@@ -180,25 +227,31 @@ namespace lesson_4n4
 		transparentShader.setMatrix4fv("projection", projection);
 		transparentShader.setInt("texture1", 0);
 
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
+		framebufferShader.Use();
+		transparentShader.setInt("screenTexture", 0);
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		// draw as wireframe
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		while (!glfwWindowShouldClose(window))
 		{
 			lesson_1n9::CCamera::Get().Movement(GetDeltaTime());
 
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			sceneShader.Use();
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LESS);
 
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);
 			glFrontFace(GL_CW);
-			
+
+			sceneShader.Use();	
 			const glm::vec3& cameraPos = lesson_1n9::CCamera::Get().GetCameraPosition();
 			sceneShader.setVec3f("viewPos", cameraPos);
 			view = lesson_1n9::CCamera::Get().GetView();
@@ -231,9 +284,9 @@ namespace lesson_4n4
 
 			transparentShader.Use();
 			transparentShader.setMatrix4fv("view", view);
-			glBindVertexArray(grassVAO);
+			glBindVertexArray(transparentVAO);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, grassTexture);
+			glBindTexture(GL_TEXTURE_2D, transparentTexture);
 
 			std::sort(transparentObjPos.begin(), transparentObjPos.end(), [&](glm::vec3& a, glm::vec3& b) {
 
@@ -252,16 +305,32 @@ namespace lesson_4n4
 			}
 			glBindVertexArray(0);
 
+			
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDisable(GL_DEPTH_TEST);
+			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			framebufferShader.Use();
+			glBindVertexArray(quadVAO);
+			glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindVertexArray(0);
+			
+
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 		}
 
 		glDeleteVertexArrays(1, &cubeVAO);
 		glDeleteVertexArrays(1, &planeVAO);
-		glDeleteVertexArrays(1, &grassVAO);
+		glDeleteVertexArrays(1, &transparentVAO);
+		glDeleteVertexArrays(1, &quadVAO);
 		glDeleteBuffers(1, &cubeVBO);
 		glDeleteBuffers(1, &planeVBO);
-		glDeleteBuffers(1, &grassVBO);
+		glDeleteBuffers(1, &transparentVBO);
+		glDeleteBuffers(1, &quadVBO);
+		glDeleteFramebuffers(1, &framebuffer);
 
 		glfwTerminate();
 		return 0;		
@@ -295,6 +364,9 @@ namespace lesson_4n4
 		//scrollcallback
 		glfwSetScrollCallback(window, scroll_callback);
 
+		//framebuffer
+		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
 		glewExperimental = GL_TRUE;
 		if (glewInit() != GLEW_OK)
 		{
@@ -327,6 +399,11 @@ namespace lesson_4n4
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	{
 		lesson_1n9::CCamera::Get().ScrollProcessing(xoffset, yoffset);
+	}
+
+	void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+	{
+		glViewport(0, 0, g_screenWidth, g_screenHeight);
 	}
 
 	float GetDeltaTime()

@@ -1,2 +1,0 @@
-D:\pet_project\OpenGL-learning\OpenGLLearn\Debug\OpenGLLearn.exe
-D:\pet_project\OpenGL-learning\OpenGLLearn\Debug\OpenGLLearn.pdb

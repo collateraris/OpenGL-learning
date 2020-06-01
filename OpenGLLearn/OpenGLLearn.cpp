@@ -3,11 +3,11 @@
 
 #include <GLFW\glfw3.h>
 
-#include "Lessons/4n4_face_culing/main4n4.h"
+#include "Lessons/4n5_framebuffer/main4n5.h"
 
 int main()
 {
-	return lesson_4n4::lesson_main();
+	return lesson_4n5::lesson_main();
 }
 
 
