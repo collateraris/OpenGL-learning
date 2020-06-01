@@ -48,7 +48,7 @@ namespace lesson_4n5
 		if (!transparentShader.Init("Lessons/4n5_framebuffer/shaders/transparent.vs", "Lessons/4n5_framebuffer/shaders/transparent.fs")) return -1;
 
 		lesson_1n5::CShader framebufferShader;
-		if (!framebufferShader.Init("Lessons/4n5_framebuffer/shaders/framebuffer.vs", "Lessons/4n5_framebuffer/shaders/framebuffer.fs")) return -1;
+		if (!framebufferShader.Init("Lessons/4n5_framebuffer/shaders/framebuffer_kernel_effect.vs", "Lessons/4n5_framebuffer/shaders/framebuffer_kernel_effect.fs")) return -1;
 		// set up vertex data (and buffer(s)) and configure vertex attributes
 // ------------------------------------------------------------------
 		float cubeVertices[] = {
@@ -208,7 +208,7 @@ namespace lesson_4n5
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-		unsigned int cubeTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/marble.jpg");
+		unsigned int cubeTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/container.jpg");
 		unsigned int floorTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/metal.png");
 		unsigned int transparentTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/blending_transparent_window.png", GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR);
 
