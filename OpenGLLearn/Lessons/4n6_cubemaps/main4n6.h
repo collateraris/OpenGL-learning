@@ -16,6 +16,8 @@
 #include "../1n5_shaders/Shader.h"
 #include "../1n9_camera/Camera.h"
 #include "../3n1_assimp/LoadTexture.h"
+#include "../3n1_assimp/AssimpData.h"
+#include "../2n6_multy_lights/LightStates.h"
 
 namespace lesson_4n6
 {
@@ -49,6 +51,12 @@ namespace lesson_4n6
 
 		lesson_1n5::CShader skyboxShader;
 		if (!skyboxShader.Init("Lessons/4n6_cubemaps/shaders/skybox.vs", "Lessons/4n6_cubemaps/shaders/skybox.fs")) return -1;
+		
+		lesson_1n5::CShader obiwanShader;
+		if (!obiwanShader.Init("Lessons/4n6_cubemaps/shaders/reflection.vs", "Lessons/4n6_cubemaps/shaders/reflection.fs")) return -1;
+
+		lesson_3n1::SFileMeshData obiwan;
+		lesson_3n1::CLoadAssimpFile::Load("content/model/obiwan/0.obj", obiwan);
 		// set up vertex data (and buffer(s)) and configure vertex attributes
 // ------------------------------------------------------------------
 		float cubeVertices[] = {
@@ -218,6 +226,7 @@ namespace lesson_4n6
 		glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glBindVertexArray(0);
 
 		unsigned int cubeTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/container.jpg");
 		unsigned int floorTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/metal.png");
@@ -253,12 +262,17 @@ namespace lesson_4n6
 		skyboxShader.setMatrix4fv("projection", projection);
 		transparentShader.setInt("screenTexture", 0);
 
+		obiwanShader.Use();
+		obiwanShader.setMatrix4fv("projection", projection);
+		transparentShader.setInt("skybox", 0);
+
+		lesson_3n1::CDrawFileMeshData::Init(obiwan);
+
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		// draw as wireframe
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 
 		while (!glfwWindowShouldClose(window))
 		{
@@ -300,6 +314,20 @@ namespace lesson_4n6
 			sceneShader.setMatrix4fv("model", model);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
+
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+			glFrontFace(GL_CCW);
+
+			obiwanShader.Use();
+
+			obiwanShader.setMatrix4fv("view", view);
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, glm::vec3(0.0f));
+			obiwanShader.setMatrix4fv("model", model);
+			obiwanShader.setVec3f("cameraPos", cameraPos);
+
+			lesson_3n1::CDrawFileMeshData::Draw(obiwanShader, obiwan);
 
 			//transparent object
 
