@@ -180,6 +180,7 @@
     <ClInclude Include="Lessons\4n4_face_culing\main4n4.h" />
     <ClInclude Include="Lessons\4n5_framebuffer\main4n5.h" />
     <ClInclude Include="Lessons\4n6_cubemaps\main4n6.h" />
+    <ClInclude Include="Lessons\4n8_advanced_glsl\main4n8.h" />
     <ClInclude Include="ThirdParty\include\glm\common.hpp" />
     <ClInclude Include="ThirdParty\include\glm\exponential.hpp" />
     <ClInclude Include="ThirdParty\include\glm\ext.hpp" />

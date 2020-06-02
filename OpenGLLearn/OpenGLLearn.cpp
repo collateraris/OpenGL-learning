@@ -3,11 +3,11 @@
 
 #include <GLFW\glfw3.h>
 
-#include "Lessons/4n6_cubemaps/main4n6.h"
+#include "Lessons/4n8_advanced_glsl/main4n8.h"
 
 int main()
 {
-	return lesson_4n6::lesson_main();
+	return lesson_4n8::lesson_main();
 }
 
 
