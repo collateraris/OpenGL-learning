@@ -53,7 +53,7 @@ namespace lesson_4n6
 		if (!skyboxShader.Init("Lessons/4n6_cubemaps/shaders/skybox.vs", "Lessons/4n6_cubemaps/shaders/skybox.fs")) return -1;
 		
 		lesson_1n5::CShader obiwanShader;
-		if (!obiwanShader.Init("Lessons/4n6_cubemaps/shaders/reflection.vs", "Lessons/4n6_cubemaps/shaders/reflection.fs")) return -1;
+		if (!obiwanShader.Init("Lessons/4n6_cubemaps/shaders/refraction.vs", "Lessons/4n6_cubemaps/shaders/refraction.fs")) return -1;
 
 		lesson_3n1::SFileMeshData obiwan;
 		lesson_3n1::CLoadAssimpFile::Load("content/model/obiwan/0.obj", obiwan);
