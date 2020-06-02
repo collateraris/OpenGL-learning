@@ -3,11 +3,11 @@
 
 #include <GLFW\glfw3.h>
 
-#include "Lessons/4n5_framebuffer/main4n5.h"
+#include "Lessons/4n6_cubemaps/main4n6.h"
 
 int main()
 {
-	return lesson_4n5::lesson_main();
+	return lesson_4n6::lesson_main();
 }
 
 

@@ -18,6 +18,8 @@ namespace lesson_3n1
 		static unsigned int GetFBOTexture(unsigned int width, unsigned int height);
 
 		static unsigned int GetFBODepthAttachmentTexture(unsigned int width, unsigned int height);
+
+		static unsigned int LoadCubemap(const std::vector<std::string>& faces);
 	};
 
 }
