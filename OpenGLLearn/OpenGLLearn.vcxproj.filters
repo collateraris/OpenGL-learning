@@ -185,6 +185,9 @@
     <ClInclude Include="Lessons\4n8_advanced_glsl\main4n8.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="Lessons\4n9_geometry_shader\main4n9.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />

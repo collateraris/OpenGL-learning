@@ -11,7 +11,7 @@ namespace lesson_1n5
 
 		CShader() = default;
 
-		bool Init(const GLchar* vertexPath, const GLchar* fragmentPath);
+		bool Init(const GLchar* vertexPath, const GLchar* fragmentPath, const GLchar* geometryPath = nullptr);
 
 		void Use();
 
@@ -27,7 +27,9 @@ namespace lesson_1n5
 
 	private:
 
-		GLuint mProgramID = -1;
+		const int INDEX_NONE = -1;
+
+		GLuint mProgramID = INDEX_NONE;
 
 		bool bInit = false;
 	};
