@@ -17,6 +17,8 @@
 #include "../1n5_shaders/Shader.h"
 #include "../1n9_camera/Camera.h"
 #include "../3n1_assimp/LoadTexture.h"
+#include "../3n1_assimp/AssimpData.h"
+#include "../2n6_multy_lights/LightStates.h"
 
 namespace lesson_4n10
 {
@@ -42,83 +44,110 @@ namespace lesson_4n10
 		GLFWwindow* window;
 		if ((window = init()) == nullptr) return -1;
 
-		lesson_1n5::CShader sceneShader;
-		if (!sceneShader.Init("Lessons/4n10_instansing/shaders/scene.vs", "Lessons/4n10_instansing/shaders/scene.fs")) return -1;
+		lesson_1n5::CShader meshShader;
+		if (!meshShader.Init("Lessons/4n10_instansing/shaders/mesh.vs", "Lessons/4n10_instansing/shaders/mesh.fs")) return -1;
 
-		glm::vec2 translations[100];
-		int index = 0;
-		float offset = 0.1f;
-		for (int y = -10; y < 10; y += 2)
+		lesson_3n1::SFileMeshData planetMesh;
+		lesson_3n1::CLoadAssimpFile::Load("content/model/mars/planet.obj", planetMesh);
+		lesson_3n1::SFileMeshData rockMesh;
+		lesson_3n1::CLoadAssimpFile::Load("content/model/rock/rock.obj", rockMesh);
+
+		unsigned int uniformBlockIndexScene = glGetUniformBlockIndex(meshShader.GetProgramID(), "Matrices");
+		glUniformBlockBinding(meshShader.GetProgramID(), uniformBlockIndexScene, 0);
+
+		unsigned int uboMatrices;
+		glGenBuffers(1, &uboMatrices);
+		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+		glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
+
+		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
+
+		glm::mat4 view = glm::mat4(1.0f);
+		glm::mat4 projection;
+		projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
+
+		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+		unsigned int amount = 1000;
+		std::vector<glm::mat4> modelMatrices = {};
+		modelMatrices.reserve(amount);
+		srand(glfwGetTime());
+		float radius = 50.0;
+		float offset = 2.5f;
+		for (unsigned int i = 0; i < amount; i++)
 		{
-			for (int x = -10; x < 10; x += 2)
-			{
-				glm::vec2 translation;
-				translation.x = (float)x / 10.0f + offset;
-				translation.y = (float)y / 10.0f + offset;
-				translations[index++] = translation;
-			}
+			glm::mat4 model = glm::mat4(1.0f);
+			float angle = (float)i / amount * 360.0f;
+			float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+			float x = sin(angle) * radius + displacement;
+			displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+
+			float y = displacement * 0.4f;
+			displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+			float z = cos(angle) * radius + displacement;
+			model = glm::translate(model, glm::vec3(x, y, z));
+
+			float scale = (rand() % 20) / 100.0f + 0.05;
+			model = glm::scale(model, glm::vec3(scale));
+
+			float rotAngle = (rand() % 360);
+			model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
+
+			modelMatrices.emplace_back(model);
 		}
 
-		// store instance data in an array buffer
-		// --------------------------------------
-		unsigned int instanceVBO;
-		glGenBuffers(1, &instanceVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &translations[0], GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		lesson_3n1::CDrawFileMeshData::Init(planetMesh);
+		lesson_3n1::CDrawFileMeshData::Init(rockMesh);
 
-		float quadVertices[] = {
-			// positions     // colors
-			-0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
-			 0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
-			-0.05f, -0.05f,  0.0f, 0.0f, 1.0f,
-
-			-0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
-			 0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
-			 0.05f,  0.05f,  0.0f, 1.0f, 1.0f
-		};
-
-		//quad
-		unsigned int quadVAO, quadVBO;
-		glGenVertexArrays(1, &quadVAO);
-		glGenBuffers(1, &quadVBO);
-		glBindVertexArray(quadVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
-		// also set instance data
-		glEnableVertexAttribArray(2);
-		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO); // this attribute comes from a different vertex buffer
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glVertexAttribDivisor(2, 1); // tell OpenGL this is an instanced vertex attribute.
+		lesson_2n6::CLightStates lightingState;
+		lightingState.Init(lesson_2n6::EState::DESERT);
+		meshShader.Use();
+		lightingState.SetShaderParams(meshShader);
 
 		float deltaTime;
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
 
 		while (!glfwWindowShouldClose(window))
 		{
 			deltaTime = GetDeltaTime();
-			//std::cout << "FPS " << 1.f / deltaTime << std::endl;
+			std::cout << "FPS " << 1.f / deltaTime << std::endl;
 			lesson_1n9::CCamera::Get().Movement(deltaTime);
 
-			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+			lightingState.SetClearColorParam();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			sceneShader.Use();
-			glBindVertexArray(quadVAO);
-			glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100); // 100 triangles of 6 vertices each
-			glBindVertexArray(0);
+			view = lesson_1n9::CCamera::Get().GetView();
+			glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+			meshShader.Use();
+			meshShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
+			model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
+			meshShader.setMatrix4fv("model", model);
+			lesson_3n1::CDrawFileMeshData::Draw(meshShader, planetMesh);
+
+			for (unsigned int i = 0; i < amount; i++)
+			{
+				meshShader.setMatrix4fv("model", modelMatrices[i]);
+				lesson_3n1::CDrawFileMeshData::Draw(meshShader, rockMesh);
+			}
 
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 		}
 
-		glDeleteVertexArrays(1, &quadVAO);
-		glDeleteBuffers(1, &quadVBO);
-		glDeleteBuffers(1, &instanceVBO);
+		lesson_3n1::CDrawFileMeshData::DeleteAfterLoop(planetMesh);
+		lesson_3n1::CDrawFileMeshData::DeleteAfterLoop(rockMesh);
+
 		glfwTerminate();
 		return 0;		
 	}
