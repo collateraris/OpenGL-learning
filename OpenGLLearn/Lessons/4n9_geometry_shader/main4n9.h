@@ -42,24 +42,26 @@ namespace lesson_4n9
 		if ((window = init()) == nullptr) return -1;
 
 		lesson_1n5::CShader sceneShader;
-		if (!sceneShader.Init("Lessons/4n9_geometry_shader/shaders/line_strip.vs", "Lessons/4n9_geometry_shader/shaders/line_strip.fs", "Lessons/4n9_geometry_shader/shaders/line_strip.gs")) return -1;
+		if (!sceneShader.Init("Lessons/4n9_geometry_shader/shaders/triangle_strip.vs", "Lessons/4n9_geometry_shader/shaders/triangle_strip.fs", "Lessons/4n9_geometry_shader/shaders/triangle_strip.gs")) return -1;
 
 		float points[] = {
-			-0.5f,  0.5f, // top-left
-			 0.5f,  0.5f, // top-right
-			 0.5f, -0.5f, // bottom-right
-			-0.5f, -0.5f  // bottom-left
+			-0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 
+			 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 
+			 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 
+			-0.5f, -0.5f, 1.0f, 1.0f, 0.0f 
 		};
 
 		// points VAO
-		unsigned int pointsVAO, pointsVBO;
-		glGenVertexArrays(1, &pointsVAO);
-		glGenBuffers(1, &pointsVBO);
-		glBindVertexArray(pointsVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, pointsVBO);
+		unsigned int triangleVAO, triangleVBO;
+		glGenVertexArrays(1, &triangleVAO);
+		glGenBuffers(1, &triangleVBO);
+		glBindVertexArray(triangleVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, triangleVBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(points), &points, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
 		glBindVertexArray(0);
 
 		float deltaTime;
@@ -77,7 +79,7 @@ namespace lesson_4n9
 			glDepthFunc(GL_LESS);
 
 			sceneShader.Use();
-			glBindVertexArray(pointsVAO);
+			glBindVertexArray(triangleVAO);
 			glDrawArrays(GL_POINTS, 0, 4);
 			glBindVertexArray(0);
 
@@ -85,8 +87,8 @@ namespace lesson_4n9
 			glfwPollEvents();
 		}
 
-		glDeleteVertexArrays(1, &pointsVAO);
-		glDeleteBuffers(1, &pointsVBO);
+		glDeleteVertexArrays(1, &triangleVAO);
+		glDeleteBuffers(1, &triangleVBO);
 
 		glfwTerminate();
 		return 0;		
