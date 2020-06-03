@@ -47,6 +47,9 @@ namespace lesson_4n10
 		lesson_1n5::CShader meshShader;
 		if (!meshShader.Init("Lessons/4n10_instansing/shaders/mesh.vs", "Lessons/4n10_instansing/shaders/mesh.fs")) return -1;
 
+		lesson_1n5::CShader instanceMeshShader;
+		if (!instanceMeshShader.Init("Lessons/4n10_instansing/shaders/instance_mesh.vs", "Lessons/4n10_instansing/shaders/instance_mesh.fs")) return -1;
+
 		lesson_3n1::SFileMeshData planetMesh;
 		lesson_3n1::CLoadAssimpFile::Load("content/model/mars/planet.obj", planetMesh);
 		lesson_3n1::SFileMeshData rockMesh;
@@ -64,7 +67,6 @@ namespace lesson_4n10
 
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
-		glm::mat4 view = glm::mat4(1.0f);
 		glm::mat4 projection;
 		projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
 
@@ -72,12 +74,13 @@ namespace lesson_4n10
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		unsigned int amount = 1000;
+		unsigned int amount = 10000;
 		std::vector<glm::mat4> modelMatrices = {};
 		modelMatrices.reserve(amount);
 		srand(glfwGetTime());
-		float radius = 50.0;
-		float offset = 2.5f;
+		float radius = 35.0;
+		float offset = 10.f;
+
 		for (unsigned int i = 0; i < amount; i++)
 		{
 			glm::mat4 model = glm::mat4(1.0f);
@@ -103,10 +106,41 @@ namespace lesson_4n10
 		lesson_3n1::CDrawFileMeshData::Init(planetMesh);
 		lesson_3n1::CDrawFileMeshData::Init(rockMesh);
 
+		unsigned int buffer;
+		glGenBuffers(1, &buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, buffer);
+		glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
+
+		for (unsigned int i = 0; i < rockMesh.meshes.size(); i++)
+		{
+			unsigned int VAO = rockMesh.meshes[i].GetVAO();
+			glBindVertexArray(VAO);
+
+			//for model mat4
+			GLsizei vec4Size = sizeof(glm::vec4);
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)0);
+			glEnableVertexAttribArray(4);
+			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(vec4Size));
+			glEnableVertexAttribArray(5);
+			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(2 * vec4Size));
+			glEnableVertexAttribArray(6);
+			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(3 * vec4Size));
+
+			glVertexAttribDivisor(3, 1);
+			glVertexAttribDivisor(4, 1);
+			glVertexAttribDivisor(5, 1);
+			glVertexAttribDivisor(6, 1);
+
+			glBindVertexArray(0);
+		}
+
 		lesson_2n6::CLightStates lightingState;
 		lightingState.Init(lesson_2n6::EState::DESERT);
 		meshShader.Use();
 		lightingState.SetShaderParams(meshShader);
+		instanceMeshShader.Use();
+		lightingState.SetShaderParams(instanceMeshShader);
 
 		float deltaTime;
 
@@ -122,10 +156,11 @@ namespace lesson_4n10
 			lightingState.SetClearColorParam();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			view = lesson_1n9::CCamera::Get().GetView();
 			glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lesson_1n9::CCamera::Get().GetView()));
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+			glDisable(GL_CULL_FACE);
 
 			meshShader.Use();
 			meshShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
@@ -135,10 +170,18 @@ namespace lesson_4n10
 			meshShader.setMatrix4fv("model", model);
 			lesson_3n1::CDrawFileMeshData::Draw(meshShader, planetMesh);
 
-			for (unsigned int i = 0; i < amount; i++)
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+			glFrontFace(GL_CCW);
+
+			instanceMeshShader.Use();
+			for (unsigned int i = 0; i < rockMesh.meshes.size(); i++)
 			{
-				meshShader.setMatrix4fv("model", modelMatrices[i]);
-				lesson_3n1::CDrawFileMeshData::Draw(meshShader, rockMesh);
+				unsigned int VAO = rockMesh.meshes[i].GetVAO();
+				glBindVertexArray(VAO);
+				glDrawElementsInstanced(
+					GL_TRIANGLES, rockMesh.meshes[i].GetIndices().size(), GL_UNSIGNED_INT, 0, amount
+				);
 			}
 
 			glfwSwapBuffers(window);

@@ -91,12 +91,12 @@ float CCamera::GetFov()
     return this->fov;
 }
 
-glm::vec3 CCamera::GetCameraPosition()
+const glm::vec3& CCamera::GetCameraPosition()
 {
     return this->mCameraPos;
 }
 
-glm::vec3 CCamera::GetCameraFront()
+const glm::vec3& CCamera::GetCameraFront()
 {
     return this->mCameraFront;
 }

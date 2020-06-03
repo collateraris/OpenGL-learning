@@ -22,9 +22,9 @@ namespace lesson_1n9
 
 		float GetFov();
 
-		glm::vec3 GetCameraPosition();
+		const glm::vec3& GetCameraPosition();
 
-		glm::vec3 GetCameraFront();
+		const glm::vec3& GetCameraFront();
 
 	private:
 

@@ -161,18 +161,18 @@ void CShader::setInt(const char* uniformString, GLint value)
     glUniform1i(glGetUniformLocation(this->mProgramID, uniformString), value);
 }
 
-void CShader::setMatrix4fv(const char* uniformString, glm::mat4 value)
+void CShader::setMatrix4fv(const char* uniformString, const glm::mat4& value)
 {
     GLuint Loc = glGetUniformLocation(this->mProgramID, uniformString);
     glUniformMatrix4fv(Loc, 1, GL_FALSE, glm::value_ptr(value));
 }
 
-void CShader::setVec3f(const char* uniformString, glm::vec3 value)
+void CShader::setVec3f(const char* uniformString, const glm::vec3& value)
 {
     glUniform3f(glGetUniformLocation(this->mProgramID, uniformString), value.x, value.y, value.z);
 }
 
-void CShader::setVec2f(const char* uniformString, glm::vec2 value)
+void CShader::setVec2f(const char* uniformString, const glm::vec2& value)
 {
     glUniform2f(glGetUniformLocation(this->mProgramID, uniformString), value.x, value.y);
 }
