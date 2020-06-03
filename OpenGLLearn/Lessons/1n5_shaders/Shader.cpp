@@ -171,3 +171,8 @@ void CShader::setVec3f(const char* uniformString, glm::vec3 value)
 {
     glUniform3f(glGetUniformLocation(this->mProgramID, uniformString), value.x, value.y, value.z);
 }
+
+void CShader::setVec2f(const char* uniformString, glm::vec2 value)
+{
+    glUniform2f(glGetUniformLocation(this->mProgramID, uniformString), value.x, value.y);
+}

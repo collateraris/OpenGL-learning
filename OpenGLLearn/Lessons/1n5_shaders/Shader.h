@@ -25,6 +25,8 @@ namespace lesson_1n5
 
 		void setVec3f(const char* uniformString, glm::vec3 value);
 
+		void setVec2f(const char* uniformString, glm::vec2 value);
+
 	private:
 
 		const int INDEX_NONE = -1;

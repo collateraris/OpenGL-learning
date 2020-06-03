@@ -3,11 +3,11 @@
 
 #include <GLFW\glfw3.h>
 
-#include "Lessons/4n9_geometry_shader/main4n9.h"
+#include "Lessons/4n10_instansing/main4n10.h"
 
 int main()
 {
-	return lesson_4n9::lesson_main();
+	return lesson_4n10::lesson_main();
 }
 
 
