@@ -281,9 +281,6 @@ namespace lesson_4n8
 		skyboxShader.Use();
 		transparentShader.setInt("screenTexture", 0);
 
-		obiwanShader.Use();
-		transparentShader.setInt("skybox", 0);
-
 		lesson_3n1::CDrawFileMeshData::Init(obiwan);
 
 		glEnable(GL_BLEND);

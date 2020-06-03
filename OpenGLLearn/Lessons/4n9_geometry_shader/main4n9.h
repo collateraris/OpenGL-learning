@@ -44,10 +44,27 @@ namespace lesson_4n9
 		if ((window = init()) == nullptr) return -1;
 
 		lesson_1n5::CShader sceneShader;
-		if (!sceneShader.Init("Lessons/4n9_geometry_shader/shaders/mesh.vs", "Lessons/4n9_geometry_shader/shaders/mesh.fs", "Lessons/4n9_geometry_shader/shaders/explode.gs")) return -1;
+		if (!sceneShader.Init("Lessons/4n9_geometry_shader/shaders/scene.vs", "Lessons/4n9_geometry_shader/shaders/scene.fs")) return -1;
 
-		lesson_3n1::SFileMeshData obiwan;
-		lesson_3n1::CLoadAssimpFile::Load("content/model/obiwan/0.obj", obiwan);
+		lesson_1n5::CShader normalVisShader;
+		if (!normalVisShader.Init("Lessons/4n9_geometry_shader/shaders/normalVis.vs", "Lessons/4n9_geometry_shader/shaders/normalVis.fs", "Lessons/4n9_geometry_shader/shaders/normalVis.gs")) return -1;
+
+		lesson_3n1::SFileMeshData meshObj;
+		lesson_3n1::CLoadAssimpFile::Load("content/model/guitarBackpack/backpack.obj", meshObj);
+
+		unsigned int uniformBlockIndexScene = glGetUniformBlockIndex(sceneShader.GetProgramID(), "Matrices");
+		unsigned int uniformBlockIndexNormalVis = glGetUniformBlockIndex(normalVisShader.GetProgramID(), "Matrices");
+
+		glUniformBlockBinding(sceneShader.GetProgramID(), uniformBlockIndexScene, 0);
+		glUniformBlockBinding(normalVisShader.GetProgramID(), uniformBlockIndexNormalVis, 0);
+
+		unsigned int uboMatrices;
+		glGenBuffers(1, &uboMatrices);
+		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+		glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+		glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 3 * sizeof(glm::mat4));
 
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
@@ -56,13 +73,15 @@ namespace lesson_4n9
 		glm::mat4 projection;
 		projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
 
-		sceneShader.Use();
-		sceneShader.setMatrix4fv("projection", projection);
+		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		lesson_3n1::CDrawFileMeshData::Init(obiwan);
+		lesson_3n1::CDrawFileMeshData::Init(meshObj);
 
 		lesson_2n6::CLightStates lightingState;
 		lightingState.Init(lesson_2n6::EState::DESERT);
+		sceneShader.Use();
 		lightingState.SetShaderParams(sceneShader);
 
 		float deltaTime;
@@ -83,22 +102,29 @@ namespace lesson_4n9
 			glCullFace(GL_BACK);
 			glFrontFace(GL_CCW);
 
-			sceneShader.Use();
-			sceneShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
 			view = lesson_1n9::CCamera::Get().GetView();
-			sceneShader.setMatrix4fv("view", view);
+			glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
 			model = glm::mat4(1.0f);
 			model = glm::translate(model, glm::vec3(0.0f));
-			sceneShader.setMatrix4fv("model", model);
-			sceneShader.setFloat("time", glfwGetTime());
+			glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) + sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(model));
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-			lesson_3n1::CDrawFileMeshData::Draw(sceneShader, obiwan);
+			sceneShader.Use();
+			sceneShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
+			lesson_3n1::CDrawFileMeshData::Draw(sceneShader, meshObj);
+
+			normalVisShader.Use();
+			lesson_3n1::CDrawFileMeshData::Draw(normalVisShader, meshObj);
 
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 		}
 
-		lesson_3n1::CDrawFileMeshData::DeleteAfterLoop(obiwan);
+		lesson_3n1::CDrawFileMeshData::DeleteAfterLoop(meshObj);
 		glfwTerminate();
 		return 0;		
 	}
