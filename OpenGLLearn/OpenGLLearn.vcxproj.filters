@@ -194,6 +194,9 @@
     <ClInclude Include="Lessons\4n11_anti_aliasing\main4n11.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="OpenCL\1n1_init\opencl_main1n1.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />
