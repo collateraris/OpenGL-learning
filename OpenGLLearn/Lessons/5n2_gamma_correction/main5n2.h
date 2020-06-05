@@ -85,7 +85,7 @@ namespace lesson_5n2
 
 		// load textures
 		// -------------
-		unsigned int floorTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/wood.png");
+		unsigned int floorTexture = lesson_3n1::CLoadTexture::loadGammaTexture("content/tex/wood.png");
 
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
@@ -122,14 +122,14 @@ namespace lesson_5n2
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 			glDisable(GL_CULL_FACE);
-			glDisable(GL_FRAMEBUFFER_SRGB);
+
 			lightingShader.Use();
 			lightingShader.setInt("blinn", g_blinn);
 			lightingShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, glm::vec3(0.0f));
 			lightingShader.setMatrix4fv("model", model);
-			glEnable(GL_FRAMEBUFFER_SRGB);
+
 			glBindVertexArray(planeVAO);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, floorTexture);

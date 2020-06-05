@@ -211,14 +211,15 @@ void CLoadAssimpFile::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, 
         if (it == data.texturesLoaded.end())
         {
             texture.path = data.directory + "/" + std::string(str.C_Str());
-            texture.id = CLoadTexture::TextureFromFile(str.C_Str(), data.directory);
 
             switch (type)
             {
             case aiTextureType_DIFFUSE:
+                texture.id = CLoadTexture::GammaTextureFromFile(str.C_Str(), data.directory);
                 texture.SetType(ETextureType::DIFFUSE);
                 break;
             case aiTextureType_SPECULAR:
+                texture.id = CLoadTexture::TextureFromFile(str.C_Str(), data.directory);
                 texture.SetType(ETextureType::SPECULAR);
                 break;
             default:

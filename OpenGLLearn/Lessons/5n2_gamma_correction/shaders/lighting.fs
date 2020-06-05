@@ -58,6 +58,8 @@ void main()
     // фаза 3: фонарик
     //result += CalcSpotLight(spotLight, norm, FragPos, viewDir);    
     
+	float gamma = 2.2;
+	result.rgb = pow(result.rgb, vec3(1./ 2.2));
     color = vec4(result, 1.0);
 };
 
