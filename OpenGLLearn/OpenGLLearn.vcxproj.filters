@@ -200,6 +200,9 @@
     <ClInclude Include="Lessons\5n1_advanced_lighting\main5n1.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="Lessons\5n2_gamma_correction\main5n2.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />
