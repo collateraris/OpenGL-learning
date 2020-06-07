@@ -17,8 +17,6 @@
 #include "../1n5_shaders/Shader.h"
 #include "../1n9_camera/Camera.h"
 #include "../3n1_assimp/LoadTexture.h"
-#include "../3n1_assimp/AssimpData.h"
-#include "../2n6_multy_lights/LightStates.h"
 
 namespace lesson_5n3
 {
@@ -105,17 +103,17 @@ namespace lesson_5n3
 		glm::mat4 projection;
 		projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
 
-
-		lesson_2n6::CLightStates lightingState;
-		lightingState.Init(lesson_2n6::EState::DESERT);
 		lightingShader.Use();
-		lightingShader.setInt("material.texture_diffuse_0", 0);
-		lightingState.SetShaderParams(lightingShader);
+		lightingShader.setMatrix4fv("projection", projection);
+		lightingShader.setInt("diffuseTexture", 0);
+		lightingShader.setInt("shadowMap", 1);
 
 		float deltaTime;
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
+
+		glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
 
 		while (!glfwWindowShouldClose(window))
 		{
@@ -123,7 +121,7 @@ namespace lesson_5n3
 			//std::cout << "FPS " << 1.f / deltaTime << std::endl;
 			lesson_1n9::CCamera::Get().Movement(deltaTime);
 
-			lightingState.SetClearColorParam();
+			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			glViewport(0, 0, shadowWidth, shadowHeight);
@@ -133,7 +131,7 @@ namespace lesson_5n3
 			float near_plane = 1.0f, far_plane = 7.5f;
 			glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
 
-			glm::mat4 lightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f),
+			glm::mat4 lightView = glm::lookAt(lightPos,
 				glm::vec3(0.0f, 0.0f, 0.0f),
 				glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -152,10 +150,22 @@ namespace lesson_5n3
 			glViewport(0, 0, g_screenWidth, g_screenHeight);
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			depthDebugShader.Use();
+			lightingShader.Use();
 			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, floorTexture);
+			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, depthMap);
-			renderQuad();
+			lightingShader.setMatrix4fv("lightSpaceMatrix", lightSpaceMatrix);
+			lightingShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
+			lightingShader.setVec3f("lightPos", lightPos);
+			glm::mat4 view = lesson_1n9::CCamera::Get().GetView();
+			lightingShader.setMatrix4fv("view", view);
+			model = glm::mat4(1.0f);
+			lightingShader.setMatrix4fv("model", model);
+			glBindVertexArray(planeVAO);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			renderScene(lightingShader);
+
 
 			glfwSwapBuffers(window);
 			glfwPollEvents();
