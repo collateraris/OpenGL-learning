@@ -13,19 +13,19 @@ namespace lesson_1n5
 
 		bool Init(const GLchar* vertexPath, const GLchar* fragmentPath, const GLchar* geometryPath = nullptr);
 
-		void Use();
+		void Use() const;
 
-		GLuint GetProgramID();
+		GLuint GetProgramID() const;
 
-		void setFloat(const char* uniformString, GLfloat value);
+		void setFloat(const char* uniformString, GLfloat value) const;
 
-		void setInt(const char* uniformString, GLint value);
+		void setInt(const char* uniformString, GLint value) const;
 
-		void setMatrix4fv(const char* uniformString, const glm::mat4& value);
+		void setMatrix4fv(const char* uniformString, const glm::mat4& value) const;
 
-		void setVec3f(const char* uniformString, const glm::vec3& value);
+		void setVec3f(const char* uniformString, const glm::vec3& value) const;
 
-		void setVec2f(const char* uniformString, const glm::vec2& value);
+		void setVec2f(const char* uniformString, const glm::vec2& value) const;
 
 	private:
 

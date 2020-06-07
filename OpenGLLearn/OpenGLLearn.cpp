@@ -1,9 +1,9 @@
 ﻿
-#include "Lessons/5n2_gamma_correction/main5n2.h"
+#include "Lessons/5n3_shadow_mapping/main5n3.h"
 
 int main()
 {
-	return lesson_5n2::lesson_main();
+	return lesson_5n3::lesson_main();
 }
 
 

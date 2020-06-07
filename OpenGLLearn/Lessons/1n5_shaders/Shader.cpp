@@ -138,7 +138,7 @@ bool CShader::Init(const GLchar* vertexPath, const GLchar* fragmentPath, const G
     return true;
 }
 
-void CShader::Use()
+void CShader::Use() const
 {
     if(bInit)
      glUseProgram(this->mProgramID);
@@ -146,33 +146,33 @@ void CShader::Use()
      std::cout << "ERROR::SHADER::USE::PROGRAM_DONT_INILIZATED\n" << std::endl;
 }
 
-GLuint CShader::GetProgramID()
+GLuint CShader::GetProgramID() const
 {
     return this->mProgramID;
 }
 
-void CShader::setFloat(const char* uniformString, GLfloat value)
+void CShader::setFloat(const char* uniformString, GLfloat value) const
 {
     glUniform1f(glGetUniformLocation(this->mProgramID, uniformString), value);
 }
 
-void CShader::setInt(const char* uniformString, GLint value)
+void CShader::setInt(const char* uniformString, GLint value) const
 {
     glUniform1i(glGetUniformLocation(this->mProgramID, uniformString), value);
 }
 
-void CShader::setMatrix4fv(const char* uniformString, const glm::mat4& value)
+void CShader::setMatrix4fv(const char* uniformString, const glm::mat4& value) const
 {
     GLuint Loc = glGetUniformLocation(this->mProgramID, uniformString);
     glUniformMatrix4fv(Loc, 1, GL_FALSE, glm::value_ptr(value));
 }
 
-void CShader::setVec3f(const char* uniformString, const glm::vec3& value)
+void CShader::setVec3f(const char* uniformString, const glm::vec3& value) const
 {
     glUniform3f(glGetUniformLocation(this->mProgramID, uniformString), value.x, value.y, value.z);
 }
 
-void CShader::setVec2f(const char* uniformString, const glm::vec2& value)
+void CShader::setVec2f(const char* uniformString, const glm::vec2& value) const
 {
     glUniform2f(glGetUniformLocation(this->mProgramID, uniformString), value.x, value.y);
 }
