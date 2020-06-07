@@ -34,7 +34,13 @@ float ShadowCalculation()
 	
 	float closestDepth = texture(shadowMap, proj.xy).r;
 	
-	return currentDepth > closestDepth ? 1.0 : 0.0;
+	vec3 normal = normalize(fs_in.Normal);
+
+	vec3 lightDir = normalize(lightPos - fs_in.FragPos);
+	
+	float bias = max(0.005 * (1.0 - dot(lightDir, normal)), 0.005);
+	
+	return currentDepth - bias > closestDepth ? 1.0 : 0.0;
 }
 
 vec3 LightDirectionCalculation()

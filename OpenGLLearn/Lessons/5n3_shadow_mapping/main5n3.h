@@ -166,7 +166,6 @@ namespace lesson_5n3
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			renderScene(lightingShader);
 
-
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 		}
