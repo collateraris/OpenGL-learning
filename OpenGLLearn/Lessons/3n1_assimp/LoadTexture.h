@@ -23,6 +23,8 @@ namespace lesson_3n1
 
 		static unsigned int GetDepthMap(unsigned int width = 1024, unsigned int height = 1024);
 
+		static unsigned int GetDepthCubemap(unsigned int width = 1024, unsigned int height = 1024);
+
 		static unsigned int GetFBODepthAttachmentTexture(unsigned int width, unsigned int height);
 
 		static unsigned int LoadCubemap(const std::vector<std::string>& faces);

@@ -18,11 +18,11 @@
 #include "../1n9_camera/Camera.h"
 #include "../3n1_assimp/LoadTexture.h"
 
-namespace lesson_5n3
+namespace lesson_5n4
 {
 	GLfloat g_screenWidth = 800.0f;
 	GLfloat g_screenHeight = 600.0f;
-	bool g_blinn = false;
+	bool g_debug = false;
 
 	int lesson_main();
 
@@ -40,8 +40,6 @@ namespace lesson_5n3
 
 	void renderCube();
 
-	void renderQuad();
-
 	void renderScene(const lesson_1n5::CShader& shader);
 
 	int lesson_main()
@@ -50,47 +48,21 @@ namespace lesson_5n3
 		if ((window = init()) == nullptr) return -1;
 
 		lesson_1n5::CShader lightingShader;
-		if (!lightingShader.Init("Lessons/5n3_shadow_mapping/shaders/lighting.vs", "Lessons/5n3_shadow_mapping/shaders/lighting.fs")) return -1;
+		if (!lightingShader.Init("Lessons/5n4_points_shadow/shaders/lighting.vs", "Lessons/5n4_points_shadow/shaders/lighting.fs")) return -1;
 
 		lesson_1n5::CShader depthShader;
-		if (!depthShader.Init("Lessons/5n3_shadow_mapping/shaders/depthMap.vs", "Lessons/5n3_shadow_mapping/shaders/depthMap.fs")) return -1;
-
-		float planeVertices[] = {
-			// positions            // normals         // texcoords
-			 25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
-			-25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-			-25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
-
-			 25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
-			-25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
-			 25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,  25.0f, 10.0f
-		};
-		// plane VAO
-		unsigned int planeVAO, planeVBO;
-		glGenVertexArrays(1, &planeVAO);
-		glGenBuffers(1, &planeVBO);
-		glBindVertexArray(planeVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-		glBindVertexArray(0);
-
-		unsigned int depthMapFBO;
-		glGenFramebuffers(1, &depthMapFBO);
+		if (!depthShader.Init("Lessons/5n4_points_shadow/shaders/depthCubemap.vs", "Lessons/5n4_points_shadow/shaders/depthCubemap.fs", "Lessons/5n4_points_shadow/shaders/depthCubemap.gs")) return -1;
 
 		// load textures
 		// -------------
 		unsigned int floorTexture = lesson_3n1::CLoadTexture::loadGammaTexture("content/tex/wood.png");
 		unsigned int shadowWidth = 1024, shadowHeight = 1024;
-		unsigned int depthMap = lesson_3n1::CLoadTexture::GetDepthMap(shadowWidth, shadowHeight);
+		unsigned int depthCubemap = lesson_3n1::CLoadTexture::GetDepthCubemap(shadowWidth, shadowHeight);
 
+		unsigned int depthMapFBO;
+		glGenFramebuffers(1, &depthMapFBO);
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -109,8 +81,14 @@ namespace lesson_5n3
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
+		glEnable(GL_CULL_FACE);
 
-		glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
+		glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
+
+		float aspect = static_cast<float>(shadowWidth) / shadowHeight;
+		float near = 1.0f;
+		float far = 25.0f;
+		glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, far);
 
 		while (!glfwWindowShouldClose(window))
 		{
@@ -121,54 +99,48 @@ namespace lesson_5n3
 			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+			lightPos.z = sin(glfwGetTime() * 0.5) * 3.0;
+
+			std::vector<glm::mat4> shadowTransforms = {
+				shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+				shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+				shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
+				shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
+				shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
+				shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)) };
+
 			glViewport(0, 0, shadowWidth, shadowHeight);
 			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 			glClear(GL_DEPTH_BUFFER_BIT);
-
-			float near_plane = 1.0f, far_plane = 7.5f;
-			glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-
-			glm::mat4 lightView = glm::lookAt(lightPos,
-				glm::vec3(0.0f, 0.0f, 0.0f),
-				glm::vec3(0.0f, 1.0f, 0.0f));
-
-			glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 			depthShader.Use();
-			depthShader.setMatrix4fv("lightSpaceMatrix", lightSpaceMatrix);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, floorTexture);
-			glm::mat4 model = glm::mat4(1.0f);
-			depthShader.setMatrix4fv("model", model);
-			glBindVertexArray(planeVAO);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			for (unsigned int i = 0; i < 6; ++i)
+			{
+				const std::string name = "shadowTransforms[" + std::to_string(i) + "]";
+				depthShader.setMatrix4fv(name.c_str(), shadowTransforms[i]);
+			}
+			depthShader.setVec3f("lightPos", lightPos);
+			depthShader.setFloat("far_plane", far);
 			renderScene(depthShader);
-			glBindVertexArray(0);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 			glViewport(0, 0, g_screenWidth, g_screenHeight);
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			lightingShader.Use();
+			lightingShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
+			lightingShader.setVec3f("lightPos", lightPos);
+			lightingShader.setFloat("far_plane", far);
+			glm::mat4 view = lesson_1n9::CCamera::Get().GetView();
+			lightingShader.setMatrix4fv("view", view);
+			lightingShader.setInt("debug", g_debug);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, floorTexture);
 			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, depthMap);
-			lightingShader.setMatrix4fv("lightSpaceMatrix", lightSpaceMatrix);
-			lightingShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
-			lightingShader.setVec3f("lightPos", lightPos);
-			glm::mat4 view = lesson_1n9::CCamera::Get().GetView();
-			lightingShader.setMatrix4fv("view", view);
-			model = glm::mat4(1.0f);
-			lightingShader.setMatrix4fv("model", model);
-			glBindVertexArray(planeVAO);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
 			renderScene(lightingShader);
 
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 		}
-
-		glDeleteVertexArrays(1, &planeVAO);
-		glDeleteBuffers(1, &planeVBO);
 
 		glfwTerminate();
 		return 0;		
@@ -228,7 +200,7 @@ namespace lesson_5n3
 			glfwSetWindowShouldClose(window, GL_TRUE);
 
 		if (key == GLFW_KEY_B && action == GLFW_PRESS)
-			g_blinn = !g_blinn;
+			g_debug = !g_debug;
 	}
 
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -332,52 +304,41 @@ namespace lesson_5n3
 
 	void renderScene(const lesson_1n5::CShader& shader)
 	{
-		// cubes
+		// room cube
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
+		model = glm::scale(model, glm::vec3(5.0f));
+		shader.setMatrix4fv("model", model);
+		glDisable(GL_CULL_FACE); // note that we disable culling here since we render 'inside' the cube instead of the usual 'outside' which throws off the normal culling methods.
+		shader.setInt("reverse_normals", 1); // A small little hack to invert normals when drawing cube from the inside so lighting still works.
+		renderCube();
+		shader.setInt("reverse_normals", 0); // and of course disable it
+		glEnable(GL_CULL_FACE);
+		// cubes
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(4.0f, -3.5f, 0.0));
 		model = glm::scale(model, glm::vec3(0.5f));
 		shader.setMatrix4fv("model", model);
 		renderCube();
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0));
+		model = glm::translate(model, glm::vec3(2.0f, 3.0f, 1.0));
+		model = glm::scale(model, glm::vec3(0.75f));
+		shader.setMatrix4fv("model", model);
+		renderCube();
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-3.0f, -1.0f, 0.0));
 		model = glm::scale(model, glm::vec3(0.5f));
 		shader.setMatrix4fv("model", model);
 		renderCube();
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(-1.0f, 0.0f, 2.0));
+		model = glm::translate(model, glm::vec3(-1.5f, 1.0f, 1.5));
+		model = glm::scale(model, glm::vec3(0.5f));
+		shader.setMatrix4fv("model", model);
+		renderCube();
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-1.5f, 2.0f, -3.0));
 		model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-		model = glm::scale(model, glm::vec3(0.25));
+		model = glm::scale(model, glm::vec3(0.75f));
 		shader.setMatrix4fv("model", model);
 		renderCube();
-	}
-
-	void renderQuad()
-	{
-		static unsigned int quadVAO = 0;
-		static unsigned int quadVBO = 0;
-
-		if (quadVAO == 0)
-		{
-			float quadVertices[] = {
-				// positions        // texture Coords
-				-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-				-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-				 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-				 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-			};
-			// setup plane VAO
-			glGenVertexArrays(1, &quadVAO);
-			glGenBuffers(1, &quadVBO);
-			glBindVertexArray(quadVAO);
-			glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-		}
-		glBindVertexArray(quadVAO);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		glBindVertexArray(0);
 	}
 }
