@@ -1,9 +1,9 @@
 ﻿
-#include "Lessons/5n4_points_shadow/main5n4.h"
+#include "Lessons/5n5_normal_mapping/main5n5.h"
 
 int main()
 {
-	return lesson_5n4::lesson_main();
+	return lesson_5n5::lesson_main();
 }
 
 

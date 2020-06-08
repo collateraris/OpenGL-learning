@@ -47,6 +47,12 @@ unsigned int CLoadTexture::loadTexture(const char* path)
 	return textureID;
 }
 
+unsigned int CLoadTexture::loadNormalTexture(const char* path)
+{
+	stbi_set_flip_vertically_on_load(1);
+	return CLoadTexture::loadTexture(path);
+}
+
 unsigned int CLoadTexture::loadGammaTexture(const char* path)
 {
 	GLuint textureID;
