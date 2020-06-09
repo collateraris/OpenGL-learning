@@ -5,6 +5,7 @@ in VS_OUT {
     vec2 TexCoords;
 	vec3 lightDir;
 	vec3 viewDir;
+	vec3 Normal;
 } fs_in;
 
 uniform sampler2D diffuseTexture;
@@ -62,8 +63,23 @@ vec3 LightDirectionCalculation()
 }
 
 vec2 ParallaxMapping()
-{
-	float height =  texture(displacementTexture, fs_in.TexCoords).r;
-	vec2 p = fs_in.viewDir.xy / fs_in.viewDir.z * (height * height_scale);
-    return fs_in.TexCoords - p;
+{	
+	float numLayers = 16;
+	
+	float layerDepth = 1.0 / numLayers;
+	float currentLayerDepth = 0.0;
+	vec2 P = fs_in.viewDir.xy * height_scale; 
+	vec2 deltaTexCoords = P * layerDepth;
+	
+	vec2  currentTexCoords     = fs_in.TexCoords;
+	float currentDepthMapValue = texture(displacementTexture, currentTexCoords).r;
+	
+	while(currentLayerDepth < currentDepthMapValue)
+	{
+		currentTexCoords -= deltaTexCoords;
+		currentDepthMapValue = texture(displacementTexture, currentTexCoords).r;
+		currentLayerDepth += layerDepth;
+	}
+	
+	return currentTexCoords; 
 }

@@ -8,6 +8,7 @@ out VS_OUT {
     vec2 TexCoords;
 	vec3 lightDir;
 	vec3 viewDir;
+	vec3 Normal;
 } vs_out;
 
 uniform mat4 projection;
@@ -23,6 +24,7 @@ void main()
     gl_Position = projection * view * model * vec4(aPos, 1.0);
 	vec3 T = normalize(vec3(model * vec4(aTangent,   0.0)));
 	vec3 N = normalize(vec3(model * vec4(aNormal,    0.0)));
+	vs_out.Normal = N;
 	T = normalize(T - dot(T, N) * N);
 	vec3 B = cross(N, T);
 	mat3 TBN = transpose(mat3(T, B, N));

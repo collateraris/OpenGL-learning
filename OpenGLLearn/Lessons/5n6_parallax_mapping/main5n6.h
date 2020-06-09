@@ -52,9 +52,9 @@ namespace lesson_5n6
 
 		// load textures
 		// -------------
-		unsigned int diffuseTex = lesson_3n1::CLoadTexture::LoadGammaTexture("content/tex/bricks2.jpg");
-		unsigned int normalTex = lesson_3n1::CLoadTexture::LoadNormalTexture("content/tex/bricks2_normal.jpg");
-		unsigned int displacementTex = lesson_3n1::CLoadTexture::LoadTexture("content/tex/bricks2_disp.jpg");
+		unsigned int diffuseTex = lesson_3n1::CLoadTexture::LoadGammaTexture("content/tex/toy_box_diffuse.png");
+		unsigned int normalTex = lesson_3n1::CLoadTexture::LoadNormalTexture("content/tex/toy_box_normal.png");
+		unsigned int displacementTex = lesson_3n1::CLoadTexture::LoadTexture("content/tex/toy_box_disp.png");
 
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
