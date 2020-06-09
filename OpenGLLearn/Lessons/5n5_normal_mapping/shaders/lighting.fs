@@ -2,16 +2,13 @@
 out vec4 FragColor;
 
 in VS_OUT {
-    vec3 FragPos;
-    vec3 Normal;
     vec2 TexCoords;
+	vec3 lightDir;
+	vec3 viewDir;
 } fs_in;
 
 uniform sampler2D diffuseTexture;
 uniform sampler2D normalTexture;
-
-uniform vec3 lightPos;
-uniform vec3 viewPos;
 
 vec3 LightDirectionCalculation();
 
@@ -32,11 +29,11 @@ vec3 LightDirectionCalculation()
 	vec3 color = texture(diffuseTexture, fs_in.TexCoords).rgb;
 	
 	vec3 normal = texture(normalTexture, fs_in.TexCoords).rgb;
-	normal = normalize(normal * 2.0 - 1.0);
+	normal = normalize(normal * 2.0 - 1.0);   
 
-	vec3 lightDir = normalize(lightPos - fs_in.FragPos);
+	vec3 lightDir = fs_in.lightDir;
 	
-	vec3 viewDir = normalize(viewPos - fs_in.FragPos);
+	vec3 viewDir = fs_in.viewDir;
 	
 	vec3 median = normalize(lightDir + viewDir);
 	
