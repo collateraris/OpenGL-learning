@@ -228,9 +228,9 @@ namespace lesson_4n6
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glBindVertexArray(0);
 
-		unsigned int cubeTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/container.jpg");
-		unsigned int floorTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/metal.png");
-		unsigned int transparentTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/blending_transparent_window.png", GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR);
+		unsigned int cubeTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/container.jpg");
+		unsigned int floorTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/metal.png");
+		unsigned int transparentTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/blending_transparent_window.png", GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR);
 
 		std::vector<std::string> faces = 
 		{

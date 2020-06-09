@@ -18,7 +18,7 @@
 #include "../1n9_camera/Camera.h"
 #include "../3n1_assimp/LoadTexture.h"
 
-namespace lesson_5n5
+namespace lesson_5n6
 {
 	GLfloat g_screenWidth = 800.0f;
 	GLfloat g_screenHeight = 600.0f;
@@ -48,12 +48,13 @@ namespace lesson_5n5
 		if ((window = init()) == nullptr) return -1;
 
 		lesson_1n5::CShader lightingShader;
-		if (!lightingShader.Init("Lessons/5n5_normal_mapping/shaders/lighting.vs", "Lessons/5n5_normal_mapping/shaders/lighting.fs")) return -1;
+		if (!lightingShader.Init("Lessons/5n6_parallax_mapping/shaders/lighting.vs", "Lessons/5n6_parallax_mapping/shaders/lighting.fs")) return -1;
 
 		// load textures
 		// -------------
-		unsigned int diffuseTex = lesson_3n1::CLoadTexture::LoadGammaTexture("content/tex/brickwall.jpg");
-		unsigned int normalTex = lesson_3n1::CLoadTexture::LoadNormalTexture("content/tex/brickwall_normal.jpg");
+		unsigned int diffuseTex = lesson_3n1::CLoadTexture::LoadGammaTexture("content/tex/bricks2.jpg");
+		unsigned int normalTex = lesson_3n1::CLoadTexture::LoadNormalTexture("content/tex/bricks2_normal.jpg");
+		unsigned int displacementTex = lesson_3n1::CLoadTexture::LoadTexture("content/tex/bricks2_disp.jpg");
 
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
@@ -64,14 +65,15 @@ namespace lesson_5n5
 		lightingShader.setMatrix4fv("projection", projection);
 		lightingShader.setInt("diffuseTexture", 0);
 		lightingShader.setInt("normalTexture", 1);
+		lightingShader.setInt("displacementTexture", 2);
 
 		float deltaTime;
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
-		glEnable(GL_CULL_FACE);
 
 		glm::vec3 lightPos(0.5f, 1.0f, 0.3f);
+		float heightScale = 0.1;
 
 		while (!glfwWindowShouldClose(window))
 		{
@@ -89,10 +91,13 @@ namespace lesson_5n5
 			lightingShader.setVec3f("lightPos", lightPos);
 			glm::mat4 view = lesson_1n9::CCamera::Get().GetView();
 			lightingShader.setMatrix4fv("view", view);
+			lightingShader.setFloat("height_scale", heightScale);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, diffuseTex);
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, normalTex);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, displacementTex);
 			renderScene(lightingShader);
 
 			glfwSwapBuffers(window);
@@ -364,7 +369,7 @@ namespace lesson_5n5
 				ptrtf.x, ptrtf.y, ptrtf.z,  0.0f,  1.0f,  0.0f, uvtrtf.x,  uvtrtf.y, tangent1tf.x,  tangent1tf.y, tangent1tf.z, // top-right     
 				pbrtf.x, pbrtf.y, pbrtf.z,  0.0f,  1.0f,  0.0f, uvbrtf.x,  uvbrtf.y, tangent2tf.x,  tangent2tf.y, tangent2tf.z, // bottom-right
 				ptltf.x, ptltf.y, ptltf.z,  0.0f,  1.0f,  0.0f, uvtltf.x,  uvtltf.y, tangent2tf.x,  tangent2tf.y, tangent2tf.z, // top-left
-				pbltf.x, pbltf.y, pbltf.z,  0.0f,  1.0f,  0.0f, uvbltf.x,  uvbltf.y, tangent2tf.x,  tangent2tf.y, tangent2tf.z, // bottom-left        
+				pbltf.x, pbltf.y, pbltf.z,  0.0f,  1.0f,  0.0f, uvbltf.x,  uvbltf.y, tangent2tf.x,  tangent2tf.y, tangent2tf.z, // bottom-left           
 			};
 			glGenVertexArrays(1, &cubeVAO);
 			glGenBuffers(1, &cubeVBO);

@@ -212,6 +212,9 @@
     <ClInclude Include="Lessons\5n5_normal_mapping\main5n5.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="Lessons\5n6_parallax_mapping\main5n6.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />

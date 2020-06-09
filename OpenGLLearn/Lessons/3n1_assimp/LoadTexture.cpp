@@ -10,7 +10,7 @@
 
 using namespace lesson_3n1;
 
-unsigned int CLoadTexture::loadTexture(const char* path)
+unsigned int CLoadTexture::LoadTexture(const char* path)
 {
 	GLuint textureID;
 	glGenTextures(1, &textureID);
@@ -47,13 +47,13 @@ unsigned int CLoadTexture::loadTexture(const char* path)
 	return textureID;
 }
 
-unsigned int CLoadTexture::loadNormalTexture(const char* path)
+unsigned int CLoadTexture::LoadNormalTexture(const char* path)
 {
 	stbi_set_flip_vertically_on_load(1);
-	return CLoadTexture::loadTexture(path);
+	return CLoadTexture::LoadTexture(path);
 }
 
-unsigned int CLoadTexture::loadGammaTexture(const char* path)
+unsigned int CLoadTexture::LoadGammaTexture(const char* path)
 {
 	GLuint textureID;
 	glGenTextures(1, &textureID);
@@ -98,7 +98,7 @@ unsigned int CLoadTexture::loadGammaTexture(const char* path)
 	return textureID;
 }
 
-unsigned int CLoadTexture::loadTexture(const char* path, int wrap_s_par, int wrap_t_par, int min_filter_par, int max_filter_par)
+unsigned int CLoadTexture::LoadTexture(const char* path, int wrap_s_par, int wrap_t_par, int min_filter_par, int max_filter_par)
 {
 	GLuint textureID;
 	glGenTextures(1, &textureID);
@@ -142,7 +142,7 @@ unsigned int CLoadTexture::TextureFromFile(const char* path, std::string directo
 	std::string filename = std::string(path);
 	filename = directory + '/' + filename;
 
-	return CLoadTexture::loadTexture(filename.c_str());
+	return CLoadTexture::LoadTexture(filename.c_str());
 }
 
 unsigned int CLoadTexture::GammaTextureFromFile(const char* path, std::string directory)
@@ -150,7 +150,7 @@ unsigned int CLoadTexture::GammaTextureFromFile(const char* path, std::string di
 	std::string filename = std::string(path);
 	filename = directory + '/' + filename;
 
-	return CLoadTexture::loadGammaTexture(filename.c_str());
+	return CLoadTexture::LoadGammaTexture(filename.c_str());
 }
 
 unsigned int CLoadTexture::GetFBOTexture(unsigned int width, unsigned int height)

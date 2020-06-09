@@ -55,7 +55,7 @@ namespace lesson_5n4
 
 		// load textures
 		// -------------
-		unsigned int floorTexture = lesson_3n1::CLoadTexture::loadGammaTexture("content/tex/wood.png");
+		unsigned int floorTexture = lesson_3n1::CLoadTexture::LoadGammaTexture("content/tex/wood.png");
 		unsigned int shadowWidth = 1024, shadowHeight = 1024;
 		unsigned int depthCubemap = lesson_3n1::CLoadTexture::GetDepthCubemap(shadowWidth, shadowHeight);
 

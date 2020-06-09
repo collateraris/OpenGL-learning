@@ -126,8 +126,8 @@ namespace lesson_4n2
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 		glBindVertexArray(0);
 
-		unsigned int cubeTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/marble.jpg");
-		unsigned int floorTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/metal.png");
+		unsigned int cubeTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/marble.jpg");
+		unsigned int floorTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/metal.png");
 
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 

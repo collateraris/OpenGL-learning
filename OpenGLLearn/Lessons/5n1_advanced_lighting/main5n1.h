@@ -85,7 +85,7 @@ namespace lesson_5n1
 
 		// load textures
 		// -------------
-		unsigned int floorTexture = lesson_3n1::CLoadTexture::loadTexture("content/tex/wood.png");
+		unsigned int floorTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/wood.png");
 
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 

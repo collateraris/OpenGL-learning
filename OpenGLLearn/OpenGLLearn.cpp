@@ -1,9 +1,9 @@
 ﻿
-#include "Lessons/5n5_normal_mapping/main5n5.h"
+#include "Lessons/5n6_parallax_mapping/main5n6.h"
 
 int main()
 {
-	return lesson_5n5::lesson_main();
+	return lesson_5n6::lesson_main();
 }
 
 
