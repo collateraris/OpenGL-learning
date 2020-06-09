@@ -52,9 +52,12 @@ namespace lesson_5n6
 
 		// load textures
 		// -------------
-		unsigned int diffuseTex = lesson_3n1::CLoadTexture::LoadGammaTexture("content/tex/toy_box_diffuse.png");
-		unsigned int normalTex = lesson_3n1::CLoadTexture::LoadNormalTexture("content/tex/toy_box_normal.png");
-		unsigned int displacementTex = lesson_3n1::CLoadTexture::LoadTexture("content/tex/toy_box_disp.png");
+		unsigned int diffuseTex = lesson_3n1::CLoadTexture::LoadGammaTexture("content/tex/bricks2.jpg");
+		unsigned int normalTex = lesson_3n1::CLoadTexture::LoadNormalTexture("content/tex/bricks2_normal.jpg");
+		unsigned int displacementTex = lesson_3n1::CLoadTexture::LoadTexture("content/tex/bricks2_disp.jpg");
+		//unsigned int diffuseTex = lesson_3n1::CLoadTexture::LoadGammaTexture("content/tex/toy_box_diffuse.png");
+		//unsigned int normalTex = lesson_3n1::CLoadTexture::LoadNormalTexture("content/tex/toy_box_normal.png");
+		//unsigned int displacementTex = lesson_3n1::CLoadTexture::LoadTexture("content/tex/toy_box_disp.png");
 
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
@@ -198,37 +201,15 @@ namespace lesson_5n6
 
 		if (cubeVAO == 0)
 		{
-			auto tangent_calc = [&](const glm::vec3& pos1, const glm::vec3& pos2, const glm::vec3& pos3, const glm::vec3& pos4,
-				const glm::vec2& uv1, const glm::vec2& uv2, const glm::vec2& uv3, const glm::vec2& uv4, glm::vec3& tangent1, glm::vec3& tangent2) noexcept
+			auto tangent_calculation = [&](const glm::vec3& edge1, const glm::vec3& edge2,
+				const glm::vec2& deltaUV1, const glm::vec2& deltaUV2, glm::vec3& tangent)
 			{
-				{
-					glm::vec3 edge1 = pos2 - pos1;
-					glm::vec3 edge2 = pos3 - pos1;
-					glm::vec2 deltaUV1 = uv2 - uv1;
-					glm::vec2 deltaUV2 = uv3 - uv1;
+				float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
 
-					float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-
-					tangent1.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-					tangent1.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-					tangent1.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
-					tangent1 = glm::normalize(tangent1);
-				}
-
-				{
-					glm::vec3 edge1 = pos4 - pos1;
-					glm::vec3 edge2 = pos3 - pos1;
-					glm::vec2 deltaUV1 = uv4 - uv1;
-					glm::vec2 deltaUV2 = uv3 - uv1;
-
-					float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-
-					tangent2.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-					tangent2.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-					tangent2.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
-					tangent2 = glm::normalize(tangent2);
-				}
-
+				tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+				tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+				tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+				tangent = glm::normalize(tangent);
 			};
 
 			// for back face
@@ -245,7 +226,24 @@ namespace lesson_5n6
 
 			glm::vec3 tangent1bf;
 			glm::vec3 tangent2bf;
-			tangent_calc(pblbf, pbrbf, ptrbf, ptlbf, uvblbf, uvbrbf, uvtrbf, uvtlbf, tangent1bf, tangent2bf);
+
+			{
+				glm::vec3 edge1 = pbrbf - pblbf;
+				glm::vec3 edge2 = ptrbf - pblbf;
+				glm::vec2 deltaUV1 = uvbrbf - uvblbf;
+				glm::vec2 deltaUV2 = uvtrbf - uvblbf;
+
+				tangent_calculation(edge1, edge2, deltaUV1, deltaUV2, tangent2bf);
+			}
+
+			{
+				glm::vec3 edge1 = ptlbf - pblbf;
+				glm::vec3 edge2 = ptrbf - pblbf;
+				glm::vec2 deltaUV1 = uvtlbf - uvblbf;
+				glm::vec2 deltaUV2 = uvtrbf - uvblbf;
+
+				tangent_calculation(edge1, edge2, deltaUV1, deltaUV2, tangent1bf);
+			}
 
 			// for front face
 			// positions
@@ -261,7 +259,24 @@ namespace lesson_5n6
 
 			glm::vec3 tangent1ff;
 			glm::vec3 tangent2ff;
-			tangent_calc(pblff, pbrff, ptrff, ptlff, uvblff, uvbrff, uvtrff, uvtlff, tangent1ff, tangent2ff);
+
+			{
+				glm::vec3 edge1 = pbrff - pblff;
+				glm::vec3 edge2 = ptrff - pblff;
+				glm::vec2 deltaUV1 = uvbrff - uvblff;
+				glm::vec2 deltaUV2 = uvtrff - uvblff;
+
+				tangent_calculation(edge1, edge2, deltaUV1, deltaUV2, tangent1ff);
+			}
+
+			{
+				glm::vec3 edge1 = ptlff - pblff;
+				glm::vec3 edge2 = ptrff - pblff;
+				glm::vec2 deltaUV1 = uvtlff - uvblff;
+				glm::vec2 deltaUV2 = uvtrff - uvblff;
+
+				tangent_calculation(edge1, edge2, deltaUV1, deltaUV2, tangent2ff);
+			}
 
 			// for left face
 			// positions
@@ -277,7 +292,24 @@ namespace lesson_5n6
 
 			glm::vec3 tangent1lf;
 			glm::vec3 tangent2lf;
-			tangent_calc(pbllf, pbrlf, ptrlf, ptllf, uvbllf, uvbrlf, uvtrlf, uvtllf, tangent1lf, tangent2lf);
+
+			{
+				glm::vec3 edge1 = ptllf - pbllf;
+				glm::vec3 edge2 = ptrlf - pbllf;
+				glm::vec2 deltaUV1 = uvtllf - uvbllf;
+				glm::vec2 deltaUV2 = uvtrlf - uvbllf;
+
+				tangent_calculation(edge1, edge2, deltaUV1, deltaUV2, tangent1lf);
+			}
+
+			{
+				glm::vec3 edge1 = pbrlf - pbllf;
+				glm::vec3 edge2 = ptrlf - pbllf;
+				glm::vec2 deltaUV1 = uvbrlf - uvbllf;
+				glm::vec2 deltaUV2 = uvtrlf - uvbllf;
+
+				tangent_calculation(edge1, edge2, deltaUV1, deltaUV2, tangent2lf);
+			}
 
 			// for right face
 			// positions
@@ -293,7 +325,24 @@ namespace lesson_5n6
 
 			glm::vec3 tangent1rf;
 			glm::vec3 tangent2rf;
-			tangent_calc(pblrf, pbrrf, ptrrf, ptlrf, uvblrf, uvbrrf, uvtrrf, uvtlrf, tangent1rf, tangent2rf);
+
+			{
+				glm::vec3 edge1 = ptrrf - ptlrf;
+				glm::vec3 edge2 = pbrrf - ptlrf;
+				glm::vec2 deltaUV1 = uvtrrf - uvtlrf;
+				glm::vec2 deltaUV2 = uvbrrf - uvtlrf;
+
+				tangent_calculation(edge1, edge2, deltaUV1, deltaUV2, tangent1rf);
+			}
+
+			{
+				glm::vec3 edge1 = pblrf - ptlrf;
+				glm::vec3 edge2 = pbrrf - ptlrf;
+				glm::vec2 deltaUV1 = uvblrf - uvtlrf;
+				glm::vec2 deltaUV2 = uvbrrf - uvtlrf;
+
+				tangent_calculation(edge1, edge2, deltaUV1, deltaUV2, tangent2rf);
+			}
 
 			// for bottom face
 			// positions
@@ -309,7 +358,24 @@ namespace lesson_5n6
 
 			glm::vec3 tangent1btf;
 			glm::vec3 tangent2btf;
-			tangent_calc(pblbtf, pbrbtf, ptrbtf, ptlbtf, uvblbtf, uvbrbtf, uvtrbtf, uvtlbtf, tangent1btf, tangent2btf);
+
+			{
+				glm::vec3 edge1 = ptlbtf - pblbtf;
+				glm::vec3 edge2 = ptrbtf - pblbtf;
+				glm::vec2 deltaUV1 = uvtlbtf - uvblbtf;
+				glm::vec2 deltaUV2 = uvtrbtf - uvblbtf;
+
+				tangent_calculation(edge1, edge2, deltaUV1, deltaUV2, tangent1btf);
+			}
+
+			{
+				glm::vec3 edge1 = pbrbtf - pblbtf;
+				glm::vec3 edge2 = ptrbtf - pblbtf;
+				glm::vec2 deltaUV1 = uvbrbtf - uvblbtf;
+				glm::vec2 deltaUV2 = uvtrbtf - uvblbtf;
+
+				tangent_calculation(edge1, edge2, deltaUV1, deltaUV2, tangent2btf);
+			}
 
 			// for top face
 			// positions
@@ -325,7 +391,24 @@ namespace lesson_5n6
 
 			glm::vec3 tangent1tf;
 			glm::vec3 tangent2tf;
-			tangent_calc(pbltf, pbrtf, ptrtf, ptltf, uvbltf, uvbrtf, uvtrtf, uvtltf, tangent1tf, tangent2tf);
+
+			{
+				glm::vec3 edge1 = ptrbtf - ptlbtf;
+				glm::vec3 edge2 = pbrbtf - ptlbtf;
+				glm::vec2 deltaUV1 = uvtrbtf - uvtlbtf;
+				glm::vec2 deltaUV2 = uvbrbtf - uvtlbtf;
+
+				tangent_calculation(edge1, edge2, deltaUV1, deltaUV2, tangent1tf);
+			}
+
+			{
+				glm::vec3 edge1 = pblbtf - ptlbtf;
+				glm::vec3 edge2 = pbrbtf - ptlbtf;
+				glm::vec2 deltaUV1 = uvblbtf - uvtlbtf;
+				glm::vec2 deltaUV2 = uvbrbtf - uvtlbtf;
+
+				tangent_calculation(edge1, edge2, deltaUV1, deltaUV2, tangent2tf);
+			}
 
 			float vertices[] = {
 				// back face

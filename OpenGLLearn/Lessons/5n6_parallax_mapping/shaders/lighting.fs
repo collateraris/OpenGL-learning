@@ -51,7 +51,7 @@ vec3 LightDirectionCalculation()
 		
 	vec3 specular = spec * lightColor;
 		
-	vec3 ambient = 0.05 * lightColor;
+	vec3 ambient = 0.3 * lightColor;
 	
 	float diff = max(dot(lightDir, normal), 0.0);
 	
@@ -81,5 +81,13 @@ vec2 ParallaxMapping()
 		currentLayerDepth += layerDepth;
 	}
 	
-	return currentTexCoords; 
+	vec2 prevTexCoords = currentTexCoords + deltaTexCoords;
+	
+	float afterDepth  = currentDepthMapValue - currentLayerDepth;
+	float beforeDepth = texture(displacementTexture, prevTexCoords).r - currentLayerDepth + layerDepth;
+	
+	float weight = afterDepth / (afterDepth - beforeDepth);
+	vec2 finalTexCoords = prevTexCoords * weight + currentTexCoords * (1.0 - weight);
+	
+	return finalTexCoords;
 }
