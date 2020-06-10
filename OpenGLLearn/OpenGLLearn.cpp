@@ -1,9 +1,9 @@
 ﻿
-#include "Lessons/5n7_hdr/main5n7.h"
+#include "Lessons/5n8_bloom/main5n8.h"
 
 int main()
 {
-	return lesson_5n7::lesson_main();
+	return lesson_5n8::lesson_main();
 }
 
 
