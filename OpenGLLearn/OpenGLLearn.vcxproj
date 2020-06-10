@@ -190,6 +190,7 @@
     <ClInclude Include="Lessons\5n4_points_shadow\main5n4.h" />
     <ClInclude Include="Lessons\5n5_normal_mapping\main5n5.h" />
     <ClInclude Include="Lessons\5n6_parallax_mapping\main5n6.h" />
+    <ClInclude Include="Lessons\5n7_hdr\main5n7.h" />
     <ClInclude Include="OpenCL\1n1_init\opencl_main1n1.h" />
     <ClInclude Include="ThirdParty\include\glm\common.hpp" />
     <ClInclude Include="ThirdParty\include\glm\exponential.hpp" />
