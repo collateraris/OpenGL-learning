@@ -56,18 +56,39 @@ namespace lesson_5n8
 		lesson_1n5::CShader cubeLightShader;
 		if (!cubeLightShader.Init("Lessons/5n8_bloom/shaders/cubeLight.vs", "Lessons/5n8_bloom/shaders/cubeLight.fs")) return -1;
 
+		lesson_1n5::CShader blurShader;
+		if (!blurShader.Init("Lessons/5n8_bloom/shaders/gaussian_blur.vs", "Lessons/5n8_bloom/shaders/gaussian_blur.fs")) return -1;
+
 		// load textures
 		// -------------
 		unsigned int hdrFBO;
 		glGenFramebuffers(1, &hdrFBO);
 		unsigned int colorBuffer = lesson_3n1::CLoadTexture::GetFloatingPointFBOTexture(g_screenWidth, g_screenHeight);
+		unsigned int brightnessBuffer = lesson_3n1::CLoadTexture::GetFloatingPointFBOTexture(g_screenWidth, g_screenHeight);
 		unsigned int depthRBO;
 		glGenRenderbuffers(1, &depthRBO);
 		glBindRenderbuffer(GL_RENDERBUFFER, depthRBO);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, g_screenWidth, g_screenHeight);
 		glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, brightnessBuffer, 0);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRBO);
+		unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(2, attachments);
+		// finally check if framebuffer is complete
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "Framebuffer not complete!" << std::endl;
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		unsigned int pingPongFBO1, pingPongFBO2;
+		glGenFramebuffers(1, &pingPongFBO1);
+		glGenFramebuffers(1, &pingPongFBO2);
+		unsigned int pingPongBuffer1 = lesson_3n1::CLoadTexture::GetFloatingPointFBOTexture(g_screenWidth, g_screenHeight);
+		unsigned int pingPongBuffer2 = lesson_3n1::CLoadTexture::GetFloatingPointFBOTexture(g_screenWidth, g_screenHeight);
+		glBindFramebuffer(GL_FRAMEBUFFER, pingPongFBO1);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingPongBuffer1, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, pingPongFBO2);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingPongBuffer2, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		unsigned int woodTexture = lesson_3n1::CLoadTexture::LoadGammaTexture("content/tex/wood.png");
@@ -84,9 +105,13 @@ namespace lesson_5n8
 
 		hdrShader.Use();
 		hdrShader.setInt("colorBuffer", 0);
+		hdrShader.setInt("bloomBlur", 1);
 
 		cubeLightShader.Use();
 		cubeLightShader.setMatrix4fv("projection", projection);
+
+		blurShader.Use();
+		blurShader.setInt("image", 0);
 
 		std::vector<glm::vec3> lightColors = {
 			glm::vec3(5.0f,   5.0f,  5.0f),
@@ -187,10 +212,29 @@ namespace lesson_5n8
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+			bool horizontal = true;
+			int amount = 15;
+			blurShader.Use();
+			unsigned int currFBO = pingPongFBO2;
+			unsigned int prevBuffer = brightnessBuffer;
+			for (unsigned int i = 0; i < amount; i++)
+			{
+				glBindFramebuffer(GL_FRAMEBUFFER, currFBO);
+				blurShader.setInt("horizontal", horizontal);
+				glBindTexture(GL_TEXTURE_2D, prevBuffer);
+				horizontal = !horizontal;
+				prevBuffer = horizontal ? pingPongBuffer1 : pingPongBuffer2;
+				currFBO = horizontal ? pingPongFBO2 : pingPongFBO1;
+				renderQuad();
+			}
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			hdrShader.Use();
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, colorBuffer);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, prevBuffer);
 			renderQuad();
 
 			glfwSwapBuffers(window);
