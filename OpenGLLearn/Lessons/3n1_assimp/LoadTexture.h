@@ -1,5 +1,10 @@
 #pragma once
 
+#define GLEW_STATIC
+#include <GL/glew.h>
+
+#include <GLFW\glfw3.h>
+
 #include <string>
 #include <iostream>
 #include <vector>
@@ -21,7 +26,7 @@ namespace lesson_3n1
 
 		static unsigned int GammaTextureFromFile(const char* path, std::string directory);
 
-		static unsigned int GetFBOTexture(unsigned int width, unsigned int height);
+		static unsigned int GetFBOTexture(unsigned int width, unsigned int height, GLenum internalFormat = GL_RGB, GLenum format = GL_RGB);
 
 		static unsigned int GetFloatingPointFBOTexture(unsigned int width, unsigned int height);
 

@@ -1,10 +1,5 @@
 #include "LoadTexture.h"
 
-#define GLEW_STATIC
-#include <GL/glew.h>
-
-#include <GLFW\glfw3.h>
-
 #define STB_IMAGE_IMPLEMENTATION 
 #include <stb_image\stb_image.h>
 
@@ -12,6 +7,7 @@ using namespace lesson_3n1;
 
 unsigned int CLoadTexture::LoadTexture(const char* path)
 {
+	stbi_set_flip_vertically_on_load(1);
 	GLuint textureID;
 	glGenTextures(1, &textureID);
 
@@ -49,12 +45,12 @@ unsigned int CLoadTexture::LoadTexture(const char* path)
 
 unsigned int CLoadTexture::LoadNormalTexture(const char* path)
 {
-	stbi_set_flip_vertically_on_load(1);
 	return CLoadTexture::LoadTexture(path);
 }
 
 unsigned int CLoadTexture::LoadGammaTexture(const char* path)
 {
+	stbi_set_flip_vertically_on_load(1);
 	GLuint textureID;
 	glGenTextures(1, &textureID);
 
@@ -153,13 +149,13 @@ unsigned int CLoadTexture::GammaTextureFromFile(const char* path, std::string di
 	return CLoadTexture::LoadGammaTexture(filename.c_str());
 }
 
-unsigned int CLoadTexture::GetFBOTexture(unsigned int width, unsigned int height)
+unsigned int CLoadTexture::GetFBOTexture(unsigned int width, unsigned int height, GLenum internalFormat /*= GL_RGB*/, GLenum format/* = GL_RGB*/)
 {
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, nullptr);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

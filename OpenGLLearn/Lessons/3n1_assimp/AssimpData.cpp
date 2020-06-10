@@ -56,7 +56,7 @@ void CDrawFileMeshData::MeshInit(SMesh& mesh)
     glBindVertexArray(0);
 }
 
-void CDrawFileMeshData::MeshDraw(lesson_1n5::CShader& shader, const SMesh& mesh)
+void CDrawFileMeshData::BindTextures(lesson_1n5::CShader& shader, const SMesh& mesh)
 {
     unsigned int diffuseNr = 0;
     unsigned int specularNr = 0;
@@ -73,7 +73,7 @@ void CDrawFileMeshData::MeshDraw(lesson_1n5::CShader& shader, const SMesh& mesh)
         ETextureType type = textures[i].type;
         const std::string& name = textures[i].typeName;
         if (type == ETextureType::DIFFUSE)
-            ss << diffuseNr++; 
+            ss << diffuseNr++;
         else if (type == ETextureType::SPECULAR)
             ss << specularNr++;
         number = ss.str();
@@ -83,10 +83,25 @@ void CDrawFileMeshData::MeshDraw(lesson_1n5::CShader& shader, const SMesh& mesh)
     }
 
     glActiveTexture(GL_TEXTURE0);
+}
+
+void CDrawFileMeshData::MeshDraw(lesson_1n5::CShader& shader, const SMesh& mesh)
+{
+    CDrawFileMeshData::BindTextures(shader, mesh);
 
     unsigned int VAO = mesh.GetVAO();
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, mesh.GetIndices().size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+}
+
+void CDrawFileMeshData::MeshDrawInstanced(lesson_1n5::CShader& shader, const SMesh& mesh, std::size_t amountInstances)
+{
+    CDrawFileMeshData::BindTextures(shader, mesh);
+
+    unsigned int VAO = mesh.GetVAO();
+    glBindVertexArray(VAO);
+    glDrawElementsInstanced(GL_TRIANGLES, mesh.GetIndices().size(), GL_UNSIGNED_INT, 0, amountInstances );
     glBindVertexArray(0);
 }
 
@@ -105,7 +120,16 @@ void CDrawFileMeshData::Draw(lesson_1n5::CShader& shader, SFileMeshData& fileMes
     const std::vector<SMesh>& meshes = fileMesh.meshes;
 
     for (std::size_t i = 0; i < meshesSize; i++)
-        MeshDraw(shader, meshes[i]);
+        CDrawFileMeshData::MeshDraw(shader, meshes[i]);
+}
+
+void CDrawFileMeshData::DrawInstanced(lesson_1n5::CShader& shader, SFileMeshData& fileMesh, std::size_t amountInstances)
+{
+    std::size_t meshesSize = fileMesh.meshes.size();
+    const std::vector<SMesh>& meshes = fileMesh.meshes;
+
+    for (std::size_t i = 0; i < meshesSize; i++)
+        CDrawFileMeshData::MeshDrawInstanced(shader, meshes[i], amountInstances);
 }
 
 void CLoadAssimpFile::Load(std::string path, SFileMeshData& output)

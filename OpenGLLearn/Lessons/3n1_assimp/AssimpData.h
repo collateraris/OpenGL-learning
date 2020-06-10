@@ -100,12 +100,15 @@ namespace lesson_3n1
 
         static void Init(SFileMeshData& fileMesh);
         static void Draw(lesson_1n5::CShader& shader, SFileMeshData& fileMesh);
+        static void DrawInstanced(lesson_1n5::CShader& shader, SFileMeshData& fileMesh, std::size_t amountInstances);
         static void DeleteAfterLoop(SFileMeshData& fileMesh);
 
     protected:
 
         static void MeshInit(SMesh& mesh);
         static void MeshDraw(lesson_1n5::CShader& shader, const SMesh& mesh);
+        static void MeshDrawInstanced(lesson_1n5::CShader& shader, const SMesh& mesh, std::size_t amountInstances);
+        static void BindTextures(lesson_1n5::CShader& shader, const SMesh& mesh);
     };
 
     class CLoadAssimpFile
