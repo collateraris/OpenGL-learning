@@ -51,11 +51,12 @@ namespace lesson_5n9
 		lesson_1n5::CShader GBufferShader;
 		if (!GBufferShader.Init("Lessons/5n9_deffered_shading/shaders/gbuffer.vs", "Lessons/5n9_deffered_shading/shaders/gbuffer.fs")) return -1;
 
-		lesson_1n5::CShader GBufferViewShader;
-		if (!GBufferViewShader.Init("Lessons/5n9_deffered_shading/shaders/gbufferview.vs", "Lessons/5n9_deffered_shading/shaders/gbufferview.fs")) return -1;
+		lesson_1n5::CShader LightingPassShader;
+		if (!LightingPassShader.Init("Lessons/5n9_deffered_shading/shaders/lightingpass.vs", "Lessons/5n9_deffered_shading/shaders/lightingpass.fs")) return -1;
 
 		lesson_3n1::SFileMeshData meshObj;
 		lesson_3n1::CLoadAssimpFile::Load("content/model/obiwan/0.obj", meshObj);
+
 
 		unsigned int GBuffer;
 		glGenFramebuffers(1, &GBuffer);
@@ -63,8 +64,8 @@ namespace lesson_5n9
 		unsigned int positionGBuffer = lesson_3n1::CLoadTexture::GetFloatingPointFBOTexture(g_screenWidth, g_screenHeight);
 		unsigned int albedoSpecularGBuffer = lesson_3n1::CLoadTexture::GetFBOTexture(g_screenWidth, g_screenHeight, GL_RGBA, GL_RGBA);
 		glBindFramebuffer(GL_FRAMEBUFFER, GBuffer);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, normalGBuffer, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, positionGBuffer, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, positionGBuffer, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalGBuffer, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedoSpecularGBuffer, 0);
 		unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 		glDrawBuffers(3, attachments);
@@ -77,18 +78,6 @@ namespace lesson_5n9
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 			std::cout << "Framebuffer not complete!" << std::endl;
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
-
-		glm::mat4 projection;
-		projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
-
-		GBufferShader.Use();
-		GBufferShader.setMatrix4fv("projection", projection);
-
-		GBufferViewShader.Use();
-		GBufferViewShader.setInt("gbuffercomponent", 0);
 
 		lesson_3n1::CDrawFileMeshData::Init(meshObj);
 
@@ -109,6 +98,7 @@ namespace lesson_5n9
 		{
 			glm::mat4 model = glm::mat4(1.0);
 			model = glm::translate(model, pos);
+			model = glm::scale(model, glm::vec3(2.0f));
 			modelMatrices.emplace_back(model);
 		}
 
@@ -140,8 +130,39 @@ namespace lesson_5n9
 			glBindVertexArray(0);
 		}
 
+		const unsigned int NR_LIGHTS = 32;
+		std::vector<glm::vec3> lightPositions = {};
+		std::vector<glm::vec3> lightColors = {};
+		srand(13);
+		for (unsigned int i = 0; i < NR_LIGHTS; i++)
+		{
+			// calculate slightly random offsets
+			float xPos = ((rand() % 100) / 100.0) * 6.0 - 3.0;
+			float yPos = ((rand() % 100) / 100.0) * 6.0 - 4.0;
+			float zPos = ((rand() % 100) / 100.0) * 6.0 - 3.0;
+			lightPositions.emplace_back(glm::vec3(xPos, yPos, zPos));
+			// also calculate random color
+			float rColor = ((rand() % 100) / 200.0f) + 0.5; // between 0.5 and 1.0
+			float gColor = ((rand() % 100) / 200.0f) + 0.5; // between 0.5 and 1.0
+			float bColor = ((rand() % 100) / 200.0f) + 0.5; // between 0.5 and 1.0
+			lightColors.emplace_back(glm::vec3(rColor, gColor, bColor));
+		}
+
+		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
+
+		glm::mat4 projection;
+		projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
+
+		GBufferShader.Use();
+		GBufferShader.setMatrix4fv("projection", projection);
+
+		LightingPassShader.Use();
+		LightingPassShader.setInt("positionMap", 0);
+		LightingPassShader.setInt("normalMap", 1);
+		LightingPassShader.setInt("albedoSpecularMap", 2);
+
 		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
+		glEnable(GL_CULL_FACE);
 
 		float deltaTime;
 
@@ -149,10 +170,10 @@ namespace lesson_5n9
 		while (!glfwWindowShouldClose(window))
 		{
 			deltaTime = GetDeltaTime();
-			//std::cout << "FPS " << 1.f / deltaTime << std::endl;
+			std::cout << "FPS " << 1.f / deltaTime << std::endl;
 			lesson_1n9::CCamera::Get().Movement(deltaTime);
 
-			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glBindFramebuffer(GL_FRAMEBUFFER, GBuffer);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			GBufferShader.Use();
@@ -161,9 +182,28 @@ namespace lesson_5n9
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			GBufferViewShader.Use();
+			LightingPassShader.Use();
 			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, positionGBuffer);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, normalGBuffer);
+			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, albedoSpecularGBuffer);
+			std::string uniformString;
+			const float linear = 0.7;
+			const float quadratic = 1.8;
+			LightingPassShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
+			for (unsigned int i = 0; i < NR_LIGHTS; i++)
+			{
+				uniformString = "lights[" + std::to_string(i) + "].position";
+				LightingPassShader.setVec3f(uniformString.c_str(), lightPositions[i]);
+				uniformString = "lights[" + std::to_string(i) + "].color";
+				LightingPassShader.setVec3f(uniformString.c_str(), lightColors[i]);
+				uniformString = "lights[" + std::to_string(i) + "].linear";
+				LightingPassShader.setFloat(uniformString.c_str(), linear);
+				uniformString = "lights[" + std::to_string(i) + "].quadratic";
+				LightingPassShader.setFloat(uniformString.c_str(), quadratic);
+			}
 			renderQuad();
 
 			glfwSwapBuffers(window);

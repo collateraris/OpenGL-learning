@@ -14,6 +14,9 @@ namespace lesson_3n1
 	class CLoadTexture
 	{
 	public:
+
+		static void StbiSetFlipVerticallyOnLoad(bool flag);
+
 		static unsigned int LoadTexture(const char* path);
 
 		static unsigned int LoadNormalTexture(const char* path);

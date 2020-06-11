@@ -5,9 +5,13 @@
 
 using namespace lesson_3n1;
 
+void CLoadTexture::StbiSetFlipVerticallyOnLoad(bool flag)
+{
+	stbi_set_flip_vertically_on_load(flag);
+}
+
 unsigned int CLoadTexture::LoadTexture(const char* path)
 {
-	stbi_set_flip_vertically_on_load(1);
 	GLuint textureID;
 	glGenTextures(1, &textureID);
 
@@ -50,7 +54,6 @@ unsigned int CLoadTexture::LoadNormalTexture(const char* path)
 
 unsigned int CLoadTexture::LoadGammaTexture(const char* path)
 {
-	stbi_set_flip_vertically_on_load(1);
 	GLuint textureID;
 	glGenTextures(1, &textureID);
 
