@@ -57,18 +57,21 @@ namespace lesson_5n9
 		lesson_3n1::SFileMeshData meshObj;
 		lesson_3n1::CLoadAssimpFile::Load("content/model/obiwan/0.obj", meshObj);
 
-
 		unsigned int GBuffer;
 		glGenFramebuffers(1, &GBuffer);
 		unsigned int normalGBuffer = lesson_3n1::CLoadTexture::GetFloatingPointFBOTexture(g_screenWidth, g_screenHeight);
+		unsigned int normalFromTextureGBuffer = lesson_3n1::CLoadTexture::GetFloatingPointFBOTexture(g_screenWidth, g_screenHeight);
+		unsigned int tangentGBuffer = lesson_3n1::CLoadTexture::GetFloatingPointFBOTexture(g_screenWidth, g_screenHeight);
 		unsigned int positionGBuffer = lesson_3n1::CLoadTexture::GetFloatingPointFBOTexture(g_screenWidth, g_screenHeight);
 		unsigned int albedoSpecularGBuffer = lesson_3n1::CLoadTexture::GetFBOTexture(g_screenWidth, g_screenHeight, GL_RGBA, GL_RGBA);
 		glBindFramebuffer(GL_FRAMEBUFFER, GBuffer);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, positionGBuffer, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalGBuffer, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedoSpecularGBuffer, 0);
-		unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-		glDrawBuffers(3, attachments);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, normalFromTextureGBuffer, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, tangentGBuffer, 0);
+		unsigned int attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2,  GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
+		glDrawBuffers(5, attachments);
 		unsigned int rboDepth;
 		glGenRenderbuffers(1, &rboDepth);
 		glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
@@ -113,19 +116,19 @@ namespace lesson_5n9
 			glBindVertexArray(VAO);
 
 			GLsizei vec4Size = sizeof(glm::vec4);
-			glEnableVertexAttribArray(3);
-			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)0);
 			glEnableVertexAttribArray(4);
-			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(vec4Size));
+			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)0);
 			glEnableVertexAttribArray(5);
-			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(2 * vec4Size));
+			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(vec4Size));
 			glEnableVertexAttribArray(6);
-			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(3 * vec4Size));
+			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(2 * vec4Size));
+			glEnableVertexAttribArray(7);
+			glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(3 * vec4Size));
 
-			glVertexAttribDivisor(3, 1);
 			glVertexAttribDivisor(4, 1);
 			glVertexAttribDivisor(5, 1);
 			glVertexAttribDivisor(6, 1);
+			glVertexAttribDivisor(7, 1);
 
 			glBindVertexArray(0);
 		}
@@ -160,6 +163,8 @@ namespace lesson_5n9
 		LightingPassShader.setInt("positionMap", 0);
 		LightingPassShader.setInt("normalMap", 1);
 		LightingPassShader.setInt("albedoSpecularMap", 2);
+		LightingPassShader.setInt("normalTexture", 3);
+		LightingPassShader.setInt("tangentMap", 4);
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
@@ -189,6 +194,10 @@ namespace lesson_5n9
 			glBindTexture(GL_TEXTURE_2D, normalGBuffer);
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, albedoSpecularGBuffer);
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, normalFromTextureGBuffer);
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_2D, tangentGBuffer);
 			std::string uniformString;
 			const float linear = 0.7;
 			const float quadratic = 1.8;

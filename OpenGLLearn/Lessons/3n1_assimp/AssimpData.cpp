@@ -6,7 +6,6 @@
 #include <GLFW\glfw3.h>
 
 #include <algorithm>
-#include <sstream>
 #include <iostream>
 
 #include "LoadTexture.h"
@@ -53,6 +52,9 @@ void CDrawFileMeshData::MeshInit(SMesh& mesh)
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(SVertex), (void*)offsetof(SVertex, TexCoords));
 
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(SVertex), (void*)offsetof(SVertex, Tangent));
+
     glBindVertexArray(0);
 }
 
@@ -60,6 +62,7 @@ void CDrawFileMeshData::BindTextures(lesson_1n5::CShader& shader, const SMesh& m
 {
     unsigned int diffuseNr = 0;
     unsigned int specularNr = 0;
+    unsigned int normalNr = 0;
 
     std::size_t texturesSize = mesh.GetTextures().size();
     const std::vector<STexture>& textures = mesh.GetTextures();
@@ -68,15 +71,23 @@ void CDrawFileMeshData::BindTextures(lesson_1n5::CShader& shader, const SMesh& m
     {
         glActiveTexture(GL_TEXTURE0 + i);
 
-        std::stringstream ss;
         std::string number;
         ETextureType type = textures[i].type;
         const std::string& name = textures[i].typeName;
-        if (type == ETextureType::DIFFUSE)
-            ss << diffuseNr++;
-        else if (type == ETextureType::SPECULAR)
-            ss << specularNr++;
-        number = ss.str();
+        switch (type)
+        {
+        case lesson_3n1::DIFFUSE:
+            number = std::to_string(diffuseNr++);
+            break;
+        case lesson_3n1::SPECULAR:
+            number = std::to_string(specularNr++);
+            break;
+        case lesson_3n1::NORMAL:
+            number = std::to_string(normalNr++);
+            break;
+        default:
+            break;
+        }
 
         shader.setInt(("material." + name + number).c_str(), i);
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
@@ -135,7 +146,7 @@ void CDrawFileMeshData::DrawInstanced(lesson_1n5::CShader& shader, SFileMeshData
 void CLoadAssimpFile::Load(std::string path, SFileMeshData& output)
 {
     Assimp::Importer import;
-    const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -185,6 +196,11 @@ void CLoadAssimpFile::ProcessMesh(aiMesh* mesh, const aiScene* scene, SLoadAssim
         vector.z = mesh->mNormals[i].z;
         vertex.Normal = vector;
 
+        vector.x = mesh->mTangents[i].x;
+        vector.y = mesh->mTangents[i].y;
+        vector.z = mesh->mTangents[i].z;
+        vertex.Tangent = vector;
+
         if (mesh->mTextureCoords[0])
         {
             glm::vec2 vec;
@@ -217,6 +233,11 @@ void CLoadAssimpFile::ProcessMesh(aiMesh* mesh, const aiScene* scene, SLoadAssim
         CLoadAssimpFile::LoadMaterialTextures(material,
             aiTextureType_SPECULAR, specularMaps, data);
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+
+        std::vector<STexture> normalMaps = {};
+        CLoadAssimpFile::LoadMaterialTextures(material,
+            aiTextureType_HEIGHT, normalMaps, data);
+        textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
     }
 
     SMesh contentMesh(vertices, indices, textures);
@@ -245,6 +266,10 @@ void CLoadAssimpFile::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, 
             case aiTextureType_SPECULAR:
                 texture.id = CLoadTexture::TextureFromFile(str.C_Str(), data.directory);
                 texture.SetType(ETextureType::SPECULAR);
+                break;
+            case aiTextureType_HEIGHT:
+                texture.id = CLoadTexture::TextureFromFile(str.C_Str(), data.directory);
+                texture.SetType(ETextureType::NORMAL);
                 break;
             default:
                 break;

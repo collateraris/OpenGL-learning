@@ -2,16 +2,20 @@
 layout (location = 0) out vec3 gPosition;
 layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec4 gAlbedoSpec;
+layout (location = 3) out vec3 gNormalMap;
+layout (location = 4) out vec3 gTangent;
 
 in VS_OUT {
     vec3 FragPos;
     vec3 Normal;
     vec2 TexCoords;
+	vec3 Tangent;
 } fs_in;
 
 struct Material {
     sampler2D texture_diffuse_0;
     sampler2D texture_specular_0;
+	sampler2D texture_normal_0;
     float shininess;
 }; 
 
@@ -23,4 +27,6 @@ void main()
 	gNormal = fs_in.Normal;
 	gAlbedoSpec.rgb = texture(material.texture_diffuse_0, fs_in.TexCoords).rgb;
 	gAlbedoSpec.a = texture(material.texture_specular_0, fs_in.TexCoords).r;
+	gTangent = fs_in.Tangent;
+	gNormalMap = texture(material.texture_normal_0, fs_in.TexCoords).rgb;
 }

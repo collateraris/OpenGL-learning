@@ -18,12 +18,14 @@ namespace lesson_3n1
         glm::vec3 Position;
         glm::vec3 Normal;
         glm::vec2 TexCoords;
+        glm::vec3 Tangent;
     };
 
     enum ETextureType
     {
         DIFFUSE = 0,
         SPECULAR = 1,
+        NORMAL = 2,
     };
 
     struct CAssimpHelpData
@@ -38,6 +40,7 @@ namespace lesson_3n1
         {
             "texture_diffuse_",
             "texture_specular_",
+            "texture_normal_",
         };
 
     private:
