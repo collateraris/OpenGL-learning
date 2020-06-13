@@ -97,7 +97,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;glew32s.lib;assimp-vc142-mtd.lib;opencl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>FreeImage.lib;glfw3.lib;opengl32.lib;glew32s.lib;assimp-vc142-mtd.lib;opencl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -194,6 +194,8 @@
     <ClInclude Include="Lessons\5n8_bloom\main5n8.h" />
     <ClInclude Include="Lessons\5n9_deffered_shading\main5n9.h" />
     <ClInclude Include="OpenCL\1n1_init\opencl_main1n1.h" />
+    <ClInclude Include="OpenCL\1n2_image_sobel_filter\opencl_main1n2.h" />
+    <ClInclude Include="ThirdParty\include\FreeImage\FreeImage.h" />
     <ClInclude Include="ThirdParty\include\glm\common.hpp" />
     <ClInclude Include="ThirdParty\include\glm\exponential.hpp" />
     <ClInclude Include="ThirdParty\include\glm\ext.hpp" />

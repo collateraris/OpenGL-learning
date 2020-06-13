@@ -224,6 +224,12 @@
     <ClInclude Include="Lessons\5n9_deffered_shading\main5n9.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="OpenCL\1n2_image_sobel_filter\opencl_main1n2.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\include\FreeImage\FreeImage.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />
