@@ -11,6 +11,7 @@ uniform sampler2D albedoSpecularMap;
 struct Light {
     vec3 position;
     vec3 color;
+	float radius;
 	float linear;
 	float quadratic;
 };
@@ -43,17 +44,21 @@ vec3 CalcPointLight()
 
 	for(int i = 0; i < NR_LIGHTS; ++i)
 	{
-		vec3 lightDir = normalize(lights[i].position - fragPos);
-		float diff = max(dot(lightDir, normal), 0.0);
-		vec3 diffuse = diff * albedo * lights[i].color;
-		vec3 halfwayDir = normalize(viewDir + lightDir);
-		float spec = pow(max(dot(normal, halfwayDir), 0.0), 16.0);
-		vec3 specular = spec * lights[i].color * Specular;
-
 		float dist = length(lights[i].position - fragPos);
-		float attenuation = 1.0 / (1.0 + lights[i].linear * dist + lights[i].quadratic * dist * dist);
+		
+		if (dist < lights[i].radius)
+		{	
+			float attenuation = 1.0 / (1.0 + lights[i].linear * dist + lights[i].quadratic * dist * dist);
+			
+			vec3 lightDir = normalize(lights[i].position - fragPos);
+			float diff = max(dot(lightDir, normal), 0.0);
+			vec3 diffuse = diff * albedo * lights[i].color;
+			vec3 halfwayDir = normalize(viewDir + lightDir);
+			float spec = pow(max(dot(normal, halfwayDir), 0.0), 16.0);
+			vec3 specular = spec * lights[i].color * Specular;
 
-		lighting += (diffuse + specular) * attenuation;
+			lighting += (diffuse + specular) * attenuation;
+		};
 	}
 
 	return lighting;

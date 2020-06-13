@@ -145,8 +145,12 @@ namespace lesson_5n9
 		}
 
 		const unsigned int NR_LIGHTS = 32;
+		const float linear = 0.7;
+		const float quadratic = 1.8;
+		const float constant = 1.0;
 		std::vector<glm::vec3> lightPositions = {};
 		std::vector<glm::vec3> lightColors = {};
+		std::vector<float> lightRadius = {};
 		srand(13);
 		for (unsigned int i = 0; i < NR_LIGHTS; i++)
 		{
@@ -160,6 +164,12 @@ namespace lesson_5n9
 			float gColor = ((rand() % 100) / 200.0f) + 0.5; // between 0.5 and 1.0
 			float bColor = ((rand() % 100) / 200.0f) + 0.5; // between 0.5 and 1.0
 			lightColors.emplace_back(glm::vec3(rColor, gColor, bColor));
+
+			float lightMax = std::fmaxf(std::fmaxf(lightColors[i].r, lightColors[i].g), lightColors[i].b);
+			float radius =
+				(-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - (256.0 / 5.0) * lightMax)))
+				/ (2 * quadratic);
+			lightRadius.emplace_back(radius);
 		}
 
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
@@ -209,8 +219,6 @@ namespace lesson_5n9
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, albedoSpecularGBuffer);
 			std::string uniformString;
-			const float linear = 0.7;
-			const float quadratic = 1.8;
 			LightingPassShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
 			for (unsigned int i = 0; i < NR_LIGHTS; i++)
 			{
@@ -218,6 +226,8 @@ namespace lesson_5n9
 				LightingPassShader.setVec3f(uniformString.c_str(), lightPositions[i]);
 				uniformString = "lights[" + std::to_string(i) + "].color";
 				LightingPassShader.setVec3f(uniformString.c_str(), lightColors[i]);
+				uniformString = "lights[" + std::to_string(i) + "].radius";
+				LightingPassShader.setFloat(uniformString.c_str(), lightRadius[i]);
 				uniformString = "lights[" + std::to_string(i) + "].linear";
 				LightingPassShader.setFloat(uniformString.c_str(), linear);
 				uniformString = "lights[" + std::to_string(i) + "].quadratic";
