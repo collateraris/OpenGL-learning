@@ -54,24 +54,35 @@ namespace lesson_5n9
 		lesson_1n5::CShader LightingPassShader;
 		if (!LightingPassShader.Init("Lessons/5n9_deffered_shading/shaders/lightingpass.vs", "Lessons/5n9_deffered_shading/shaders/lightingpass.fs")) return -1;
 
+		lesson_1n5::CShader LightingBoxShader;
+		if (!LightingBoxShader.Init("Lessons/5n9_deffered_shading/shaders/lightBox.vs", "Lessons/5n9_deffered_shading/shaders/lightBox.fs")) return -1;
+
 		lesson_3n1::SFileMeshData meshObj;
-		lesson_3n1::CLoadAssimpFile::Load("content/model/obiwan/0.obj", meshObj);
+		lesson_3n1::CLoadAssimpFile::Load("content/model/nanosuit/nanosuit.obj", meshObj);
+
+		unsigned int GBufferShaderUniformBlock = glGetUniformBlockIndex(GBufferShader.GetProgramID(), "Matrices");
+		glUniformBlockBinding(GBufferShader.GetProgramID(), GBufferShaderUniformBlock, 0);
+		unsigned int LightingBoxShaderUniformBlock = glGetUniformBlockIndex(LightingBoxShader.GetProgramID(), "Matrices");
+		glUniformBlockBinding(LightingBoxShader.GetProgramID(), LightingBoxShaderUniformBlock, 0);
+
+		unsigned int uboMatrices;
+		glGenBuffers(1, &uboMatrices);
+		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+		glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
 
 		unsigned int GBuffer;
 		glGenFramebuffers(1, &GBuffer);
 		unsigned int normalGBuffer = lesson_3n1::CLoadTexture::GetFloatingPointFBOTexture(g_screenWidth, g_screenHeight);
-		unsigned int normalFromTextureGBuffer = lesson_3n1::CLoadTexture::GetFloatingPointFBOTexture(g_screenWidth, g_screenHeight);
-		unsigned int tangentGBuffer = lesson_3n1::CLoadTexture::GetFloatingPointFBOTexture(g_screenWidth, g_screenHeight);
 		unsigned int positionGBuffer = lesson_3n1::CLoadTexture::GetFloatingPointFBOTexture(g_screenWidth, g_screenHeight);
 		unsigned int albedoSpecularGBuffer = lesson_3n1::CLoadTexture::GetFBOTexture(g_screenWidth, g_screenHeight, GL_RGBA, GL_RGBA);
 		glBindFramebuffer(GL_FRAMEBUFFER, GBuffer);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, positionGBuffer, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalGBuffer, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedoSpecularGBuffer, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, normalFromTextureGBuffer, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, tangentGBuffer, 0);
-		unsigned int attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2,  GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
-		glDrawBuffers(5, attachments);
+		unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+		glDrawBuffers(3, attachments);
 		unsigned int rboDepth;
 		glGenRenderbuffers(1, &rboDepth);
 		glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
@@ -101,7 +112,7 @@ namespace lesson_5n9
 		{
 			glm::mat4 model = glm::mat4(1.0);
 			model = glm::translate(model, pos);
-			model = glm::scale(model, glm::vec3(2.0f));
+			model = glm::scale(model, glm::vec3(0.5f));
 			modelMatrices.emplace_back(model);
 		}
 
@@ -156,15 +167,14 @@ namespace lesson_5n9
 		glm::mat4 projection;
 		projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
 
-		GBufferShader.Use();
-		GBufferShader.setMatrix4fv("projection", projection);
+		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 		LightingPassShader.Use();
 		LightingPassShader.setInt("positionMap", 0);
 		LightingPassShader.setInt("normalMap", 1);
 		LightingPassShader.setInt("albedoSpecularMap", 2);
-		LightingPassShader.setInt("normalTexture", 3);
-		LightingPassShader.setInt("tangentMap", 4);
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
@@ -175,14 +185,18 @@ namespace lesson_5n9
 		while (!glfwWindowShouldClose(window))
 		{
 			deltaTime = GetDeltaTime();
-			std::cout << "FPS " << 1.f / deltaTime << std::endl;
+			//std::cout << "FPS " << 1.f / deltaTime << std::endl;
 			lesson_1n9::CCamera::Get().Movement(deltaTime);
+
+			const glm::mat4& view = lesson_1n9::CCamera::Get().GetView();
+			glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glBindFramebuffer(GL_FRAMEBUFFER, GBuffer);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			GBufferShader.Use();
-			GBufferShader.setMatrix4fv("view", lesson_1n9::CCamera::Get().GetView());
 			lesson_3n1::CDrawFileMeshData::DrawInstanced(GBufferShader, meshObj, meshObjNum);
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -194,10 +208,6 @@ namespace lesson_5n9
 			glBindTexture(GL_TEXTURE_2D, normalGBuffer);
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, albedoSpecularGBuffer);
-			glActiveTexture(GL_TEXTURE3);
-			glBindTexture(GL_TEXTURE_2D, normalFromTextureGBuffer);
-			glActiveTexture(GL_TEXTURE4);
-			glBindTexture(GL_TEXTURE_2D, tangentGBuffer);
 			std::string uniformString;
 			const float linear = 0.7;
 			const float quadratic = 1.8;
@@ -214,6 +224,24 @@ namespace lesson_5n9
 				LightingPassShader.setFloat(uniformString.c_str(), quadratic);
 			}
 			renderQuad();
+
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, GBuffer);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); 
+			glBlitFramebuffer(
+				0, 0, g_screenWidth, g_screenHeight, 0, 0, g_screenWidth, g_screenHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST
+			);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			LightingBoxShader.Use();
+			for (unsigned int i = 0; i < NR_LIGHTS; i++)
+			{
+				glm::mat4 model = glm::mat4(1.0);
+				model = glm::translate(model, lightPositions[i]);
+				model = glm::scale(model, glm::vec3(0.25f));
+				LightingBoxShader.setMatrix4fv("model", model);
+				LightingBoxShader.setVec3f("lightColor", lightColors[i]);
+				renderCube();
+			}
 
 			glfwSwapBuffers(window);
 			glfwPollEvents();

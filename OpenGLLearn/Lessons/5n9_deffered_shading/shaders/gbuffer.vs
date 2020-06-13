@@ -9,11 +9,13 @@ out VS_OUT {
     vec3 FragPos;
     vec3 Normal;
     vec2 TexCoords;
-	vec3 Tangent;
 } vs_out;
 
-uniform mat4 projection;
-uniform mat4 view;
+layout (std140) uniform Matrices
+{
+    mat4 projection;
+    mat4 view;
+};
 
 void main()
 {
@@ -21,6 +23,5 @@ void main()
 	vs_out.Normal = normalize(mat3(transpose(aInstanceMatrix)) * aNormal);
     vs_out.FragPos = vec3(aInstanceMatrix * vec4(aPos, 1.0f));
     vs_out.TexCoords = aTexCoords;
-	vs_out.Tangent = normalize(vec3(aInstanceMatrix * vec4(aTangent, 0.0)));
 }
 	
