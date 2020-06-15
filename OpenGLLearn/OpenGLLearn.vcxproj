@@ -184,6 +184,7 @@
     <ClInclude Include="Lessons\4n6_cubemaps\main4n6.h" />
     <ClInclude Include="Lessons\4n8_advanced_glsl\main4n8.h" />
     <ClInclude Include="Lessons\4n9_geometry_shader\main4n9.h" />
+    <ClInclude Include="Lessons\5n10_ssao\main5n10.h" />
     <ClInclude Include="Lessons\5n1_advanced_lighting\main5n1.h" />
     <ClInclude Include="Lessons\5n2_gamma_correction\main5n2.h" />
     <ClInclude Include="Lessons\5n3_shadow_mapping\main5n3.h" />
