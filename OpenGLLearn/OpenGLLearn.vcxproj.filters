@@ -33,6 +33,9 @@
     <ClCompile Include="Lessons\3n1_assimp\LoadTexture.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="Vulkan\lesson1_triangle\vulkan1_triangle.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lessons\1n3\main1n3.h">
@@ -231,6 +234,12 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Lessons\5n10_ssao\main5n10.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\lesson1_init\vulkan_1_init.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\lesson1_triangle\vulkan1_triangle.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

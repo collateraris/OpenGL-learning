@@ -1,9 +1,9 @@
 ﻿
-#include "Lessons/5n10_ssao/main5n10.h"
+#include "Vulkan/lesson1_init/vulkan_1_init.h"
 
 int main()
 {
-	return lesson_5n10::lesson_main();
+	return vulkan_1_init::lesson_main();
 }
 
 

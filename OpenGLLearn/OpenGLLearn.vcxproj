@@ -72,8 +72,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>ThirdParty\include;$(IncludePath)</IncludePath>
-    <LibraryPath>ThirdParty\libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\VulkanSDK\1.2.141.2\Include;ThirdParty\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\VulkanSDK\1.2.141.2\Lib32;ThirdParty\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -97,7 +97,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>FreeImage.lib;glfw3.lib;opengl32.lib;glew32s.lib;assimp-vc142-mtd.lib;opencl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;FreeImage.lib;glfw3.lib;opengl32.lib;glew32s.lib;assimp-vc142-mtd.lib;opencl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -153,6 +153,7 @@
     <ClCompile Include="Lessons\3n1_assimp\AssimpData.cpp" />
     <ClCompile Include="Lessons\3n1_assimp\LoadTexture.cpp" />
     <ClCompile Include="OpenGLLearn.cpp" />
+    <ClCompile Include="Vulkan\lesson1_triangle\vulkan1_triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lessons\1n3\main1n3.h" />
@@ -221,6 +222,8 @@
     <ClInclude Include="ThirdParty\include\glm\vec4.hpp" />
     <ClInclude Include="ThirdParty\include\glm\vector_relational.hpp" />
     <ClInclude Include="ThirdParty\include\stb_image\stb_image.h" />
+    <ClInclude Include="Vulkan\lesson1_init\vulkan_1_init.h" />
+    <ClInclude Include="Vulkan\lesson1_triangle\vulkan1_triangle.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />
