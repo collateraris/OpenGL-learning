@@ -48,8 +48,8 @@ namespace project_vol_clouds_opengl
 		GLFWwindow* window;
 		if ((window = init()) == nullptr) return -1;
 
-		lesson_1n5::CShader CloudsShader;
-		if (!CloudsShader.Init("Projects/Real_time_volumetric_clouds/shaders/clouds.vs", "Projects/Real_time_volumetric_clouds/shaders/clouds.fs")) return -1;
+		lesson_1n5::CShader VolumeShader;
+		if (!VolumeShader.Init("Projects/Real_time_volumetric_clouds/shaders/SDF_Primitives.vs", "Projects/Real_time_volumetric_clouds/shaders/SDF_Primitives.fs")) return -1;
 
 
 		glEnable(GL_DEPTH_TEST);
@@ -63,9 +63,9 @@ namespace project_vol_clouds_opengl
 
 		glm::vec3 lightDir(-0.2f, 1.0f, -0.3f);
 		glm::vec3 lightColor(1.0f, 0.98f, 0.09f);
-		CloudsShader.Use();
-		CloudsShader.setVec3f("light.direction", lightDir);
-		CloudsShader.setVec3f("light.color", lightColor);
+		VolumeShader.Use();
+		VolumeShader.setVec3f("light.direction", lightDir);
+		VolumeShader.setVec3f("light.color", lightColor);
 
 		while (!glfwWindowShouldClose(window))
 		{
@@ -76,13 +76,14 @@ namespace project_vol_clouds_opengl
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			CloudsShader.Use();
+			VolumeShader.Use();
 			const glm::mat4& view = lesson_1n9::CCamera::Get().GetView();
-			CloudsShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
+			VolumeShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
 			glm::mat4 model = glm::mat4(1.0);
 			model = glm::translate(model, glm::vec3(0., 0., 0.));
 			glm::mat4 mvp = projection * view * model;
-			CloudsShader.setMatrix4fv("mvp", mvp);
+			VolumeShader.setMatrix4fv("mvp", mvp);
+			VolumeShader.setFloat("sinTime", sin(glfwGetTime()));
 			renderCube();
 
 			glfwSwapBuffers(window);
