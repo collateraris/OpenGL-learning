@@ -1,9 +1,9 @@
 ﻿
-#include "Lessons/5n10_ssao/main5n10.h"
+#include "Projects/Real_time_volumetric_clouds/proj_vol_clouds_opengl.h"
 
 int main()
 {
-	return lesson_5n10::lesson_main();
+	return project_vol_clouds_opengl::lesson_main();
 }
 
 
