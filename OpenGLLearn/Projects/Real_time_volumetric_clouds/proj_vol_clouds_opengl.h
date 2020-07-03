@@ -61,6 +61,12 @@ namespace project_vol_clouds_opengl
 		glm::mat4 projection;
 		projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
 
+		glm::vec3 lightDir(-0.2f, 1.0f, -0.3f);
+		glm::vec3 lightColor(1.0f, 0.98f, 0.09f);
+		CloudsShader.Use();
+		CloudsShader.setVec3f("light.direction", lightDir);
+		CloudsShader.setVec3f("light.color", lightColor);
+
 		while (!glfwWindowShouldClose(window))
 		{
 			deltaTime = GetDeltaTime();
