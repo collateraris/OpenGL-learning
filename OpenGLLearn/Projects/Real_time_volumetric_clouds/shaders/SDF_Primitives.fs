@@ -55,7 +55,7 @@ void main()
 		}
 		position += direction * dist;
 	}
-	FragColor = vec4(1.0);
+	FragColor = vec4(0.0, 0.8, 0.1, 1.0);
 }
 
 float sphereDistance(vec3 pos, vec3 center, float radius)

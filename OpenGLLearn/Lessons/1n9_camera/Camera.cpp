@@ -96,6 +96,11 @@ const glm::vec3& CCamera::GetCameraPosition()
     return this->mCameraPos;
 }
 
+void CCamera::SetCameraPosition(const glm::vec3& pos)
+{
+    this->mCameraPos = pos;
+}
+
 const glm::vec3& CCamera::GetCameraFront()
 {
     return this->mCameraFront;

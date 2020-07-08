@@ -49,42 +49,30 @@ namespace project_vol_clouds_opengl
 		if ((window = init()) == nullptr) return -1;
 
 		lesson_1n5::CShader VolumeShader;
-		if (!VolumeShader.Init("Projects/Real_time_volumetric_clouds/shaders/SDF_Primitives.vs", "Projects/Real_time_volumetric_clouds/shaders/SDF_Primitives.fs")) return -1;
+		if (!VolumeShader.Init("Projects/Real_time_volumetric_clouds/shaders/clouds.vs", "Projects/Real_time_volumetric_clouds/shaders/clouds2.fs")) return -1;
 
+		VolumeShader.Use();
+		VolumeShader.setVec2f("resolution", glm::vec2(g_screenWidth, g_screenHeight));
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 
 		float deltaTime;
 
-		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
-		glm::mat4 projection;
-		projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
-
-		glm::vec3 lightDir(-0.2f, 1.0f, -0.3f);
-		glm::vec3 lightColor(1.0f, 0.98f, 0.09f);
-		VolumeShader.Use();
-		VolumeShader.setVec3f("light.direction", lightDir);
-		VolumeShader.setVec3f("light.color", lightColor);
-
 		while (!glfwWindowShouldClose(window))
 		{
 			deltaTime = GetDeltaTime();
-			//std::cout << "FPS " << 1.f / deltaTime << std::endl;
+			std::cout << "FPS " << 1.f / deltaTime << std::endl;
 			lesson_1n9::CCamera::Get().Movement(deltaTime);
 
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			VolumeShader.Use();
-			const glm::mat4& view = lesson_1n9::CCamera::Get().GetView();
-			VolumeShader.setVec3f("viewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
-			glm::mat4 model = glm::mat4(1.0);
-			model = glm::translate(model, glm::vec3(0., 0., 0.));
-			glm::mat4 mvp = projection * view * model;
-			VolumeShader.setMatrix4fv("mvp", mvp);
-			VolumeShader.setFloat("sinTime", sin(glfwGetTime()));
-			renderCube();
+			VolumeShader.setVec3f("eye", lesson_1n9::CCamera::Get().GetCameraFront());
+			VolumeShader.setVec3f("uSunPos", glm::vec3(0, 0.1, -1));
+			VolumeShader.setFloat("time", glfwGetTime());
+			renderQuad();
 
 			glfwSwapBuffers(window);
 			glfwPollEvents();
