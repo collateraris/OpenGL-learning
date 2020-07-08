@@ -6,19 +6,16 @@ uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 uniform float u_time;
 
-vec2 random2( vec2 p ) {
+vec2 random2(in vec2 p ) {
     return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
 }
 
-void main()
+float random (in vec2 st) {
+    return fract(sin(dot(st.xy,vec2(12.9898,78.233))) * 43758.5453123);
+}
+
+float voronoi2dnoise(in vec2 st)
 {
-    vec2 st = gl_FragCoord.xy / u_resolution.xy;
-    st.x *= u_resolution.x / u_resolution.y;
-
-    vec3 color = vec3(0.);
-    
-    st *= 10.;
-
     vec2 ist = floor(st);
     vec2 fst = fract(st);
 
@@ -30,7 +27,6 @@ void main()
         {
             vec2 neighbor = vec2(x, y);
             vec2 point = random2(ist + neighbor);
-            point = 0.5 + 0.25 * cos(u_time + 6.2831 * point) + 0.25 * sin(u_time + 6.2831 * point);
 
             vec2 diff = neighbor + point - fst;
 
@@ -43,13 +39,42 @@ void main()
             }
         }
 
-    color += minDist * 2.;
-    color.rg = minPoint;
+    return random(minPoint);   
+}
 
-    color -= abs(sin(80. * minDist)) * 0.07;
+#define OCTAVES 6
+float fbmVoronoi2D(in vec2 st)
+{
+    float value = 0.;
+    float amplitude = .5;
+    float frequency = 0.;
 
-    color += 1.- step(0.02, minDist);
-    color.r += step(.98, fst.x) + step(.98, fst.y);    
+    float lacunarity = 2.;
+    float gain = 0.5;
+    vec2 shift = vec2(100.);
+    mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
+
+    for (int i = 0; i < OCTAVES; ++i)
+    {
+        value += amplitude * voronoi2dnoise(st);
+        st = rot * st * lacunarity + shift;
+        amplitude *= gain;
+    }
+    return value;
+}
+
+float fbmWorley2D(in vec2 st)
+{
+    return clamp((1. - fbmVoronoi2D(st)) * 1.5 - 0.25, 0., 1.);
+}
+
+void main()
+{
+    vec2 st = gl_FragCoord.xy / u_resolution.xy;
+    st.x *= u_resolution.x / u_resolution.y;
+
+    vec3 color = vec3(0.);
+    color += fbmWorley2D(st * 15.0);
 
     gl_FragColor = vec4(color, 1.0);
 }
