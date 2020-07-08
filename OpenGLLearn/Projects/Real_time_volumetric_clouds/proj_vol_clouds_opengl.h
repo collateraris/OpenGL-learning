@@ -24,6 +24,8 @@ namespace project_vol_clouds_opengl
 	GLfloat g_screenWidth = 800.0f;
 	GLfloat g_screenHeight = 600.0f;
 	bool g_debug = false;
+	int x_mouse_pos;
+	int y_mouse_pos;
 
 	int lesson_main();
 
@@ -49,10 +51,11 @@ namespace project_vol_clouds_opengl
 		if ((window = init()) == nullptr) return -1;
 
 		lesson_1n5::CShader VolumeShader;
-		if (!VolumeShader.Init("Projects/Real_time_volumetric_clouds/shaders/clouds.vs", "Projects/Real_time_volumetric_clouds/shaders/fBmPerlinNoise.fs")) return -1;
+		if (!VolumeShader.Init("Projects/Real_time_volumetric_clouds/shaders/clouds.vs", "Projects/Real_time_volumetric_clouds/shaders/fBmPerlinWorley.fs")) return -1;
 
 		VolumeShader.Use();
 		VolumeShader.setVec2f("resolution", glm::vec2(g_screenWidth, g_screenHeight));
+		VolumeShader.setVec2f("u_resolution", glm::vec2(g_screenWidth, g_screenHeight));
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
@@ -62,7 +65,7 @@ namespace project_vol_clouds_opengl
 		while (!glfwWindowShouldClose(window))
 		{
 			deltaTime = GetDeltaTime();
-			std::cout << "FPS " << 1.f / deltaTime << std::endl;
+			//std::cout << "FPS " << 1.f / deltaTime << std::endl;
 			lesson_1n9::CCamera::Get().Movement(deltaTime);
 
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -70,8 +73,10 @@ namespace project_vol_clouds_opengl
 
 			VolumeShader.Use();
 			VolumeShader.setVec3f("eye", lesson_1n9::CCamera::Get().GetCameraFront());
+			VolumeShader.setVec2f("u_mouse", glm::vec2(x_mouse_pos, y_mouse_pos));
 			VolumeShader.setVec3f("uSunPos", glm::vec3(0, 0.1, -1));
 			VolumeShader.setFloat("time", glfwGetTime());
+			VolumeShader.setFloat("u_time", glfwGetTime());
 			renderQuad();
 
 			glfwSwapBuffers(window);
@@ -141,6 +146,8 @@ namespace project_vol_clouds_opengl
 
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	{
+		x_mouse_pos = xpos;
+		y_mouse_pos = ypos;
 		lesson_1n9::CCamera::Get().MouseProcessing(xpos, ypos);
 	}
 
