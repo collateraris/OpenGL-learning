@@ -51,7 +51,7 @@ namespace project_vol_clouds_opengl
 		if ((window = init()) == nullptr) return -1;
 
 		lesson_1n5::CShader VolumeShader;
-		if (!VolumeShader.Init("Projects/Real_time_volumetric_clouds/shaders/clouds.vs", "Projects/Real_time_volumetric_clouds/shaders/fBmPerlinWorley.fs")) return -1;
+		if (!VolumeShader.Init("Projects/Real_time_volumetric_clouds/shaders/clouds.vs", "Projects/Real_time_volumetric_clouds/shaders/fBmPerlinNoise.fs")) return -1;
 
 		VolumeShader.Use();
 		VolumeShader.setVec2f("resolution", glm::vec2(g_screenWidth, g_screenHeight));
