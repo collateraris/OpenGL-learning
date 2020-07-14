@@ -29,8 +29,11 @@ uniform sampler2D uMetallicMap;
 uniform sampler2D uRoughnessMap;
 uniform sampler2D uAoMap;
 uniform sampler2D uNormalMap;
+uniform samplerCube uIrradianceMap;
 
 vec3 fresnelSchlick(float cosTheta, in vec3 F0);
+
+vec3 fresnelSchlickRoughness(float cosTheta, in vec3 F0, float roughness);
 
 float DistributtionGGX(in vec3 normal, in vec3 halfwayDir, float roughness);
 
@@ -82,7 +85,12 @@ void main()
         Lo += (kD * albedo * invPI + specular) * radiance * NdotL;
     }
 
-    vec3 ambient = vec3(0.03) * albedo * ao;
+    vec3 kS = fresnelSchlickRoughness(max(dot(normal, viewDir), 0.), F0, roughness);
+    vec3 kD = vec3(1.) - kS;
+    kD *= 1. - metallic;
+    vec3 irradiance = texture(uIrradianceMap, normal).rgb;
+    vec3 diffuse = irradiance * albedo;
+    vec3 ambient = (kD * diffuse) * ao;
     vec3 color = ambient + Lo;
     color = color / (color + vec3(1.));
     color = pow(color, vec3(1./ 2.2));
@@ -97,6 +105,15 @@ vec3 fresnelSchlick(float cosTheta, in vec3 F0)
     float oneMinusCosTheta4 = oneMinusCosTheta2 * oneMinusCosTheta2;
     float oneMinusCosTheta5 = oneMinusCosTheta4 * oneMinusCosTheta;
     return F0 + (1. - F0) * oneMinusCosTheta5;
+}
+
+vec3 fresnelSchlickRoughness(float cosTheta, in vec3 F0, float roughness)
+{
+    float oneMinusCosTheta = 1. - cosTheta;
+    float oneMinusCosTheta2 = oneMinusCosTheta * oneMinusCosTheta; 
+    float oneMinusCosTheta4 = oneMinusCosTheta2 * oneMinusCosTheta2;
+    float oneMinusCosTheta5 = oneMinusCosTheta4 * oneMinusCosTheta;
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * oneMinusCosTheta5;
 }
 
 float DistributtionGGX(in vec3 normal, in vec3 halfwayDir, float roughness)

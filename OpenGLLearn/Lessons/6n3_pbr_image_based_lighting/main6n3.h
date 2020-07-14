@@ -74,6 +74,7 @@ namespace lesson_6n3
 		lightingShader.setInt("uRoughnessMap", 2);
 		lightingShader.setInt("uAoMap", 3);
 		lightingShader.setInt("uNormalMap", 4);
+		lightingShader.setInt("uIrradianceMap", 5);
 
 		const int PBR_TEXTURE_NUMBER = 5;
 		unsigned int albedoTexture[PBR_TEXTURE_NUMBER];
@@ -217,7 +218,8 @@ namespace lesson_6n3
 			lightingShader.setMatrix4fv("uProjectionView", proj_view);
 			lightingShader.setVec3f("uViewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
 
-
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
 			glm::mat4 model = glm::mat4(1.0f);
 			for (int row = 0; row < PBR_TEXTURE_NUMBER; ++row)
 			{
@@ -263,7 +265,7 @@ namespace lesson_6n3
 
 			envCubeMapShader.Use();
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 			glm::mat4 proj_rot_view = projection * glm::mat4(glm::mat3(view));
 			envCubeMapShader.setMatrix4fv("uProjectionRotView", proj_rot_view);
 			renderCube();
