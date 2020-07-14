@@ -194,6 +194,7 @@
     <ClInclude Include="Lessons\5n7_hdr\main5n7.h" />
     <ClInclude Include="Lessons\5n8_bloom\main5n8.h" />
     <ClInclude Include="Lessons\5n9_deffered_shading\main5n9.h" />
+    <ClInclude Include="Lessons\6n2_pbr_lighting\main6n2.h" />
     <ClInclude Include="OpenCL\1n1_init\opencl_main1n1.h" />
     <ClInclude Include="OpenCL\1n2_image_sobel_filter\opencl_main1n2.h" />
     <ClInclude Include="ThirdParty\include\FreeImage\FreeImage.h" />
