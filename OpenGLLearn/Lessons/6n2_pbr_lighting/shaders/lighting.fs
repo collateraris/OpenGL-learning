@@ -24,10 +24,11 @@ uniform vec3 uViewPos;
 uniform vec3 lightPositions[NR_POINT_LIGHTS];
 uniform vec3 lightColors[NR_POINT_LIGHTS];
 
-uniform vec3 uAlbedo;
-uniform float uMetallic;
-uniform float uRoughness;
-uniform float uAo;
+uniform sampler2D uAlbedoMap;
+uniform sampler2D uMetallicMap;
+uniform sampler2D uRoughnessMap;
+uniform sampler2D uAoMap;
+uniform sampler2D uNormalMap;
 
 vec3 fresnelSchlick(float cosTheta, in vec3 F0);
 
@@ -37,15 +38,22 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 
 float GeometrySmith(in vec3 normal, in vec3 viewDir, in vec3 lightDir, float roughness);
 
+vec3 GetNormalFromMap(in sampler2D normalMap);
+
 void main()
 {
-    vec3 normal = normalize(vNormal);
+    vec3 albedo = pow(texture(uAlbedoMap, vTexCoords).rgb, vec3(2.2));
+    float metallic = texture(uMetallicMap, vTexCoords).r;
+    float roughness = texture(uRoughnessMap, vTexCoords).r;
+    float ao = texture(uAoMap, vTexCoords).r;
+
+    vec3 normal = GetNormalFromMap(uNormalMap);
     vec3 viewDir = normalize(uViewPos - vWorldPos);
 
     float invPI = 1. / PI;
 
     vec3 F0 = vec3(0.04);
-    F0 = mix(F0, uAlbedo, uMetallic);
+    F0 = mix(F0, albedo, metallic);
 
     vec3 Lo = vec3(0.);
     for (int i = 0; i < NR_POINT_LIGHTS; ++i)
@@ -59,8 +67,8 @@ void main()
 
         vec3 F = fresnelSchlick(max(dot(halfwayDir, viewDir), 0.), F0);
 
-        float NDF = DistributtionGGX(normal, halfwayDir, uRoughness);
-        float G = GeometrySmith(normal, viewDir, lightDir, uRoughness);
+        float NDF = DistributtionGGX(normal, halfwayDir, roughness);
+        float G = GeometrySmith(normal, viewDir, lightDir, roughness);
 
         vec3 numeratorBRDF = NDF * G * F;
         float denominatorBRDF = 4. * max(dot(normal, viewDir), 0.) * max(dot(normal, lightDir), 0.) + 0.001;
@@ -68,13 +76,13 @@ void main()
 
         vec3 kS = F;
         vec3 kD = vec3(1.) - kS;
-        kD *= 1. - uMetallic;
+        kD *= 1. - metallic;
 
         float NdotL = max(dot(normal, lightDir), 0.);
-        Lo += (kD * uAlbedo * invPI + specular) * radiance * NdotL;
+        Lo += (kD * albedo * invPI + specular) * radiance * NdotL;
     }
 
-    vec3 ambient = vec3(0.03) * uAlbedo * uAo;
+    vec3 ambient = vec3(0.03) * albedo * ao;
     vec3 color = ambient + Lo;
     color = color / (color + vec3(1.));
     color = pow(color, vec3(1./ 2.2));
@@ -124,5 +132,23 @@ float GeometrySmith(in vec3 normal, in vec3 viewDir, in vec3 lightDir, float rou
     float ggx1  = GeometrySchlickGGX(NdotL, roughness);
 	
     return ggx1 * ggx2;
+}
+
+vec3 GetNormalFromMap(in sampler2D normalMap)
+{
+    vec3 tangentNormal = texture(normalMap, vTexCoords).xyz;
+    tangentNormal *= 2.0 - 1.0;
+
+    vec3 Q1 = dFdx(vWorldPos);
+    vec3 Q2 = dFdy(vWorldPos);
+    vec2 st1 = dFdx(vTexCoords);
+    vec2 st2 = dFdy(vTexCoords);
+
+    vec3 N = normalize(vNormal);
+    vec3 T = normalize(Q1 * st2.t - Q2 * st1.t);
+    vec3 B = -normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+
+    return normalize(TBN * tangentNormal);
 }
 

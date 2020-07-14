@@ -58,8 +58,17 @@ namespace lesson_6n2
 		projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
 
 		lightingShader.Use();
-		lightingShader.setVec3f("uAlbedo", glm::vec3(0.5, 0., 0.));
-		lightingShader.setFloat("uAo", 1.);
+		lightingShader.setInt("uAlbedoMap", 0);
+		lightingShader.setInt("uMetallicMap", 1);
+		lightingShader.setInt("uRoughnessMap", 2);
+		lightingShader.setInt("uAoMap", 3);
+		lightingShader.setInt("uNormalMap", 4);
+
+		unsigned int albedoTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr_RustedIron/albedo.png");
+		unsigned int normalTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr_RustedIron/normal.png");
+		unsigned int metallicTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr_RustedIron/metallic.png");
+		unsigned int roughnessTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr_RustedIron/roughness.png");
+		unsigned int aoTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr_RustedIron/ao.png");
 
 		const int nrRows = 7;
 		const int nrColumns = 7;
@@ -98,16 +107,23 @@ namespace lesson_6n2
 			glm::mat4 proj_view = projection * view;
 			lightingShader.setMatrix4fv("uProjectionView", proj_view);
 			lightingShader.setVec3f("uViewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, albedoTexture);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, metallicTexture);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, roughnessTexture);
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, aoTexture);
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_2D, normalTexture);
+
 			glm::mat4 model = glm::mat4(1.0f);
 			for (int row = 0; row < nrRows; ++row)
 			{
-				lightingShader.setFloat("uMetallic", (float)row / (float)nrRows);
 				for (int col = 0; col < nrColumns; ++col)
 				{
-					// we clamp the roughness to 0.025 - 1.0 as perfectly smooth surfaces (roughness of 0.0) tend to look a bit off
-					// on direct lighting.
-					lightingShader.setFloat("uRoughness", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
-
 					model = glm::mat4(1.0f);
 					model = glm::translate(model, glm::vec3(
 						(col - (nrColumns >> 1)) * spacing,
