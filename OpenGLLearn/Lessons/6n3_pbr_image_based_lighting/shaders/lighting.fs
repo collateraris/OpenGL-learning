@@ -35,7 +35,7 @@ vec3 fresnelSchlick(float cosTheta, in vec3 F0);
 
 vec3 fresnelSchlickRoughness(float cosTheta, in vec3 F0, float roughness);
 
-float DistributtionGGX(in vec3 normal, in vec3 halfwayDir, float roughness);
+float DistributionGGX(in vec3 normal, in vec3 halfwayDir, float roughness);
 
 float GeometrySchlickGGX(float NdotV, float roughness);
 
@@ -70,7 +70,7 @@ void main()
 
         vec3 F = fresnelSchlick(max(dot(halfwayDir, viewDir), 0.), F0);
 
-        float NDF = DistributtionGGX(normal, halfwayDir, roughness);
+        float NDF = DistributionGGX(normal, halfwayDir, roughness);
         float G = GeometrySmith(normal, viewDir, lightDir, roughness);
 
         vec3 numeratorBRDF = NDF * G * F;
@@ -116,7 +116,7 @@ vec3 fresnelSchlickRoughness(float cosTheta, in vec3 F0, float roughness)
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * oneMinusCosTheta5;
 }
 
-float DistributtionGGX(in vec3 normal, in vec3 halfwayDir, float roughness)
+float DistributionGGX(in vec3 normal, in vec3 halfwayDir, float roughness)
 {
     float a      = roughness*roughness;
     float a2     = a*a;

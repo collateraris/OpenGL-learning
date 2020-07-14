@@ -41,6 +41,8 @@ namespace lesson_3n1
 
 		static unsigned int GetEnvironmentCubemap(unsigned int width = 1024, unsigned int height = 1024);
 
+		static unsigned int GetEnvironmentMipmapCubemap(unsigned int width = 1024, unsigned int height = 1024);
+
 		static unsigned int GetFBODepthAttachmentTexture(unsigned int width, unsigned int height);
 
 		static unsigned int LoadCubemap(const std::vector<std::string>& faces);

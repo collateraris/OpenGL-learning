@@ -63,6 +63,9 @@ namespace lesson_6n3
 		lesson_1n5::CShader irradianceMapShader;
 		if (!irradianceMapShader.Init("Lessons/6n3_pbr_image_based_lighting/shaders/irradianceMap.vs", "Lessons/6n3_pbr_image_based_lighting/shaders/irradianceMap.fs")) return -1;
 
+		lesson_1n5::CShader prefilterMapShader;
+		if (!prefilterMapShader.Init("Lessons/6n3_pbr_image_based_lighting/shaders/prefilterMap.vs", "Lessons/6n3_pbr_image_based_lighting/shaders/prefilterMap.fs")) return -1;
+
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
 		glm::mat4 projection;
@@ -142,7 +145,6 @@ namespace lesson_6n3
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, captureWidth, captureHeight);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
 
-		unsigned int envCubemap = lesson_3n1::CLoadTexture::GetEnvironmentCubemap(captureWidth, captureHeight);
 
 		glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
 		std::vector<glm::mat4> captureViews =
@@ -155,23 +157,29 @@ namespace lesson_6n3
 		   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
 		};
 
+		std::vector<glm::mat4> captureProjViews = {};
+		for (const auto& view: captureViews)
+		{
+			captureProjViews.push_back(captureProjection * view);
+		}
+
 		unsigned int hdrTexture = lesson_3n1::CLoadTexture::LoadHDRTexture("content/tex/hdr/Circus_Backstage_3k.hdr");
 
+		unsigned int envCubemap = lesson_3n1::CLoadTexture::GetEnvironmentMipmapCubemap(captureWidth, captureHeight);
 		hdrToCubeMapShader.Use();
 		hdrToCubeMapShader.setInt("uEquirectangularMap", 0);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, hdrTexture);
-		glViewport(0, 0, captureWidth, captureHeight);
 		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+		glViewport(0, 0, captureWidth, captureHeight);
 		for (unsigned int i = 0; i < captureViews.size(); ++i)
 		{
-			glm::mat4 captureProjectionView = captureProjection * captureViews[i];
-			hdrToCubeMapShader.setMatrix4fv("uProjectionView", captureProjectionView);
+			hdrToCubeMapShader.setMatrix4fv("uProjectionView", captureProjViews[i]);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			renderCube(); 
+			renderCube();
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -191,14 +199,44 @@ namespace lesson_6n3
 		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
 		for (unsigned int i = 0; i < captureViews.size(); ++i)
 		{
-			glm::mat4 captureProjectionView = captureProjection * captureViews[i];
-			hdrToCubeMapShader.setMatrix4fv("uProjectionView", captureProjectionView);
+			hdrToCubeMapShader.setMatrix4fv("uProjectionView", captureProjViews[i]);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceMap, 0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			renderCube();
 		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		unsigned int prefilterMapWidth = 128, prefilterMapHeight = 128;
+		unsigned int prefilterMap = lesson_3n1::CLoadTexture::GetEnvironmentMipmapCubemap(prefilterMapWidth, prefilterMapHeight);
+		prefilterMapShader.Use();
+		prefilterMapShader.setInt("uEnvironmentMap", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+		unsigned int maxMipLevels = 5;
+		for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
+		{
+			unsigned int mipWidth = prefilterMapWidth * std::pow(0.5, mip);
+			unsigned int mipHeight = prefilterMapHeight * std::pow(0.5, mip);
+			glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+			glViewport(0, 0, mipWidth, mipHeight);
+
+			float roughness = static_cast<float>(mip) / (maxMipLevels - 1);
+			prefilterMapShader.setFloat("uRoughness", roughness);
+			for (unsigned int i = 0; i < captureViews.size(); ++i)
+			{
+				hdrToCubeMapShader.setMatrix4fv("uProjectionView", captureProjViews[i]);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+					GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+				renderCube();
+			}
+		}
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		float deltaTime;
@@ -265,7 +303,7 @@ namespace lesson_6n3
 
 			envCubeMapShader.Use();
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
 			glm::mat4 proj_rot_view = projection * glm::mat4(glm::mat3(view));
 			envCubeMapShader.setMatrix4fv("uProjectionRotView", proj_rot_view);
 			renderCube();
@@ -320,6 +358,8 @@ namespace lesson_6n3
 		glfwGetFramebufferSize(window, &width, &height);
 
 		glViewport(0, 0, width, height);
+
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 		return window;
 	}
