@@ -60,6 +60,9 @@ namespace lesson_6n3
 		lesson_1n5::CShader envCubeMapShader;
 		if (!envCubeMapShader.Init("Lessons/6n3_pbr_image_based_lighting/shaders/envCubeMap.vs", "Lessons/6n3_pbr_image_based_lighting/shaders/envCubeMap.fs")) return -1;
 
+		lesson_1n5::CShader irradianceMapShader;
+		if (!irradianceMapShader.Init("Lessons/6n3_pbr_image_based_lighting/shaders/irradianceMap.vs", "Lessons/6n3_pbr_image_based_lighting/shaders/irradianceMap.fs")) return -1;
+
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
 		glm::mat4 projection;
@@ -174,6 +177,29 @@ namespace lesson_6n3
 		envCubeMapShader.Use();
 		envCubeMapShader.setInt("uEnvironmentMap", 0);
 
+		unsigned int irradianceMapWidth = 32, irradianceMapHeight = 32;
+		unsigned int irradianceMap = lesson_3n1::CLoadTexture::GetEnvironmentCubemap(irradianceMapWidth, irradianceMapHeight);
+		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+		glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, irradianceMapWidth, irradianceMapHeight);
+		irradianceMapShader.Use();
+		irradianceMapShader.setInt("uEnvironmentMap", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+		glViewport(0, 0, irradianceMapWidth, irradianceMapHeight);
+		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+		for (unsigned int i = 0; i < captureViews.size(); ++i)
+		{
+			glm::mat4 captureProjectionView = captureProjection * captureViews[i];
+			hdrToCubeMapShader.setMatrix4fv("uProjectionView", captureProjectionView);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceMap, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			renderCube();
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 		float deltaTime;
 
 		glViewport(0, 0, g_screenWidth, g_screenHeight);
@@ -237,7 +263,7 @@ namespace lesson_6n3
 
 			envCubeMapShader.Use();
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
 			glm::mat4 proj_rot_view = projection * glm::mat4(glm::mat3(view));
 			envCubeMapShader.setMatrix4fv("uProjectionRotView", proj_rot_view);
 			renderCube();
