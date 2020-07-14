@@ -72,14 +72,43 @@ namespace lesson_6n3
 		lightingShader.setInt("uAoMap", 3);
 		lightingShader.setInt("uNormalMap", 4);
 
-		unsigned int albedoTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr_RustedIron/albedo.png");
-		unsigned int normalTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr_RustedIron/normal.png");
-		unsigned int metallicTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr_RustedIron/metallic.png");
-		unsigned int roughnessTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr_RustedIron/roughness.png");
-		unsigned int aoTexture = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr_RustedIron/ao.png");
+		const int PBR_TEXTURE_NUMBER = 5;
+		unsigned int albedoTexture[PBR_TEXTURE_NUMBER];
+		unsigned int normalTexture[PBR_TEXTURE_NUMBER];
+		unsigned int metallicTexture[PBR_TEXTURE_NUMBER];
+		unsigned int roughnessTexture[PBR_TEXTURE_NUMBER];
+		unsigned int aoTexture[PBR_TEXTURE_NUMBER];
 
-		const int nrRows = 7;
-		const int nrColumns = 7;
+		albedoTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/albedo.png");
+		normalTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/normal.png");
+		metallicTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/metallic.png");
+		roughnessTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/roughness.png");
+		aoTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/ao.png");
+
+		albedoTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/albedo.png");
+		normalTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/normal.png");
+		metallicTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/metallic.png");
+		roughnessTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/roughness.png");
+		aoTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/ao.png");
+
+		albedoTexture[2] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Grass/albedo.png");
+		normalTexture[2] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Grass/normal.png");
+		metallicTexture[2] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Grass/metallic.png");
+		roughnessTexture[2] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Grass/roughness.png");
+		aoTexture[2] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Grass/ao.png");
+
+		albedoTexture[3] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Plastic/albedo.png");
+		normalTexture[3] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Plastic/normal.png");
+		metallicTexture[3] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Plastic/metallic.png");
+		roughnessTexture[3] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Plastic/roughness.png");
+		aoTexture[3] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Plastic/ao.png");
+
+		albedoTexture[4] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Wall/albedo.png");
+		normalTexture[4] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Wall/normal.png");
+		metallicTexture[4] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Wall/metallic.png");
+		roughnessTexture[4] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Wall/roughness.png");
+		aoTexture[4] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Wall/ao.png");
+
 		const float spacing = 2.5;
 
 		std::vector<glm::vec3> lightPositions = {
@@ -162,26 +191,27 @@ namespace lesson_6n3
 			lightingShader.setMatrix4fv("uProjectionView", proj_view);
 			lightingShader.setVec3f("uViewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
 
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, albedoTexture);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, metallicTexture);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, roughnessTexture);
-			glActiveTexture(GL_TEXTURE3);
-			glBindTexture(GL_TEXTURE_2D, aoTexture);
-			glActiveTexture(GL_TEXTURE4);
-			glBindTexture(GL_TEXTURE_2D, normalTexture);
 
 			glm::mat4 model = glm::mat4(1.0f);
-			for (int row = 0; row < nrRows; ++row)
+			for (int row = 0; row < PBR_TEXTURE_NUMBER; ++row)
 			{
-				for (int col = 0; col < nrColumns; ++col)
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, albedoTexture[row]);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, metallicTexture[row]);
+				glActiveTexture(GL_TEXTURE2);
+				glBindTexture(GL_TEXTURE_2D, roughnessTexture[row]);
+				glActiveTexture(GL_TEXTURE3);
+				glBindTexture(GL_TEXTURE_2D, aoTexture[row]);
+				glActiveTexture(GL_TEXTURE4);
+				glBindTexture(GL_TEXTURE_2D, normalTexture[row]);
+
+				for (int col = 0; col < PBR_TEXTURE_NUMBER; ++col)
 				{
 					model = glm::mat4(1.0f);
 					model = glm::translate(model, glm::vec3(
-						(col - (nrColumns >> 1)) * spacing,
-						(row - (nrRows >> 1)) * spacing,
+						(col - (PBR_TEXTURE_NUMBER >> 1)) * spacing,
+						(row - (PBR_TEXTURE_NUMBER >> 1)) * spacing,
 						0.0f
 					));
 					lightingShader.setMatrix4fv("uModel", model);
