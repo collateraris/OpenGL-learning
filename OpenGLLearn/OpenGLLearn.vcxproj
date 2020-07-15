@@ -184,6 +184,7 @@
     <ClInclude Include="Lessons\4n6_cubemaps\main4n6.h" />
     <ClInclude Include="Lessons\4n8_advanced_glsl\main4n8.h" />
     <ClInclude Include="Lessons\4n9_geometry_shader\main4n9.h" />
+    <ClInclude Include="Lessons\5n10_ssao\main5n10.h" />
     <ClInclude Include="Lessons\5n1_advanced_lighting\main5n1.h" />
     <ClInclude Include="Lessons\5n2_gamma_correction\main5n2.h" />
     <ClInclude Include="Lessons\5n3_shadow_mapping\main5n3.h" />
@@ -193,6 +194,8 @@
     <ClInclude Include="Lessons\5n7_hdr\main5n7.h" />
     <ClInclude Include="Lessons\5n8_bloom\main5n8.h" />
     <ClInclude Include="Lessons\5n9_deffered_shading\main5n9.h" />
+    <ClInclude Include="Lessons\6n2_pbr_lighting\main6n2.h" />
+    <ClInclude Include="Lessons\6n3_pbr_image_based_lighting\main6n3.h" />
     <ClInclude Include="OpenCL\1n1_init\opencl_main1n1.h" />
     <ClInclude Include="OpenCL\1n2_image_sobel_filter\opencl_main1n2.h" />
     <ClInclude Include="ThirdParty\include\FreeImage\FreeImage.h" />

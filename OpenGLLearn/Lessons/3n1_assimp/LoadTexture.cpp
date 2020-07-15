@@ -97,6 +97,38 @@ unsigned int CLoadTexture::LoadGammaTexture(const char* path)
 	return textureID;
 }
 
+unsigned int CLoadTexture::LoadHDRTexture(const char* path)
+{
+	GLuint textureID = -1;
+
+	CLoadTexture::StbiSetFlipVerticallyOnLoad(true);
+
+	int width = 0, height = 0, nrComponents;
+	float* image = stbi_loadf(path, &width, &height, &nrComponents, 0);
+	if (image)
+	{
+		glGenTextures(1, &textureID);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, image);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		stbi_image_free(image);
+	}
+	else
+	{
+		std::cout << "Texture failed to load at path: " << path << std::endl;
+	}
+
+	CLoadTexture::StbiSetFlipVerticallyOnLoad(false);
+
+	return textureID;
+}
+
 unsigned int CLoadTexture::LoadTexture(const char* path, int wrap_s_par, int wrap_t_par, int min_filter_par, int max_filter_par)
 {
 	GLuint textureID;
@@ -150,6 +182,23 @@ unsigned int CLoadTexture::GammaTextureFromFile(const char* path, std::string di
 	filename = directory + '/' + filename;
 
 	return CLoadTexture::LoadGammaTexture(filename.c_str());
+}
+
+unsigned int CLoadTexture::GetTexture(unsigned int width/* = 1024*/, unsigned int height/* = 1024*/, GLenum internalFormat/*= GL_RGB*/, GLenum format/*= GL_RGB*/, GLenum type/* = GL_UNSIGNED_BYTE*/, int wrap_s_par/* = GL_CLAMP_TO_EDGE*/, int wrap_t_par/* = GL_CLAMP_TO_EDGE*/, int min_filter_par/* = GL_LINEAR*/, int max_filter_par/* = GL_LINEAR*/)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s_par);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t_par);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter_par);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, max_filter_par);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return textureID;
 }
 
 unsigned int CLoadTexture::GetFBOTexture(unsigned int width, unsigned int height, GLenum internalFormat /*= GL_RGB*/, GLenum format/* = GL_RGB*/)
@@ -270,4 +319,44 @@ unsigned int CLoadTexture::GetDepthCubemap(unsigned int width /* = 1024*/, unsig
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	return depthCubemap;
+}
+
+unsigned int CLoadTexture::GetEnvironmentCubemap(unsigned int width /* = 1024*/, unsigned int height /* = 1024*/)
+{
+	unsigned int envCubemap;
+	glGenTextures(1, &envCubemap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+	for (unsigned int i = 0; i < 6; ++i)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F,
+			width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	return envCubemap;
+}
+
+unsigned int CLoadTexture::GetEnvironmentMipmapCubemap(unsigned int width /* = 1024*/, unsigned int height /* = 1024*/)
+{
+	unsigned int envCubemap;
+	glGenTextures(1, &envCubemap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+	for (unsigned int i = 0; i < 6; ++i)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F,
+			width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+	return envCubemap;
 }

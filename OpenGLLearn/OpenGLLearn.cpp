@@ -1,11 +1,9 @@
 ﻿
-//#include "Lessons/5n9_deffered_shading/main5n9.h"
-#include "OpenCL/1n1_init/opencl_main1n1.h"
+#include "Lessons/6n3_pbr_image_based_lighting/main6n3.h"
 
 int main()
 {
-	//return lesson_5n9::lesson_main();
-	return opencl_1n1::lesson_main();
+	return lesson_6n3::lesson_main();
 }
 
 
