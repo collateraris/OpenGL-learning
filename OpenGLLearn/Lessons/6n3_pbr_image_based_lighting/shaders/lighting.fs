@@ -29,7 +29,10 @@ uniform sampler2D uMetallicMap;
 uniform sampler2D uRoughnessMap;
 uniform sampler2D uAoMap;
 uniform sampler2D uNormalMap;
+
 uniform samplerCube uIrradianceMap;
+uniform samplerCube uPrefilterMap;
+uniform sampler2D   uBrdfLUT;
 
 vec3 fresnelSchlick(float cosTheta, in vec3 F0);
 
@@ -69,7 +72,6 @@ void main()
         vec3 radiance = lightColors[i] * attenuation;
 
         vec3 F = fresnelSchlick(max(dot(halfwayDir, viewDir), 0.), F0);
-
         float NDF = DistributionGGX(normal, halfwayDir, roughness);
         float G = GeometrySmith(normal, viewDir, lightDir, roughness);
 
@@ -78,19 +80,30 @@ void main()
         vec3 specular = numeratorBRDF / denominatorBRDF;
 
         vec3 kS = F;
-        vec3 kD = vec3(1.) - kS;
+        vec3 kD = 1. - kS;
         kD *= 1. - metallic;
 
         float NdotL = max(dot(normal, lightDir), 0.);
         Lo += (kD * albedo * invPI + specular) * radiance * NdotL;
     }
 
-    vec3 kS = fresnelSchlickRoughness(max(dot(normal, viewDir), 0.), F0, roughness);
-    vec3 kD = vec3(1.) - kS;
+    float VdotN = max(dot(normal, viewDir), 0.);
+    vec3 F = fresnelSchlickRoughness(VdotN, F0, roughness);
+    vec3 kS = F;
+    vec3 kD = 1. - kS;
     kD *= 1. - metallic;
+
     vec3 irradiance = texture(uIrradianceMap, normal).rgb;
     vec3 diffuse = irradiance * albedo;
-    vec3 ambient = (kD * diffuse) * ao;
+
+    vec3 R = reflect(-viewDir, normal);
+    const float MAX_REFLECTION_LOD = 4.;
+    vec3 prefilteredColor = textureLod(uPrefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+    vec2 envBRDF = texture(uBrdfLUT, vec2(VdotN, roughness)).rg;
+    vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+
+    vec3 ambient = (kD * diffuse + specular) * ao;
+    //ambient = vec3(0.3) * albedo * ao;
     vec3 color = ambient + Lo;
     color = color / (color + vec3(1.));
     color = pow(color, vec3(1./ 2.2));
@@ -133,7 +146,7 @@ float DistributionGGX(in vec3 normal, in vec3 halfwayDir, float roughness)
 float GeometrySchlickGGX(float NdotV, float roughness)
 {
     float r = (roughness + 1.0);
-    float k = (r*r) / 8.0;
+    float k = r * r * 0.125;
 
     float num   = NdotV;
     float denom = NdotV * (1.0 - k) + k;
@@ -153,8 +166,7 @@ float GeometrySmith(in vec3 normal, in vec3 viewDir, in vec3 lightDir, float rou
 
 vec3 GetNormalFromMap(in sampler2D normalMap)
 {
-    vec3 tangentNormal = texture(normalMap, vTexCoords).xyz;
-    tangentNormal *= 2.0 - 1.0;
+    vec3 tangentNormal = texture(normalMap, vTexCoords).xyz * 2. - 1.;
 
     vec3 Q1 = dFdx(vWorldPos);
     vec3 Q2 = dFdy(vWorldPos);

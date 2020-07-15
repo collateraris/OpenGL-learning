@@ -184,6 +184,23 @@ unsigned int CLoadTexture::GammaTextureFromFile(const char* path, std::string di
 	return CLoadTexture::LoadGammaTexture(filename.c_str());
 }
 
+unsigned int CLoadTexture::GetTexture(unsigned int width/* = 1024*/, unsigned int height/* = 1024*/, GLenum internalFormat/*= GL_RGB*/, GLenum format/*= GL_RGB*/, GLenum type/* = GL_UNSIGNED_BYTE*/, int wrap_s_par/* = GL_CLAMP_TO_EDGE*/, int wrap_t_par/* = GL_CLAMP_TO_EDGE*/, int min_filter_par/* = GL_LINEAR*/, int max_filter_par/* = GL_LINEAR*/)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s_par);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t_par);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter_par);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, max_filter_par);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return textureID;
+}
+
 unsigned int CLoadTexture::GetFBOTexture(unsigned int width, unsigned int height, GLenum internalFormat /*= GL_RGB*/, GLenum format/* = GL_RGB*/)
 {
 	unsigned int textureID;

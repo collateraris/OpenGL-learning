@@ -46,6 +46,8 @@ namespace lesson_6n3
 
 	void renderCube();
 
+	void renderQuad();
+
 	int lesson_main()
 	{
 		GLFWwindow* window;
@@ -66,6 +68,9 @@ namespace lesson_6n3
 		lesson_1n5::CShader prefilterMapShader;
 		if (!prefilterMapShader.Init("Lessons/6n3_pbr_image_based_lighting/shaders/prefilterMap.vs", "Lessons/6n3_pbr_image_based_lighting/shaders/prefilterMap.fs")) return -1;
 
+		lesson_1n5::CShader integrateBRDFMapShader;
+		if (!integrateBRDFMapShader.Init("Lessons/6n3_pbr_image_based_lighting/shaders/integrateBRDFMap.vs", "Lessons/6n3_pbr_image_based_lighting/shaders/integrateBRDFMap.fs")) return -1;
+		
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
 		glm::mat4 projection;
@@ -78,6 +83,8 @@ namespace lesson_6n3
 		lightingShader.setInt("uAoMap", 3);
 		lightingShader.setInt("uNormalMap", 4);
 		lightingShader.setInt("uIrradianceMap", 5);
+		lightingShader.setInt("uPrefilterMap", 6);
+		lightingShader.setInt("uBrdfLUT", 7);
 
 		const int PBR_TEXTURE_NUMBER = 5;
 		unsigned int albedoTexture[PBR_TEXTURE_NUMBER];
@@ -86,17 +93,17 @@ namespace lesson_6n3
 		unsigned int roughnessTexture[PBR_TEXTURE_NUMBER];
 		unsigned int aoTexture[PBR_TEXTURE_NUMBER];
 
-		albedoTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/albedo.png");
-		normalTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/normal.png");
-		metallicTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/metallic.png");
-		roughnessTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/roughness.png");
-		aoTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/ao.png");
+		albedoTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/albedo.png");
+		normalTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/normal.png");
+		metallicTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/metallic.png");
+		roughnessTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/roughness.png");
+		aoTexture[0] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/ao.png");
 
-		albedoTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/albedo.png");
-		normalTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/normal.png");
-		metallicTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/metallic.png");
-		roughnessTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/roughness.png");
-		aoTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Gold/ao.png");
+		albedoTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/albedo.png");
+		normalTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/normal.png");
+		metallicTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/metallic.png");
+		roughnessTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/roughness.png");
+		aoTexture[1] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/RustedIron/ao.png");
 
 		albedoTexture[2] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Grass/albedo.png");
 		normalTexture[2] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Grass/normal.png");
@@ -115,8 +122,6 @@ namespace lesson_6n3
 		metallicTexture[4] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Wall/metallic.png");
 		roughnessTexture[4] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Wall/roughness.png");
 		aoTexture[4] = lesson_3n1::CLoadTexture::LoadTexture("content/tex/pbr/Wall/ao.png");
-
-		const float spacing = 2.5;
 
 		std::vector<glm::vec3> lightPositions = {
 			glm::vec3(-10.0f,  10.0f, 10.0f),
@@ -163,9 +168,11 @@ namespace lesson_6n3
 			captureProjViews.push_back(captureProjection * view);
 		}
 
-		unsigned int hdrTexture = lesson_3n1::CLoadTexture::LoadHDRTexture("content/tex/hdr/Circus_Backstage_3k.hdr");
+		unsigned int hdrTexture = lesson_3n1::CLoadTexture::LoadHDRTexture("content/tex/hdr/newport_loft.hdr");
 
-		unsigned int envCubemap = lesson_3n1::CLoadTexture::GetEnvironmentMipmapCubemap(captureWidth, captureHeight);
+		unsigned int envCubemap = lesson_3n1::CLoadTexture::GetEnvironmentCubemap(captureWidth, captureHeight);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		hdrToCubeMapShader.Use();
 		hdrToCubeMapShader.setInt("uEquirectangularMap", 0);
 		glActiveTexture(GL_TEXTURE0);
@@ -183,6 +190,9 @@ namespace lesson_6n3
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+		glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
 		envCubeMapShader.Use();
 		envCubeMapShader.setInt("uEnvironmentMap", 0);
 
@@ -199,7 +209,7 @@ namespace lesson_6n3
 		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
 		for (unsigned int i = 0; i < captureViews.size(); ++i)
 		{
-			hdrToCubeMapShader.setMatrix4fv("uProjectionView", captureProjViews[i]);
+			irradianceMapShader.setMatrix4fv("uProjectionView", captureProjViews[i]);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceMap, 0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -228,7 +238,7 @@ namespace lesson_6n3
 			prefilterMapShader.setFloat("uRoughness", roughness);
 			for (unsigned int i = 0; i < captureViews.size(); ++i)
 			{
-				hdrToCubeMapShader.setMatrix4fv("uProjectionView", captureProjViews[i]);
+				prefilterMapShader.setMatrix4fv("uProjectionView", captureProjViews[i]);
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 					GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -237,6 +247,19 @@ namespace lesson_6n3
 			}
 		}
 
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		unsigned int brdfLUTWidth = 512, brdfLUTHeight = 512;
+		unsigned int brdfLUTTexture = lesson_3n1::CLoadTexture::GetTexture(brdfLUTWidth, brdfLUTHeight, GL_RG16F, GL_RG,
+									GL_FLOAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR);
+		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+		glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, brdfLUTWidth, brdfLUTHeight);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
+		glViewport(0, 0, brdfLUTWidth, brdfLUTHeight);
+		integrateBRDFMapShader.Use();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		renderQuad();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		float deltaTime;
@@ -258,26 +281,31 @@ namespace lesson_6n3
 
 			glActiveTexture(GL_TEXTURE5);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+			glActiveTexture(GL_TEXTURE6);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+			glActiveTexture(GL_TEXTURE7);
+			glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
 			glm::mat4 model = glm::mat4(1.0f);
-			for (int row = 0; row < PBR_TEXTURE_NUMBER; ++row)
+			const float spacing = 2.5;
+			for (int row = 0; row < 1; ++row)
 			{
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, albedoTexture[row]);
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, metallicTexture[row]);
-				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_2D, roughnessTexture[row]);
-				glActiveTexture(GL_TEXTURE3);
-				glBindTexture(GL_TEXTURE_2D, aoTexture[row]);
-				glActiveTexture(GL_TEXTURE4);
-				glBindTexture(GL_TEXTURE_2D, normalTexture[row]);
-
 				for (int col = 0; col < PBR_TEXTURE_NUMBER; ++col)
 				{
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, albedoTexture[col]);
+					glActiveTexture(GL_TEXTURE1);
+					glBindTexture(GL_TEXTURE_2D, metallicTexture[col]);
+					glActiveTexture(GL_TEXTURE2);
+					glBindTexture(GL_TEXTURE_2D, roughnessTexture[col]);
+					glActiveTexture(GL_TEXTURE3);
+					glBindTexture(GL_TEXTURE_2D, aoTexture[col]);
+					glActiveTexture(GL_TEXTURE4);
+					glBindTexture(GL_TEXTURE_2D, normalTexture[col]);
+
 					model = glm::mat4(1.0f);
 					model = glm::translate(model, glm::vec3(
 						(col - (PBR_TEXTURE_NUMBER >> 1)) * spacing,
-						(row - (PBR_TEXTURE_NUMBER >> 1)) * spacing,
+						(3 - (PBR_TEXTURE_NUMBER >> 1)) * spacing,
 						0.0f
 					));
 					lightingShader.setMatrix4fv("uModel", model);
@@ -303,7 +331,7 @@ namespace lesson_6n3
 
 			envCubeMapShader.Use();
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 			glm::mat4 proj_rot_view = projection * glm::mat4(glm::mat3(view));
 			envCubeMapShader.setMatrix4fv("uProjectionRotView", proj_rot_view);
 			renderCube();
@@ -425,11 +453,11 @@ namespace lesson_6n3
 			{
 				for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
 				{
-					float xSegment = static_cast<float>(x) / X_SEGMENTS;
-					float ySegment = static_cast<float>(y) / Y_SEGMENTS;
-					float xPos = std::cos(xSegment * 2.0f * M_PI) * std::sin(ySegment * M_PI);
+					double xSegment = static_cast<double>(x) / X_SEGMENTS;
+					double ySegment = static_cast<double>(y) / Y_SEGMENTS;
+					float xPos = std::cos(xSegment * 2.0 * M_PI) * std::sin(ySegment * M_PI);
 					float yPos = std::cos(ySegment * M_PI);
-					float zPos = std::sin(xSegment * 2.0f * M_PI) * std::sin(ySegment * M_PI);
+					float zPos = std::sin(xSegment * 2.0 * M_PI) * std::sin(ySegment * M_PI);
 
 					positions.emplace_back(glm::vec3(xPos, yPos, zPos));
 					uv.emplace_back(glm::vec2(xSegment, ySegment));
@@ -566,6 +594,36 @@ namespace lesson_6n3
 		// render Cube
 		glBindVertexArray(cubeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+	}
+
+	void renderQuad()
+	{
+		static unsigned int quadVAO = 0;
+		static unsigned int quadVBO = 0;
+
+		if (quadVAO == 0)
+		{
+			float quadVertices[] = {
+				// positions        // texture Coords
+				-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+				-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+				 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+				 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+			};
+			// setup plane VAO
+			glGenVertexArrays(1, &quadVAO);
+			glGenBuffers(1, &quadVBO);
+			glBindVertexArray(quadVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+		}
+		glBindVertexArray(quadVAO);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glBindVertexArray(0);
 	}
 }

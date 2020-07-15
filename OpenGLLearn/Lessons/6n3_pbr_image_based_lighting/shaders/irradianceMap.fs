@@ -41,5 +41,6 @@ vec3 HemisphereConvolution(in samplerCube environmentMap, in vec3 localPos, floa
         }
     }
 
-    return PI / float(nrSamples) * convResult;
+    convResult =  PI / float(nrSamples) * convResult;
+    return convResult;
 }
