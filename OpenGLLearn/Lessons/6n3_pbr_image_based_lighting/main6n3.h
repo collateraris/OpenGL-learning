@@ -54,7 +54,7 @@ namespace lesson_6n3
 		if ((window = init()) == nullptr) return -1;
 
 		lesson_1n5::CShader lightingShader;
-		if (!lightingShader.Init("Lessons/6n3_pbr_image_based_lighting/shaders/lighting.vs", "Lessons/6n3_pbr_image_based_lighting/shaders/lighting.fs")) return -1;
+		if (!lightingShader.Init("Lessons/6n3_pbr_image_based_lighting/shaders/lighting.vs", "Lessons/6n3_pbr_image_based_lighting/shaders/lightingMeshObj.fs")) return -1;
 
 		lesson_1n5::CShader hdrToCubeMapShader;
 		if (!hdrToCubeMapShader.Init("Lessons/6n3_pbr_image_based_lighting/shaders/hdrToCubeMap.vs", "Lessons/6n3_pbr_image_based_lighting/shaders/hdrToCubeMap.fs")) return -1;
@@ -71,20 +71,18 @@ namespace lesson_6n3
 		lesson_1n5::CShader integrateBRDFMapShader;
 		if (!integrateBRDFMapShader.Init("Lessons/6n3_pbr_image_based_lighting/shaders/integrateBRDFMap.vs", "Lessons/6n3_pbr_image_based_lighting/shaders/integrateBRDFMap.fs")) return -1;
 		
+		lesson_3n1::SFileMeshData meshObj;
+		lesson_3n1::CLoadAssimpFile::Load("content/model/sponza/sponza.obj", meshObj);
+
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
 		glm::mat4 projection;
 		projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
 
 		lightingShader.Use();
-		lightingShader.setInt("uAlbedoMap", 0);
-		lightingShader.setInt("uMetallicMap", 1);
-		lightingShader.setInt("uRoughnessMap", 2);
-		lightingShader.setInt("uAoMap", 3);
-		lightingShader.setInt("uNormalMap", 4);
-		lightingShader.setInt("uIrradianceMap", 5);
-		lightingShader.setInt("uPrefilterMap", 6);
-		lightingShader.setInt("uBrdfLUT", 7);
+		lightingShader.setInt("uIrradianceMap", 4);
+		lightingShader.setInt("uPrefilterMap", 5);
+		lightingShader.setInt("uBrdfLUT", 6);
 
 		const int PBR_TEXTURE_NUMBER = 5;
 		unsigned int albedoTexture[PBR_TEXTURE_NUMBER];
@@ -263,7 +261,7 @@ namespace lesson_6n3
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		float deltaTime;
-
+		lesson_3n1::CDrawFileMeshData::Init(meshObj);
 		glViewport(0, 0, g_screenWidth, g_screenHeight);
 		while (!glfwWindowShouldClose(window))
 		{
@@ -278,40 +276,7 @@ namespace lesson_6n3
 			glm::mat4 proj_view = projection * view;
 			lightingShader.setMatrix4fv("uProjectionView", proj_view);
 			lightingShader.setVec3f("uViewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
-
-			glActiveTexture(GL_TEXTURE5);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
-			glActiveTexture(GL_TEXTURE6);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
-			glActiveTexture(GL_TEXTURE7);
-			glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
-			glm::mat4 model = glm::mat4(1.0f);
-			const float spacing = 2.5;
-			for (int row = 0; row < 1; ++row)
-			{
-				for (int col = 0; col < PBR_TEXTURE_NUMBER; ++col)
-				{
-					glActiveTexture(GL_TEXTURE0);
-					glBindTexture(GL_TEXTURE_2D, albedoTexture[col]);
-					glActiveTexture(GL_TEXTURE1);
-					glBindTexture(GL_TEXTURE_2D, metallicTexture[col]);
-					glActiveTexture(GL_TEXTURE2);
-					glBindTexture(GL_TEXTURE_2D, roughnessTexture[col]);
-					glActiveTexture(GL_TEXTURE3);
-					glBindTexture(GL_TEXTURE_2D, aoTexture[col]);
-					glActiveTexture(GL_TEXTURE4);
-					glBindTexture(GL_TEXTURE_2D, normalTexture[col]);
-
-					model = glm::mat4(1.0f);
-					model = glm::translate(model, glm::vec3(
-						(col - (PBR_TEXTURE_NUMBER >> 1)) * spacing,
-						(3 - (PBR_TEXTURE_NUMBER >> 1)) * spacing,
-						0.0f
-					));
-					lightingShader.setMatrix4fv("uModel", model);
-					renderSphere();
-				}
-			}
+			glm::mat4 model;
 
 			for (unsigned int i = 0; i < lightPositions.size(); ++i)
 			{
@@ -325,21 +290,33 @@ namespace lesson_6n3
 				model = glm::mat4(1.0f);
 				model = glm::translate(model, newPos);
 				model = glm::scale(model, glm::vec3(0.5f));
-				lightingShader.setMatrix4fv("model", model);
+				lightingShader.setMatrix4fv("uModel", model);
 				renderSphere();
 			}
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+			glActiveTexture(GL_TEXTURE6);
+			glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, glm::vec3(0.));
+			lightingShader.setMatrix4fv("uModel", model);
+			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+			lesson_3n1::CDrawFileMeshData::Draw(lightingShader, meshObj);
 
-			envCubeMapShader.Use();
+			//envCubeMapShader.Use();
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 			glm::mat4 proj_rot_view = projection * glm::mat4(glm::mat3(view));
 			envCubeMapShader.setMatrix4fv("uProjectionRotView", proj_rot_view);
-			renderCube();
+			//renderCube();
 
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 		}
 
+		lesson_3n1::CDrawFileMeshData::DeleteAfterLoop(meshObj);
 		glfwTerminate();
 		return 0;		
 	}

@@ -26,6 +26,7 @@ namespace lesson_3n1
         DIFFUSE = 0,
         SPECULAR = 1,
         NORMAL = 2,
+        AMBIENT = 3
     };
 
     struct CAssimpHelpData
@@ -41,6 +42,7 @@ namespace lesson_3n1
             "texture_diffuse_",
             "texture_specular_",
             "texture_normal_",
+            "texture_ambient_",
         };
 
     private:
