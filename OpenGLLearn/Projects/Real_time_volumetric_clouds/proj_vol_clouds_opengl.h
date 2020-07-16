@@ -51,11 +51,26 @@ namespace project_vol_clouds_opengl
 		if ((window = init()) == nullptr) return -1;
 
 		lesson_1n5::CShader VolumeShader;
-		if (!VolumeShader.Init("Projects/Real_time_volumetric_clouds/shaders/clouds.vs", "Projects/Real_time_volumetric_clouds/shaders/fBmPerlinNoise.fs")) return -1;
+		if (!VolumeShader.Init("Projects/Real_time_volumetric_clouds/shaders/clouds.vs", "Projects/Real_time_volumetric_clouds/shaders/scene.fs")) return -1;
+
+		lesson_1n5::CShader PerlinNoiseCompShader;
+		if (!PerlinNoiseCompShader.Init("Projects/Real_time_volumetric_clouds/shaders/fBmPerlinNoise.cs")) return -1;
+
+		unsigned int perlinNoiseTexW = 128, perlinNoiseTexH = 128, perlinNoiseTexD = 128;
+		unsigned int perlinNoiseTexture = lesson_3n1::CLoadTexture::GetTexture3D(perlinNoiseTexW, perlinNoiseTexH, perlinNoiseTexD, GL_RGBA8, GL_RGBA, 
+			GL_FLOAT, GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+
+		PerlinNoiseCompShader.Use();
+		PerlinNoiseCompShader.setInt("outTexture", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindImageTexture(0, perlinNoiseTexture, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA8);
+		glDispatchCompute(32, 32, 32);
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
 		VolumeShader.Use();
 		VolumeShader.setVec2f("resolution", glm::vec2(g_screenWidth, g_screenHeight));
 		VolumeShader.setVec2f("u_resolution", glm::vec2(g_screenWidth, g_screenHeight));
+		VolumeShader.setInt("uTexture", 0);
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
@@ -76,7 +91,9 @@ namespace project_vol_clouds_opengl
 			VolumeShader.setVec2f("u_mouse", glm::vec2(x_mouse_pos, y_mouse_pos));
 			VolumeShader.setVec3f("uSunPos", glm::vec3(0, 0.1, -1));
 			VolumeShader.setFloat("time", glfwGetTime());
-			VolumeShader.setFloat("u_time", glfwGetTime());
+			VolumeShader.setFloat("uTime", glfwGetTime());
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_3D, perlinNoiseTexture);
 			renderQuad();
 
 			glfwSwapBuffers(window);
@@ -90,7 +107,7 @@ namespace project_vol_clouds_opengl
 	GLFWwindow* init()
 	{
 		glfwInit();
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
