@@ -5,6 +5,7 @@ layout (location = 2) in vec2 texCoords;
 uniform mat4 mvp;
 
 out vec3 vPosition;
+out vec2 vTexCoords;
 
 void main()
 {

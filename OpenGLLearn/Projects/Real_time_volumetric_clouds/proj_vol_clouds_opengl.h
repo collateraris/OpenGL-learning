@@ -56,16 +56,109 @@ namespace project_vol_clouds_opengl
 		lesson_1n5::CShader PerlinNoiseCompShader;
 		if (!PerlinNoiseCompShader.Init("Projects/Real_time_volumetric_clouds/shaders/fBmPerlinNoise.cs")) return -1;
 
+		lesson_1n5::CShader WorleyPerlinNoiseCompShader;
+		if (!WorleyPerlinNoiseCompShader.Init("Projects/Real_time_volumetric_clouds/shaders/fBmWorleyNoise.cs")) return -1;
+
+		lesson_1n5::CShader HighFreqNoiseCompShader;
+		if (!HighFreqNoiseCompShader.Init("Projects/Real_time_volumetric_clouds/shaders/highFreqNoise.cs")) return -1;
+
+		lesson_1n5::CShader LowFreqNoiseCompShader;
+		if (!LowFreqNoiseCompShader.Init("Projects/Real_time_volumetric_clouds/shaders/lowFreqNoise.cs")) return -1;
+
 		unsigned int perlinNoiseTexW = 128, perlinNoiseTexH = 128, perlinNoiseTexD = 128;
 		unsigned int perlinNoiseTexture = lesson_3n1::CLoadTexture::GetTexture3D(perlinNoiseTexW, perlinNoiseTexH, perlinNoiseTexD, GL_RGBA8, GL_RGBA, 
 			GL_FLOAT, GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 
 		PerlinNoiseCompShader.Use();
 		PerlinNoiseCompShader.setInt("outTexture", 0);
+		PerlinNoiseCompShader.setVec3f("uResolution", glm::vec3(perlinNoiseTexW, perlinNoiseTexH, perlinNoiseTexD));
 		glActiveTexture(GL_TEXTURE0);
-		glBindImageTexture(0, perlinNoiseTexture, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA8);
+		glBindImageTexture(0, perlinNoiseTexture, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA8);
 		glDispatchCompute(32, 32, 32);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+		unsigned int worleyPerlinNoiseTexW = 128, worleyPerlinNoiseTexH = 128, worleyPerlinNoiseTexD = 128;
+		unsigned int worleyPerlinNoiseTexture128 = lesson_3n1::CLoadTexture::GetTexture3D(worleyPerlinNoiseTexW, worleyPerlinNoiseTexH, worleyPerlinNoiseTexD, GL_RGBA8, GL_RGBA,
+			GL_FLOAT, GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+
+		WorleyPerlinNoiseCompShader.Use();
+		WorleyPerlinNoiseCompShader.setInt("outTexture", 0);
+		WorleyPerlinNoiseCompShader.setVec3f("uResolution", glm::vec3(worleyPerlinNoiseTexW, worleyPerlinNoiseTexH, worleyPerlinNoiseTexD));
+		glActiveTexture(GL_TEXTURE0);
+		glBindImageTexture(0, worleyPerlinNoiseTexture128, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA8);
+		glDispatchCompute(32, 32, 32);
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+		worleyPerlinNoiseTexW = worleyPerlinNoiseTexH = worleyPerlinNoiseTexD = 64;
+		unsigned int worleyPerlinNoiseTexture64 = lesson_3n1::CLoadTexture::GetTexture3D(worleyPerlinNoiseTexW, worleyPerlinNoiseTexH, worleyPerlinNoiseTexD, GL_RGBA8, GL_RGBA,
+			GL_FLOAT, GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+
+		WorleyPerlinNoiseCompShader.Use();
+		WorleyPerlinNoiseCompShader.setInt("outTexture", 0);
+		WorleyPerlinNoiseCompShader.setVec3f("uResolution", glm::vec3(worleyPerlinNoiseTexW, worleyPerlinNoiseTexH, worleyPerlinNoiseTexD));
+		glActiveTexture(GL_TEXTURE0);
+		glBindImageTexture(0, worleyPerlinNoiseTexture64, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA8);
+		glDispatchCompute(16, 16, 16);
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+		worleyPerlinNoiseTexW = worleyPerlinNoiseTexH = worleyPerlinNoiseTexD = 32;
+		unsigned int worleyPerlinNoiseTexture32 = lesson_3n1::CLoadTexture::GetTexture3D(worleyPerlinNoiseTexW, worleyPerlinNoiseTexH, worleyPerlinNoiseTexD, GL_RGBA8, GL_RGBA,
+			GL_FLOAT, GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+
+		WorleyPerlinNoiseCompShader.Use();
+		WorleyPerlinNoiseCompShader.setInt("outTexture", 0);
+		WorleyPerlinNoiseCompShader.setVec3f("uResolution", glm::vec3(worleyPerlinNoiseTexW, worleyPerlinNoiseTexH, worleyPerlinNoiseTexD));
+		glActiveTexture(GL_TEXTURE0);
+		glBindImageTexture(0, worleyPerlinNoiseTexture32, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA8);
+		glDispatchCompute(8, 8, 8);
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+		unsigned int highFreqNoiseTexW = 128, highFreqNoiseTexH = 128, highFreqNoiseTexD = 128;
+		unsigned int highFreqNoiseTexture128 = lesson_3n1::CLoadTexture::GetTexture3D(highFreqNoiseTexW, highFreqNoiseTexH, highFreqNoiseTexD, GL_RGBA8, GL_RGBA,
+			GL_FLOAT, GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+		HighFreqNoiseCompShader.Use();
+		HighFreqNoiseCompShader.setInt("outTexture", 0);
+		HighFreqNoiseCompShader.setInt("perlinNoise128", 1);
+		HighFreqNoiseCompShader.setInt("worleyPerlinNoize128", 2);
+		HighFreqNoiseCompShader.setInt("worleyPerlinNoize64", 3);
+		HighFreqNoiseCompShader.setInt("worleyPerlinNoize32", 4);
+		glActiveTexture(GL_TEXTURE0);
+		glBindImageTexture(0, highFreqNoiseTexture128, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA8);
+		glActiveTexture(GL_TEXTURE1);
+		glBindImageTexture(1, perlinNoiseTexture, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA8);
+		glActiveTexture(GL_TEXTURE2);
+		glBindImageTexture(2, worleyPerlinNoiseTexture128, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA8);
+		glActiveTexture(GL_TEXTURE3);
+		glBindImageTexture(3, worleyPerlinNoiseTexture64, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA8);
+		glActiveTexture(GL_TEXTURE4);
+		glBindImageTexture(4, worleyPerlinNoiseTexture32, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA8);
+		glDispatchCompute(32, 32, 32);
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+		unsigned int lowFreqNoiseTexW = 32, lowFreqNoiseTexH = 32, lowFreqNoiseTexD = 32;
+		unsigned int lowFreqNoiseTexture32 = lesson_3n1::CLoadTexture::GetTexture3D(lowFreqNoiseTexW, lowFreqNoiseTexH, lowFreqNoiseTexD, GL_RGBA8, GL_RGBA,
+			GL_FLOAT, GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+		LowFreqNoiseCompShader.Use();
+		LowFreqNoiseCompShader.setInt("outTexture", 0);
+		LowFreqNoiseCompShader.setInt("perlinNoise128", 1);
+		LowFreqNoiseCompShader.setInt("worleyPerlinNoize128", 2);
+		LowFreqNoiseCompShader.setInt("worleyPerlinNoize64", 3);
+		LowFreqNoiseCompShader.setInt("worleyPerlinNoize32", 4);
+		glActiveTexture(GL_TEXTURE0);
+		glBindImageTexture(0, lowFreqNoiseTexture32, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA8);
+		glActiveTexture(GL_TEXTURE1);
+		glBindImageTexture(1, perlinNoiseTexture, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA8);
+		glActiveTexture(GL_TEXTURE2);
+		glBindImageTexture(2, worleyPerlinNoiseTexture128, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA8);
+		glActiveTexture(GL_TEXTURE3);
+		glBindImageTexture(3, worleyPerlinNoiseTexture64, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA8);
+		glActiveTexture(GL_TEXTURE4);
+		glBindImageTexture(4, worleyPerlinNoiseTexture32, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA8);
+		glDispatchCompute(8, 8, 8);
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+		unsigned int weatherMapTexture = lesson_3n1::CLoadTexture::LoadGammaTexture("content/tex/weatherMap.png");
+
 
 		VolumeShader.Use();
 		VolumeShader.setVec2f("resolution", glm::vec2(g_screenWidth, g_screenHeight));
@@ -93,7 +186,7 @@ namespace project_vol_clouds_opengl
 			VolumeShader.setFloat("time", glfwGetTime());
 			VolumeShader.setFloat("uTime", glfwGetTime());
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_3D, perlinNoiseTexture);
+			glBindTexture(GL_TEXTURE_2D, weatherMapTexture);
 			renderQuad();
 
 			glfwSwapBuffers(window);
