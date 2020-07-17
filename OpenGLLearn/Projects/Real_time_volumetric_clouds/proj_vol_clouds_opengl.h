@@ -65,6 +65,12 @@ namespace project_vol_clouds_opengl
 		lesson_1n5::CShader LowFreqNoiseCompShader;
 		if (!LowFreqNoiseCompShader.Init("Projects/Real_time_volumetric_clouds/shaders/lowFreqNoise.cs")) return -1;
 
+		lesson_1n5::CShader WeatherMapCompShader;
+		if (!WeatherMapCompShader.Init("Projects/Real_time_volumetric_clouds/shaders/weatherMapGen.cs")) return -1;
+
+		lesson_1n5::CShader VolumeCloudsCompShader;
+		if (!VolumeCloudsCompShader.Init("Projects/Real_time_volumetric_clouds/shaders/volumeClouds.cs")) return -1;
+
 		unsigned int perlinNoiseTexW = 128, perlinNoiseTexH = 128, perlinNoiseTexD = 128;
 		unsigned int perlinNoiseTexture = lesson_3n1::CLoadTexture::GetTexture3D(perlinNoiseTexW, perlinNoiseTexH, perlinNoiseTexD, GL_RGBA8, GL_RGBA, 
 			GL_FLOAT, GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
@@ -157,13 +163,29 @@ namespace project_vol_clouds_opengl
 		glDispatchCompute(8, 8, 8);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-		unsigned int weatherMapTexture = lesson_3n1::CLoadTexture::LoadGammaTexture("content/tex/weatherMap.png");
+		unsigned int weatherMapTexture = lesson_3n1::CLoadTexture::LoadGammaTexture("content/tex/weatherMap.png"); //lesson_3n1::CLoadTexture::GetTexture(g_screenWidth, g_screenHeight, GL_RGBA8, GL_RGBA);
+		/*WeatherMapCompShader.Use();
+		WeatherMapCompShader.setInt("outWeatherTex", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindImageTexture(0, weatherMapTexture, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA8);
+		glDispatchCompute(g_screenWidth / 16, g_screenHeight / 16, 1);
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);*/
 
+		unsigned int cloudsTexture = lesson_3n1::CLoadTexture::GetTexture(g_screenWidth, g_screenHeight, GL_RGBA32F, GL_RGBA);
 
 		VolumeShader.Use();
-		VolumeShader.setVec2f("resolution", glm::vec2(g_screenWidth, g_screenHeight));
-		VolumeShader.setVec2f("u_resolution", glm::vec2(g_screenWidth, g_screenHeight));
 		VolumeShader.setInt("uTexture", 0);
+
+		VolumeCloudsCompShader.Use();
+		VolumeCloudsCompShader.setVec3f("uParams.sunDir", glm::vec3(0, 0.1, -1));
+		VolumeCloudsCompShader.setVec3f("uParams.sunColor", glm::vec3(1.));
+		VolumeCloudsCompShader.setFloat("uProperties.density", 3.);
+		VolumeCloudsCompShader.setFloat("uProperties.coverage", 1.);
+		VolumeCloudsCompShader.setFloat("uProperties.attenuationT", 50.);
+		VolumeCloudsCompShader.setFloat("uProperties.attenuationS", 15.);
+		VolumeCloudsCompShader.setFloat("uProperties.sunIntensity", 150.);
+		VolumeCloudsCompShader.setVec2f("uResolution", glm::vec2(g_screenWidth, g_screenHeight));
+
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
@@ -179,14 +201,28 @@ namespace project_vol_clouds_opengl
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			VolumeShader.Use();
-			VolumeShader.setVec3f("eye", lesson_1n9::CCamera::Get().GetCameraFront());
-			VolumeShader.setVec2f("u_mouse", glm::vec2(x_mouse_pos, y_mouse_pos));
-			VolumeShader.setVec3f("uSunPos", glm::vec3(0, 0.1, -1));
-			VolumeShader.setFloat("time", glfwGetTime());
-			VolumeShader.setFloat("uTime", glfwGetTime());
+			VolumeCloudsCompShader.Use();
+			VolumeCloudsCompShader.setInt("outTexture", 0);
+			VolumeCloudsCompShader.setInt("uLowFreqNoiseTex", 1);
+			VolumeCloudsCompShader.setInt("uHighFreqNoiseTex", 2);
+			VolumeCloudsCompShader.setInt("uWeatherMapTex", 3);
+			VolumeCloudsCompShader.setVec3f("uViewDir", lesson_1n9::CCamera::Get().GetCameraFront());
+			VolumeCloudsCompShader.setFloat("uParams.time", glfwGetTime());
+
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, weatherMapTexture);
+			glBindImageTexture(0, cloudsTexture, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+			glActiveTexture(GL_TEXTURE1);
+			glBindImageTexture(1, lowFreqNoiseTexture32, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA8);
+			glActiveTexture(GL_TEXTURE2);
+			glBindImageTexture(2, highFreqNoiseTexture128, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA8);
+			glActiveTexture(GL_TEXTURE3);
+			glBindImageTexture(3, weatherMapTexture, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA8);
+			glDispatchCompute(g_screenWidth / 4, g_screenHeight / 4, 1);
+			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+			VolumeShader.Use();
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, cloudsTexture);
 			renderQuad();
 
 			glfwSwapBuffers(window);
