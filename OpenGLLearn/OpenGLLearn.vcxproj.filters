@@ -236,6 +236,15 @@
     <ClInclude Include="Projects\Real_time_volumetric_clouds\proj_vol_clouds_opengl.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="Lessons\6n2_pbr_lighting\main6n2.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Lessons\6n3_pbr_image_based_lighting\main6n3.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Projects\Sponza\proj_sponza_ogl.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />
