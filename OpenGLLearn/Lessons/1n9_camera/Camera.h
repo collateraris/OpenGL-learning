@@ -28,6 +28,8 @@ namespace lesson_1n9
 
 		const glm::vec3& GetCameraFront();
 
+		const glm::vec3& GetCameraUp();
+
 	private:
 
 		const bool bPRESS = true;

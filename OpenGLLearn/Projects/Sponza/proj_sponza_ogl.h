@@ -21,6 +21,8 @@
 #include "../../Lessons/3n1_assimp/LoadTexture.h"
 #include "../../Lessons/3n1_assimp/AssimpData.h"
 #include "../../Lessons/2n6_multy_lights/LightStates.h"
+#include "../../System/Frustum.h"
+#include "../../System/Box.h"
 
 namespace proj_sponza_ogl
 {
@@ -76,8 +78,12 @@ namespace proj_sponza_ogl
 
 		GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
+		float nearDist = 0.1f;
+		float farDist = 100.f;
 		glm::mat4 projection;
-		projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, nearDist, farDist);
+
+		System::CFrustum frustum;
 
 		lightingShader.Use();
 		lightingShader.setInt("uIrradianceMap", 4);
@@ -229,7 +235,7 @@ namespace proj_sponza_ogl
 		while (!glfwWindowShouldClose(window))
 		{
 			deltaTime = GetDeltaTime();
-			//std::cout << "FPS " << 1.f / deltaTime << std::endl;
+			std::cout << "FPS " << 1.f / deltaTime << std::endl;
 			lesson_1n9::CCamera::Get().Movement(deltaTime);
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -266,14 +272,20 @@ namespace proj_sponza_ogl
 			model = glm::translate(model, glm::vec3(0.));
 			lightingShader.setMatrix4fv("uModel", model);
 			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-			lesson_3n1::CDrawFileMeshData::Draw(lightingShader, meshObj);
-
-			//envCubeMapShader.Use();
+			frustum.calculateFrustum(lesson_1n9::CCamera::Get().GetView(), projection);
+			for (const lesson_3n1::SMesh& mesh : meshObj.meshes)
+			{
+				if (frustum.boxInFrustum(mesh.GetMinBB(), mesh.GetMaxBB()))
+				{
+					lesson_3n1::CDrawFileMeshData::MeshDraw(lightingShader, mesh);
+				}
+			}
+			envCubeMapShader.Use();
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 			glm::mat4 proj_rot_view = projection * glm::mat4(glm::mat3(view));
 			envCubeMapShader.setMatrix4fv("uProjectionRotView", proj_rot_view);
-			//renderCube();
+			renderCube();
 
 			glfwSwapBuffers(window);
 			glfwPollEvents();

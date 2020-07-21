@@ -105,3 +105,8 @@ const glm::vec3& CCamera::GetCameraFront()
 {
     return this->mCameraFront;
 }
+
+const glm::vec3& CCamera::GetCameraUp()
+{
+    return this->mCameraUp;
+}

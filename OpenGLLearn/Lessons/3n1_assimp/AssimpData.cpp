@@ -22,6 +22,24 @@ SMesh::SMesh(std::vector<SVertex>& vertices, std::vector<unsigned int>& indices,
     std::copy(indices.begin(), indices.end(), mIndices.begin());
     mTextures.resize(textures.size());
     std::copy(textures.begin(), textures.end(), mTextures.begin());
+
+    BoundingBox();
+}
+
+void SMesh::BoundingBox()
+{
+    for (const auto& v : mVertices)
+        mBoundingBox.extendBy(v.Position);
+}
+
+const glm::vec3& SMesh::GetMinBB() const
+{
+    return mBoundingBox.GetMin();
+}
+
+const glm::vec3& SMesh::GetMaxBB() const
+{
+    return mBoundingBox.GetMax();
 }
 
 void CDrawFileMeshData::MeshInit(SMesh& mesh)

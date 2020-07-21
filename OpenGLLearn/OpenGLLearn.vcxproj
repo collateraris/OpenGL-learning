@@ -153,6 +153,9 @@
     <ClCompile Include="Lessons\3n1_assimp\AssimpData.cpp" />
     <ClCompile Include="Lessons\3n1_assimp\LoadTexture.cpp" />
     <ClCompile Include="OpenGLLearn.cpp" />
+    <ClCompile Include="System\Box.cpp" />
+    <ClCompile Include="System\Frustum.cpp" />
+    <ClCompile Include="System\Plane.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lessons\1n3\main1n3.h" />
@@ -200,6 +203,9 @@
     <ClInclude Include="OpenCL\1n2_image_sobel_filter\opencl_main1n2.h" />
     <ClInclude Include="Projects\Real_time_volumetric_clouds\proj_vol_clouds_opengl.h" />
     <ClInclude Include="Projects\Sponza\proj_sponza_ogl.h" />
+    <ClInclude Include="System\Box.h" />
+    <ClInclude Include="System\Frustum.h" />
+    <ClInclude Include="System\Plane.h" />
     <ClInclude Include="ThirdParty\include\FreeImage\FreeImage.h" />
     <ClInclude Include="ThirdParty\include\glm\common.hpp" />
     <ClInclude Include="ThirdParty\include\glm\exponential.hpp" />
