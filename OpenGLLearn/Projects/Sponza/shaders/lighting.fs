@@ -2,27 +2,18 @@
 precision mediump float;
 const float PI = 3.1415926535897932384626; 
 
-struct PointLight {    
-    vec3 position;
-    
-    float constant;
-    float linear;
-    float quadratic;  
 
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-}; 
-  
 in vec3 vNormal;
 in vec3 vWorldPos;
 in vec2 vTexCoords;
+in vec4 vFragPosLightSpace;
 
 uniform vec3 uViewPos;
 
-#define NR_POINT_LIGHTS 4  
-uniform vec3 lightPositions[NR_POINT_LIGHTS];
-uniform vec3 lightColors[NR_POINT_LIGHTS];
+#define NR_POINT_LIGHTS 1  
+uniform vec3 uLightPosition;
+uniform vec3 uLightColor;
+uniform vec3 uLightDir;
 
 uniform sampler2D uAlbedoMap;
 uniform sampler2D uMetallicMap;
@@ -33,6 +24,7 @@ uniform sampler2D uNormalMap;
 uniform samplerCube uIrradianceMap;
 uniform samplerCube uPrefilterMap;
 uniform sampler2D   uBrdfLUT;
+uniform sampler2D   uShadowMap;
 
 vec3 fresnelSchlick(float cosTheta, in vec3 F0);
 
@@ -46,14 +38,27 @@ float GeometrySmith(in vec3 normal, in vec3 viewDir, in vec3 lightDir, float rou
 
 vec3 GetNormalFromMap(in sampler2D normalMap);
 
+float ShadowCalculation(in vec4 fragPosLightSpace);
+
 void main()
 {
+    float shadow = ShadowCalculation(vFragPosLightSpace);
+    vec3 normal = GetNormalFromMap(uNormalMap);
+    vec3 irradiance = texture(uIrradianceMap, normal).rgb;
+    vec3 color = irradiance * 0.15;
+    if (shadow >= 0.99)
+    {
+        color *= color;
+        color = color / (color + vec3(1.));
+        color = pow(color, vec3(1./ 2.2));
+        gl_FragColor = vec4(color, 1.0);
+        return;
+    }
     vec3 albedo = pow(texture(uAlbedoMap, vTexCoords).rgb, vec3(2.2));
     float metallic = texture(uMetallicMap, vTexCoords).r;
     float roughness = texture(uRoughnessMap, vTexCoords).r;
     float ao = texture(uAoMap, vTexCoords).r;
 
-    vec3 normal = GetNormalFromMap(uNormalMap);
     vec3 viewDir = normalize(uViewPos - vWorldPos);
 
     float invPI = 1. / PI;
@@ -64,26 +69,25 @@ void main()
     vec3 Lo = vec3(0.);
     for (int i = 0; i < NR_POINT_LIGHTS; ++i)
     {
-        vec3 lightDir = normalize(lightPositions[i] - vWorldPos);
-        vec3 halfwayDir = normalize(viewDir + lightDir);
+        vec3 halfwayDir = normalize(viewDir + uLightDir);
 
-        float distance = length(lightPositions[i] - vWorldPos);
+        float distance = length(uLightPosition - vWorldPos);
         float attenuation = 1. / (distance * distance);
-        vec3 radiance = lightColors[i] * attenuation;
+        vec3 radiance = uLightColor * attenuation;
 
         vec3 F = fresnelSchlick(max(dot(halfwayDir, viewDir), 0.), F0);
         float NDF = DistributionGGX(normal, halfwayDir, roughness);
-        float G = GeometrySmith(normal, viewDir, lightDir, roughness);
+        float G = GeometrySmith(normal, viewDir, uLightDir, roughness);
 
         vec3 numeratorBRDF = NDF * G * F;
-        float denominatorBRDF = 4. * max(dot(normal, viewDir), 0.) * max(dot(normal, lightDir), 0.) + 0.001;
+        float denominatorBRDF = 4. * max(dot(normal, viewDir), 0.) * max(dot(normal, uLightDir), 0.) + 0.001;
         vec3 specular = numeratorBRDF / denominatorBRDF;
 
         vec3 kS = F;
         vec3 kD = 1. - kS;
         kD *= 1. - metallic;
 
-        float NdotL = max(dot(normal, lightDir), 0.);
+        float NdotL = max(dot(normal, uLightDir), 0.);
         Lo += (kD * albedo * invPI + specular) * radiance * NdotL;
     }
 
@@ -93,7 +97,6 @@ void main()
     vec3 kD = 1. - kS;
     kD *= 1. - metallic;
 
-    vec3 irradiance = texture(uIrradianceMap, normal).rgb;
     vec3 diffuse = irradiance * albedo;
 
     vec3 R = reflect(-viewDir, normal);
@@ -104,7 +107,7 @@ void main()
 
     vec3 ambient = (kD * diffuse + specular) * ao;
     //ambient = vec3(0.3) * albedo * ao;
-    vec3 color = ambient + Lo;
+    color = ambient + Lo;
     color = color / (color + vec3(1.));
     color = pow(color, vec3(1./ 2.2));
 
@@ -179,5 +182,18 @@ vec3 GetNormalFromMap(in sampler2D normalMap)
     mat3 TBN = mat3(T, B, N);
 
     return normalize(TBN * tangentNormal);
+}
+
+float ShadowCalculation(in vec4 fragPosLightSpace)
+{
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5;
+
+    float closestDepth = texture(uShadowMap, projCoords.xy).r;
+    float currentDepth = projCoords.z;
+
+    float shadow = currentDepth > closestDepth  ? 1.0f : 0.0f;
+    return shadow;
 }
 

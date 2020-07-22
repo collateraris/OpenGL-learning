@@ -72,6 +72,12 @@ namespace proj_sponza_ogl
 
 		lesson_1n5::CShader integrateBRDFMapShader;
 		if (!integrateBRDFMapShader.Init("Projects/Sponza/shaders/integrateBRDFMap.vs", "Projects/Sponza/shaders/integrateBRDFMap.fs")) return -1;
+
+		lesson_1n5::CShader depthBufferShader;
+		if (!depthBufferShader.Init("Projects/Sponza/shaders/depthBuffer.vs", "Projects/Sponza/shaders/depthBuffer.fs")) return -1;
+
+		lesson_1n5::CShader showDepthBufferShader;
+		if (!showDepthBufferShader.Init("Projects/Sponza/shaders/showDepthBuffer.vs", "Projects/Sponza/shaders/showDepthBuffer.fs")) return -1;
 		
 		lesson_3n1::SFileMeshData meshObj;
 		lesson_3n1::CLoadAssimpFile::Load("content/model/sponza/sponza.obj", meshObj);
@@ -89,20 +95,7 @@ namespace proj_sponza_ogl
 		lightingShader.setInt("uIrradianceMap", 4);
 		lightingShader.setInt("uPrefilterMap", 5);
 		lightingShader.setInt("uBrdfLUT", 6);
-
-		std::vector<glm::vec3> lightPositions = {
-			glm::vec3(-10.0f,  10.0f, 10.0f),
-			glm::vec3( 10.0f,  10.0f, 10.0f),
-			glm::vec3(-10.0f, -10.0f, 10.0f),
-			glm::vec3( 10.0f, -10.0f, 10.0f),
-		};
-
-		std::vector<glm::vec3> lightColors = {
-			glm::vec3(300.0f, 300.0f, 300.0f),
-			glm::vec3(300.0f, 300.0f, 300.0f),
-			glm::vec3(300.0f, 300.0f, 300.0f),
-			glm::vec3(300.0f, 300.0f, 300.0f)
-		};
+		lightingShader.setInt("uShadowMap", 7);
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
@@ -229,6 +222,29 @@ namespace proj_sponza_ogl
 		renderQuad();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+		unsigned int depthMapFBO;
+		glGenFramebuffers(1, &depthMapFBO);
+
+		const unsigned int shadowWidth = 1024, shadowHeight = 1024;
+		unsigned int depthMap = lesson_3n1::CLoadTexture::GetDepthMap(shadowWidth, shadowHeight);
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		float lightNearPlane = 0.1f, lightFarPlane = 90.5f;
+		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, lightNearPlane, lightFarPlane);
+
+		glm::vec3 lightPos = glm::vec3(-18.09f, 21.17f, -3.85f);
+		glm::vec3 lightDir = glm::vec3(0.67f, -0.73f, 0.13f);
+		glm::vec3 lightColor = glm::vec3(300.0f, 300.0f, 300.0f);
+
+		lesson_1n9::CCamera::Get().SetCameraPosition(lightPos);
+		lesson_1n9::CCamera::Get().SetCameraFront(lightDir);
+		showDepthBufferShader.Use();
+		showDepthBufferShader.setInt("uDepthMap", 0);
+
 		float deltaTime;
 		lesson_3n1::CDrawFileMeshData::Init(meshObj);
 		glViewport(0, 0, g_screenWidth, g_screenHeight);
@@ -238,40 +254,64 @@ namespace proj_sponza_ogl
 			std::cout << "FPS " << 1.f / deltaTime << std::endl;
 			lesson_1n9::CCamera::Get().Movement(deltaTime);
 
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glm::mat4 model;
+			depthBufferShader.Use();
+			glm::mat4 lightView = glm::lookAt(lightPos,
+				lightDir,
+				glm::vec3(0.0f, 1.0f, 0.0f));
+			glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, glm::vec3(0.));
+			glm::mat4 lightSpaceModelMatrix = lightSpaceMatrix * model;
+			depthBufferShader.setMatrix4fv("uLightSpaceModelMatrix", lightSpaceModelMatrix);
+			frustum.calculateFrustum(lightView, lightProjection);
+			glViewport(0, 0, shadowWidth, shadowHeight);
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
+			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+			glClear(GL_DEPTH_BUFFER_BIT);
+			for (const lesson_3n1::SMesh& mesh : meshObj.meshes)
+			{
+				if (frustum.boxInFrustum(mesh.GetMinBB(), mesh.GetMaxBB()))
+				{
+					lesson_3n1::CDrawFileMeshData::MeshDraw(depthBufferShader, mesh);
+				}
+			}
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+			glViewport(0, 0, g_screenWidth, g_screenHeight);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			
+			glCullFace(GL_BACK);
 			lightingShader.Use();
 			const glm::mat4& view = lesson_1n9::CCamera::Get().GetView();
 			glm::mat4 proj_view = projection * view;
 			lightingShader.setMatrix4fv("uProjectionView", proj_view);
 			lightingShader.setVec3f("uViewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
-			glm::mat4 model;
 
-			for (unsigned int i = 0; i < lightPositions.size(); ++i)
-			{
-				glm::vec3 newPos = lightPositions[i] + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
-				newPos = lightPositions[i];
-				std::string uniformString = "lightPositions[" + std::to_string(i) + "]";
-				lightingShader.setVec3f(uniformString.c_str(), newPos);
-				uniformString = "lightColors[" + std::to_string(i) + "]";
-				lightingShader.setVec3f(uniformString.c_str(), lightColors[i]);
+			lightingShader.setVec3f("lightPosition", lightPos);
+			lightingShader.setVec3f("lightColor", lightColor);
+			lightingShader.setVec3f("lightDir", lightDir);
 
-				model = glm::mat4(1.0f);
-				model = glm::translate(model, newPos);
-				model = glm::scale(model, glm::vec3(0.5f));
-				lightingShader.setMatrix4fv("uModel", model);
-				renderSphere();
-			}
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, lightPos);
+			model = glm::scale(model, glm::vec3(0.5f));
+			lightingShader.setMatrix4fv("uModel", model);
+			//renderSphere();
+
 			glActiveTexture(GL_TEXTURE4);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
 			glActiveTexture(GL_TEXTURE5);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
 			glActiveTexture(GL_TEXTURE6);
 			glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+			glActiveTexture(GL_TEXTURE7);
+			glBindTexture(GL_TEXTURE_2D, depthMap);
 			model = glm::mat4(1.0f);
 			model = glm::translate(model, glm::vec3(0.));
 			lightingShader.setMatrix4fv("uModel", model);
-			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+			lightingShader.setMatrix4fv("uLightSpaceMatrix", lightSpaceModelMatrix);
+			auto& camera = lesson_1n9::CCamera::Get();
 			frustum.calculateFrustum(lesson_1n9::CCamera::Get().GetView(), projection);
 			for (const lesson_3n1::SMesh& mesh : meshObj.meshes)
 			{
@@ -280,13 +320,20 @@ namespace proj_sponza_ogl
 					lesson_3n1::CDrawFileMeshData::MeshDraw(lightingShader, mesh);
 				}
 			}
+
+			glDisable(GL_CULL_FACE);
 			envCubeMapShader.Use();
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 			glm::mat4 proj_rot_view = projection * glm::mat4(glm::mat3(view));
 			envCubeMapShader.setMatrix4fv("uProjectionRotView", proj_rot_view);
 			renderCube();
-
+			
+			showDepthBufferShader.Use();
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, depthMap);
+			//renderQuad();
+	
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 		}

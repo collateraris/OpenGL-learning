@@ -26,6 +26,8 @@ namespace lesson_1n9
 
 		void SetCameraPosition(const glm::vec3& pos);
 
+		void SetCameraFront(const glm::vec3& dir);
+
 		const glm::vec3& GetCameraFront();
 
 		const glm::vec3& GetCameraUp();
