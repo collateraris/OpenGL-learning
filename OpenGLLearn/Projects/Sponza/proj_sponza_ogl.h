@@ -76,8 +76,8 @@ namespace proj_sponza_ogl
 		lesson_1n5::CShader depthBufferShader;
 		if (!depthBufferShader.Init("Projects/Sponza/shaders/depthBuffer.vs", "Projects/Sponza/shaders/depthBuffer.fs")) return -1;
 
-		lesson_1n5::CShader showDepthBufferShader;
-		if (!showDepthBufferShader.Init("Projects/Sponza/shaders/showDepthBuffer.vs", "Projects/Sponza/shaders/showDepthBuffer.fs")) return -1;
+		lesson_1n5::CShader atmosphereShader;
+		if (!atmosphereShader.Init("Projects/Sponza/shaders/atmosphere.vs", "Projects/Sponza/shaders/atmosphere.fs")) return -1;
 		
 		lesson_3n1::SFileMeshData meshObj;
 		lesson_3n1::CLoadAssimpFile::Load("content/model/sponza/sponza.obj", meshObj);
@@ -242,8 +242,10 @@ namespace proj_sponza_ogl
 
 		lesson_1n9::CCamera::Get().SetCameraPosition(lightPos);
 		lesson_1n9::CCamera::Get().SetCameraFront(lightDir);
-		showDepthBufferShader.Use();
-		showDepthBufferShader.setInt("uDepthMap", 0);
+
+		atmosphereShader.Use();
+		atmosphereShader.setVec3f("uSunPos", lightPos);
+		atmosphereShader.setVec2f("uResolution", glm::vec2(g_screenWidth, g_screenHeight));
 
 		float deltaTime;
 		lesson_3n1::CDrawFileMeshData::Init(meshObj);
@@ -321,19 +323,6 @@ namespace proj_sponza_ogl
 				}
 			}
 
-			glDisable(GL_CULL_FACE);
-			envCubeMapShader.Use();
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
-			glm::mat4 proj_rot_view = projection * glm::mat4(glm::mat3(view));
-			envCubeMapShader.setMatrix4fv("uProjectionRotView", proj_rot_view);
-			renderCube();
-			
-			showDepthBufferShader.Use();
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, depthMap);
-			//renderQuad();
-	
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 		}
