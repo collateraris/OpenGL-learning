@@ -105,6 +105,7 @@ namespace vulkan_1_triangle
         std::vector<VkImageView> swapChainImageViews;
         VkFormat swapChainImageFormat;
         VkExtent2D swapChainExtent;
+        VkPipelineLayout pipelineLayout;
     };
 
 }
