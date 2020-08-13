@@ -64,9 +64,14 @@ namespace vulkan_1_triangle
 
         QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
+        void createLogicalDevice();
+
         GLFWwindow* mWindow = nullptr;
         VkInstance instance;
         VkDebugUtilsMessengerEXT debugMessenger;
+        VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+        VkDevice device;
+        VkQueue graphicsQueue;
     };
 
 }
