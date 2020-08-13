@@ -26,6 +26,12 @@ namespace vulkan_1_triangle
         }
     };
 
+    struct SwapChainSupportDetails {
+        VkSurfaceCapabilitiesKHR capabilities;
+        std::vector<VkSurfaceFormatKHR> formats = {};
+        std::vector<VkPresentModeKHR> presentModes = {};
+    };
+
     class HelloTriangleApplication {
     public:
         void run() {
@@ -62,13 +68,22 @@ namespace vulkan_1_triangle
 
         void pickPhysicalDevice();
 
-        bool isDeviceSuitable(VkPhysicalDevice& device);
+        bool isDeviceSuitable(VkPhysicalDevice device);
 
         QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
         void createLogicalDevice();
 
         void createSurface();
+
+        bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+
+        SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+
+        VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+        VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+        VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+        void createSwapChain();
 
         GLFWwindow* mWindow = nullptr;
         VkInstance instance;
@@ -79,6 +94,11 @@ namespace vulkan_1_triangle
 
         VkSurfaceKHR surface;
         VkQueue presentQueue;
+
+        VkSwapchainKHR swapChain;
+        std::vector<VkImage> swapChainImages;
+        VkFormat swapChainImageFormat;
+        VkExtent2D swapChainExtent;
     };
 
 }
