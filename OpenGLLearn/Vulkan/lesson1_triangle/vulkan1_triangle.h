@@ -18,9 +18,11 @@ namespace vulkan_1_triangle
 
     struct QueueFamilyIndices {
         std::optional<uint32_t> graphicsFamily;
+        std::optional<uint32_t> presentFamily;
 
         bool isComplete() {
-            return graphicsFamily.has_value();
+            return graphicsFamily.has_value()
+                && presentFamily.has_value();
         }
     };
 
@@ -66,12 +68,17 @@ namespace vulkan_1_triangle
 
         void createLogicalDevice();
 
+        void createSurface();
+
         GLFWwindow* mWindow = nullptr;
         VkInstance instance;
         VkDebugUtilsMessengerEXT debugMessenger;
         VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
         VkDevice device;
         VkQueue graphicsQueue;
+
+        VkSurfaceKHR surface;
+        VkQueue presentQueue;
     };
 
 }
