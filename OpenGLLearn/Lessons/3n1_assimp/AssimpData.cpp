@@ -5,6 +5,8 @@
 
 #include <GLFW\glfw3.h>
 
+#include <assimp/pbrmaterial.h>
+
 #include <algorithm>
 #include <iostream>
 
@@ -20,6 +22,24 @@ SMesh::SMesh(std::vector<SVertex>& vertices, std::vector<unsigned int>& indices,
     std::copy(indices.begin(), indices.end(), mIndices.begin());
     mTextures.resize(textures.size());
     std::copy(textures.begin(), textures.end(), mTextures.begin());
+
+    BoundingBox();
+}
+
+void SMesh::BoundingBox()
+{
+    for (const auto& v : mVertices)
+        mBoundingBox.extendBy(v.Position);
+}
+
+const glm::vec3& SMesh::GetMinBB() const
+{
+    return mBoundingBox.GetMin();
+}
+
+const glm::vec3& SMesh::GetMaxBB() const
+{
+    return mBoundingBox.GetMax();
 }
 
 void CDrawFileMeshData::MeshInit(SMesh& mesh)
@@ -63,6 +83,7 @@ void CDrawFileMeshData::BindTextures(lesson_1n5::CShader& shader, const SMesh& m
     unsigned int diffuseNr = 0;
     unsigned int specularNr = 0;
     unsigned int normalNr = 0;
+    unsigned int ambientNr = 0;
 
     std::size_t texturesSize = mesh.GetTextures().size();
     const std::vector<STexture>& textures = mesh.GetTextures();
@@ -85,8 +106,11 @@ void CDrawFileMeshData::BindTextures(lesson_1n5::CShader& shader, const SMesh& m
         case lesson_3n1::NORMAL:
             number = std::to_string(normalNr++);
             break;
-        default:
+        case lesson_3n1::AMBIENT:
+            number = std::to_string(ambientNr++);
             break;
+        default:
+            continue;
         }
 
         shader.setInt(("material." + name + number).c_str(), i);
@@ -224,20 +248,18 @@ void CLoadAssimpFile::ProcessMesh(aiMesh* mesh, const aiScene* scene, SLoadAssim
     if (mesh->mMaterialIndex >= 0)
     {
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-        std::vector<STexture> diffuseMaps = {};
         CLoadAssimpFile::LoadMaterialTextures(material,
-            aiTextureType_DIFFUSE, diffuseMaps, data);
-        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+            aiTextureType_DIFFUSE, textures, data);
 
-        std::vector<STexture> specularMaps = {};
         CLoadAssimpFile::LoadMaterialTextures(material,
-            aiTextureType_SPECULAR, specularMaps, data);
-        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+            aiTextureType_SPECULAR, textures, data);
 
-        std::vector<STexture> normalMaps = {};
         CLoadAssimpFile::LoadMaterialTextures(material,
-            aiTextureType_HEIGHT, normalMaps, data);
-        textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+            aiTextureType_HEIGHT, textures, data);
+        CLoadAssimpFile::LoadMaterialTextures(material,
+            aiTextureType_NORMALS , textures, data);
+
+        CLoadAssimpFile::LoadMaterialTextures(material, aiTextureType_AMBIENT, textures, data);
     }
 
     SMesh contentMesh(vertices, indices, textures);
@@ -268,11 +290,16 @@ void CLoadAssimpFile::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, 
                 texture.SetType(ETextureType::SPECULAR);
                 break;
             case aiTextureType_HEIGHT:
+            case aiTextureType_NORMALS:
                 texture.id = CLoadTexture::TextureFromFile(str.C_Str(), data.directory);
                 texture.SetType(ETextureType::NORMAL);
                 break;
-            default:
+            case aiTextureType_AMBIENT:
+                texture.id = CLoadTexture::TextureFromFile(str.C_Str(), data.directory);
+                texture.SetType(ETextureType::AMBIENT);
                 break;
+            default:
+                continue;
             }
 
             textures.push_back(texture);

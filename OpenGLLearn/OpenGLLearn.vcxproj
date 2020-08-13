@@ -93,6 +93,8 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,7 +155,9 @@
     <ClCompile Include="Lessons\3n1_assimp\AssimpData.cpp" />
     <ClCompile Include="Lessons\3n1_assimp\LoadTexture.cpp" />
     <ClCompile Include="OpenGLLearn.cpp" />
-    <ClCompile Include="Vulkan\lesson1_triangle\vulkan1_triangle.cpp" />
+    <ClCompile Include="System\Box.cpp" />
+    <ClCompile Include="System\Frustum.cpp" />
+    <ClCompile Include="System\Plane.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lessons\1n3\main1n3.h" />
@@ -195,8 +199,15 @@
     <ClInclude Include="Lessons\5n7_hdr\main5n7.h" />
     <ClInclude Include="Lessons\5n8_bloom\main5n8.h" />
     <ClInclude Include="Lessons\5n9_deffered_shading\main5n9.h" />
+    <ClInclude Include="Lessons\6n2_pbr_lighting\main6n2.h" />
+    <ClInclude Include="Lessons\6n3_pbr_image_based_lighting\main6n3.h" />
     <ClInclude Include="OpenCL\1n1_init\opencl_main1n1.h" />
     <ClInclude Include="OpenCL\1n2_image_sobel_filter\opencl_main1n2.h" />
+    <ClInclude Include="Projects\Real_time_volumetric_clouds\proj_vol_clouds_opengl.h" />
+    <ClInclude Include="Projects\Sponza\proj_sponza_ogl.h" />
+    <ClInclude Include="System\Box.h" />
+    <ClInclude Include="System\Frustum.h" />
+    <ClInclude Include="System\Plane.h" />
     <ClInclude Include="ThirdParty\include\FreeImage\FreeImage.h" />
     <ClInclude Include="ThirdParty\include\glm\common.hpp" />
     <ClInclude Include="ThirdParty\include\glm\exponential.hpp" />
