@@ -8,10 +8,13 @@
 #include <iostream>
 #include <stdexcept>
 #include <cstdlib>
-
+#include <vector>
+#include <cstring>
 
 namespace vulkan_1_triangle
 {
+    class HelloTriangleApplication;
+
     class HelloTriangleApplication {
     public:
         void run() {
@@ -30,23 +33,25 @@ namespace vulkan_1_triangle
 
         void cleanup();
 
+        void createInstance();
+
+        bool checkValidationLayerSupport();
+
+        std::vector<const char*> getRequiredExtensions();
+
+        static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+            VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+            VkDebugUtilsMessageTypeFlagsEXT messageType,
+            const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+            void* pUserData);
+
+        void setupDebugMessenger();
+
+        void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+
         GLFWwindow* mWindow = nullptr;
+        VkInstance instance;
+        VkDebugUtilsMessengerEXT debugMessenger;
     };
 
-	int lesson_main();
-
-    int lesson_main()
-    {
-        HelloTriangleApplication app;
-
-        try {
-            app.run();
-        }
-        catch (const std::exception& e) {
-            std::cerr << e.what() << std::endl;
-            return EXIT_FAILURE;
-        }
-
-        return EXIT_SUCCESS;
-    }
 }

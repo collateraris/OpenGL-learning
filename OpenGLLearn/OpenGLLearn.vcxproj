@@ -158,6 +158,7 @@
     <ClCompile Include="System\Box.cpp" />
     <ClCompile Include="System\Frustum.cpp" />
     <ClCompile Include="System\Plane.cpp" />
+    <ClCompile Include="Vulkan\lesson1_triangle\vulkan1_triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lessons\1n3\main1n3.h" />
