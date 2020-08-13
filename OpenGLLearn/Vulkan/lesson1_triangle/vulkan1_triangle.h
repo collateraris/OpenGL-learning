@@ -10,10 +10,19 @@
 #include <cstdlib>
 #include <vector>
 #include <cstring>
+#include <optional>
 
 namespace vulkan_1_triangle
 {
     class HelloTriangleApplication;
+
+    struct QueueFamilyIndices {
+        std::optional<uint32_t> graphicsFamily;
+
+        bool isComplete() {
+            return graphicsFamily.has_value();
+        }
+    };
 
     class HelloTriangleApplication {
     public:
@@ -48,6 +57,12 @@ namespace vulkan_1_triangle
         void setupDebugMessenger();
 
         void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+
+        void pickPhysicalDevice();
+
+        bool isDeviceSuitable(VkPhysicalDevice& device);
+
+        QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
         GLFWwindow* mWindow = nullptr;
         VkInstance instance;
