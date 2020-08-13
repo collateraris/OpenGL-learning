@@ -87,6 +87,9 @@ namespace vulkan_1_triangle
 
         void createImageViews();
 
+        void createGraphicsPipeline();
+        VkShaderModule createShaderModule(const std::vector<char>& code);
+
         GLFWwindow* mWindow = nullptr;
         VkInstance instance;
         VkDebugUtilsMessengerEXT debugMessenger;
