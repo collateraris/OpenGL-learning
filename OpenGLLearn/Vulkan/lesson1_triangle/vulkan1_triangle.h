@@ -85,6 +85,8 @@ namespace vulkan_1_triangle
         VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
         void createSwapChain();
 
+        void createImageViews();
+
         GLFWwindow* mWindow = nullptr;
         VkInstance instance;
         VkDebugUtilsMessengerEXT debugMessenger;
@@ -97,6 +99,7 @@ namespace vulkan_1_triangle
 
         VkSwapchainKHR swapChain;
         std::vector<VkImage> swapChainImages;
+        std::vector<VkImageView> swapChainImageViews;
         VkFormat swapChainImageFormat;
         VkExtent2D swapChainExtent;
     };
