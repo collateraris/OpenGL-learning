@@ -91,6 +91,8 @@ namespace vulkan_1_triangle
         VkShaderModule createShaderModule(const std::vector<char>& code);
         void createRenderPass();
         void createFramebuffers();
+        void createCommandPool();
+        void createCommandBuffers();
 
         GLFWwindow* mWindow = nullptr;
         VkInstance instance;
@@ -106,10 +108,13 @@ namespace vulkan_1_triangle
         std::vector<VkImage> swapChainImages;
         std::vector<VkImageView> swapChainImageViews;
         std::vector<VkFramebuffer> swapChainFramebuffers;
+        std::vector<VkCommandBuffer> commandBuffers;
         VkFormat swapChainImageFormat;
         VkExtent2D swapChainExtent;
         VkRenderPass renderPass;
         VkPipelineLayout pipelineLayout;
+        VkPipeline graphicsPipeline;
+        VkCommandPool commandPool;
     };
 
 }
