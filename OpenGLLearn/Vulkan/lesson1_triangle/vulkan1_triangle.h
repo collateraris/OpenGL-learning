@@ -34,6 +34,9 @@ namespace vulkan_1_triangle
 
     class HelloTriangleApplication {
     public:
+
+        static int main();
+
         void run() {
             initWindow();
             initVulkan();
@@ -97,6 +100,11 @@ namespace vulkan_1_triangle
         void drawFrame();
         void createSyncObjects();
 
+        void recreateSwapChain();
+        void cleanupSwapChain();
+
+        static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+
         GLFWwindow* mWindow = nullptr;
         VkInstance instance;
         VkDebugUtilsMessengerEXT debugMessenger;
@@ -124,6 +132,8 @@ namespace vulkan_1_triangle
         std::vector<VkFence> inFlightFences;
         std::vector<VkFence> imagesInFlight;
         size_t currentFrame = 0;
+
+        bool framebufferResized = false;
     };
 
 }
