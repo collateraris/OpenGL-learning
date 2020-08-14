@@ -95,7 +95,7 @@ namespace vulkan_1_triangle
         void createCommandBuffers();
 
         void drawFrame();
-        void createSemaphores();
+        void createSyncObjects();
 
         GLFWwindow* mWindow = nullptr;
         VkInstance instance;
@@ -119,8 +119,11 @@ namespace vulkan_1_triangle
         VkPipeline graphicsPipeline;
         VkCommandPool commandPool;
 
-        VkSemaphore imageAvailableSemaphore;
-        VkSemaphore renderFinishedSemaphore;
+        std::vector<VkSemaphore> imageAvailableSemaphores;
+        std::vector<VkSemaphore> renderFinishedSemaphores;
+        std::vector<VkFence> inFlightFences;
+        std::vector<VkFence> imagesInFlight;
+        size_t currentFrame = 0;
     };
 
 }
