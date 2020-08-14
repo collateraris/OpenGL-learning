@@ -94,6 +94,9 @@ namespace vulkan_1_triangle
         void createCommandPool();
         void createCommandBuffers();
 
+        void drawFrame();
+        void createSemaphores();
+
         GLFWwindow* mWindow = nullptr;
         VkInstance instance;
         VkDebugUtilsMessengerEXT debugMessenger;
@@ -115,6 +118,9 @@ namespace vulkan_1_triangle
         VkPipelineLayout pipelineLayout;
         VkPipeline graphicsPipeline;
         VkCommandPool commandPool;
+
+        VkSemaphore imageAvailableSemaphore;
+        VkSemaphore renderFinishedSemaphore;
     };
 
 }
