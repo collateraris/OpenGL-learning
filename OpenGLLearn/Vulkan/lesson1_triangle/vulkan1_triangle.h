@@ -89,6 +89,7 @@ namespace vulkan_1_triangle
 
         void createGraphicsPipeline();
         VkShaderModule createShaderModule(const std::vector<char>& code);
+        void createRenderPass();
 
         GLFWwindow* mWindow = nullptr;
         VkInstance instance;
@@ -105,6 +106,7 @@ namespace vulkan_1_triangle
         std::vector<VkImageView> swapChainImageViews;
         VkFormat swapChainImageFormat;
         VkExtent2D swapChainExtent;
+        VkRenderPass renderPass;
         VkPipelineLayout pipelineLayout;
     };
 
