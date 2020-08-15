@@ -139,6 +139,7 @@ namespace vulkan_1_triangle
         static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
         void createVertexBuffer();
+        void createIndexBuffer();
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
         void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
@@ -176,6 +177,8 @@ namespace vulkan_1_triangle
 
         VkBuffer vertexBuffer;
         VkDeviceMemory vertexBufferMemory;
+        VkBuffer indexBuffer;
+        VkDeviceMemory indexBufferMemory;
     };
 
 }
