@@ -5,7 +5,9 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
 #include <stdexcept>
@@ -14,6 +16,7 @@
 #include <cstring>
 #include <optional>
 #include <array>
+#include <chrono>
 
 namespace vulkan_1_triangle
 {
@@ -63,6 +66,12 @@ namespace vulkan_1_triangle
 
             return attributeDescriptions;
         }
+    };
+
+    struct UniformBufferObject {
+        alignas(16) glm::mat4 model;
+        alignas(16) glm::mat4 view;
+        alignas(16) glm::mat4 proj;
     };
 
     class HelloTriangleApplication {
@@ -140,10 +149,16 @@ namespace vulkan_1_triangle
 
         void createVertexBuffer();
         void createIndexBuffer();
+        void createUniformBuffers();
+        void updateUniformBuffer(uint32_t currentImage);
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
         void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
         void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+        void createDescriptorSetLayout();
+        void createDescriptorPool();
+        void createDescriptorSets();
 
         GLFWwindow* mWindow = nullptr;
         VkInstance instance;
@@ -156,21 +171,22 @@ namespace vulkan_1_triangle
         VkQueue presentQueue;
 
         VkSwapchainKHR swapChain;
-        std::vector<VkImage> swapChainImages;
-        std::vector<VkImageView> swapChainImageViews;
-        std::vector<VkFramebuffer> swapChainFramebuffers;
-        std::vector<VkCommandBuffer> commandBuffers;
+        std::vector<VkImage> swapChainImages = {};
+        std::vector<VkImageView> swapChainImageViews = {};
+        std::vector<VkFramebuffer> swapChainFramebuffers = {};
+        std::vector<VkCommandBuffer> commandBuffers = {};
         VkFormat swapChainImageFormat;
         VkExtent2D swapChainExtent;
         VkRenderPass renderPass;
+        VkDescriptorSetLayout descriptorSetLayout;
         VkPipelineLayout pipelineLayout;
         VkPipeline graphicsPipeline;
         VkCommandPool commandPool;
 
-        std::vector<VkSemaphore> imageAvailableSemaphores;
-        std::vector<VkSemaphore> renderFinishedSemaphores;
-        std::vector<VkFence> inFlightFences;
-        std::vector<VkFence> imagesInFlight;
+        std::vector<VkSemaphore> imageAvailableSemaphores = {};
+        std::vector<VkSemaphore> renderFinishedSemaphores = {};
+        std::vector<VkFence> inFlightFences = {};
+        std::vector<VkFence> imagesInFlight = {};
         size_t currentFrame = 0;
 
         bool framebufferResized = false;
@@ -179,6 +195,12 @@ namespace vulkan_1_triangle
         VkDeviceMemory vertexBufferMemory;
         VkBuffer indexBuffer;
         VkDeviceMemory indexBufferMemory;
+
+        std::vector<VkBuffer> uniformBuffers = {};
+        std::vector<VkDeviceMemory> uniformBuffersMemory = {};
+
+        VkDescriptorPool descriptorPool;
+        std::vector<VkDescriptorSet> descriptorSets;
     };
 
 }
