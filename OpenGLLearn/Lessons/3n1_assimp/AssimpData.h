@@ -12,6 +12,8 @@
 
 #include "../1n5_shaders/Shader.h"
 
+#include "../../System/Box.h"
+
 namespace lesson_3n1
 {
     struct SVertex {
@@ -84,6 +86,14 @@ namespace lesson_3n1
         void SetEBO(unsigned int& ebo) { EBO = ebo; };
         void SetVBO(unsigned int& vbo) { VBO = vbo; };
 
+        const glm::vec3& GetMinBB() const;
+
+        const glm::vec3& GetMaxBB() const;
+
+    protected:
+
+        void BoundingBox();
+
     private:
         /*  Mesh Data  */
         std::vector<SVertex> mVertices = {};
@@ -92,6 +102,7 @@ namespace lesson_3n1
         /*  Render data  */
         unsigned int VAO, VBO, EBO;
         /*  Functions    */
+        System::CBox mBoundingBox;
     };
 
     struct SFileMeshData
@@ -107,12 +118,12 @@ namespace lesson_3n1
         static void Draw(lesson_1n5::CShader& shader, SFileMeshData& fileMesh);
         static void DrawInstanced(lesson_1n5::CShader& shader, SFileMeshData& fileMesh, std::size_t amountInstances);
         static void DeleteAfterLoop(SFileMeshData& fileMesh);
+        static void MeshDraw(lesson_1n5::CShader& shader, const SMesh& mesh);
+        static void MeshDrawInstanced(lesson_1n5::CShader& shader, const SMesh& mesh, std::size_t amountInstances);
 
     protected:
 
         static void MeshInit(SMesh& mesh);
-        static void MeshDraw(lesson_1n5::CShader& shader, const SMesh& mesh);
-        static void MeshDrawInstanced(lesson_1n5::CShader& shader, const SMesh& mesh, std::size_t amountInstances);
         static void BindTextures(lesson_1n5::CShader& shader, const SMesh& mesh);
     };
 

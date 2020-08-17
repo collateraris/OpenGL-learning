@@ -12,6 +12,7 @@ namespace lesson_1n5
 		CShader() = default;
 
 		bool Init(const GLchar* vertexPath, const GLchar* fragmentPath, const GLchar* geometryPath = nullptr);
+		bool Init(const GLchar* computePath);
 
 		void Use() const;
 

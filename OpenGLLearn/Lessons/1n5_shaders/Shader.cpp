@@ -138,6 +138,73 @@ bool CShader::Init(const GLchar* vertexPath, const GLchar* fragmentPath, const G
     return true;
 }
 
+bool CShader::Init(const GLchar* computePath)
+{
+    std::string computeCode;
+    std::ifstream cShaderFile;
+    // Удостоверимся, что ifstream объекты могут выкидывать исключения
+    cShaderFile.exceptions(std::ifstream::badbit);
+
+    try
+    {
+        // Открываем файлы
+        cShaderFile.open(computePath);
+        std::stringstream cShaderStream;
+        // Считываем данные в потоки
+        cShaderStream << cShaderFile.rdbuf();
+        // Закрываем файлы
+        cShaderFile.close();
+        // Преобразовываем потоки в массив GLchar
+        computeCode = cShaderStream.str();
+    }
+    catch (std::ifstream::failure e)
+    {
+        std::cout << "ERROR::COMPUTE_SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+        return false;
+    }
+
+    const GLchar* cShaderCode = computeCode.c_str();
+
+    // 2. Сборка шейдеров
+    GLuint compute;
+    GLint success;
+    GLchar infoLog[512];
+
+    // Вершинный шейдер
+    compute = glCreateShader(GL_COMPUTE_SHADER);
+    glShaderSource(compute, 1, &cShaderCode, NULL);
+    glCompileShader(compute);
+    // Если есть ошибки - вывести их
+    glGetShaderiv(compute, GL_COMPILE_STATUS, &success);
+
+    if (!success)
+    {
+        glGetShaderInfoLog(compute, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::COMPUTE::COMPILATION_FAILED\n" << infoLog << std::endl;
+        return false;
+    };
+
+  
+    this->mProgramID = glCreateProgram();
+    glAttachShader(this->mProgramID, compute);
+    glLinkProgram(this->mProgramID);
+
+    //Если есть ошибки - вывести их
+    glGetProgramiv(this->mProgramID, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(this->mProgramID, 512, NULL, infoLog);
+        std::cout << "ERROR::COMPUTE_SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        return false;
+    }
+
+    // Удаляем шейдеры, поскольку они уже в программу и нам больше не нужны.
+    glDeleteShader(compute);
+
+    bInit = true;
+    return true;
+}
+
 void CShader::Use() const
 {
     if(bInit)

@@ -1,9 +1,8 @@
-﻿
-#include "Lessons/6n3_pbr_image_based_lighting/main6n3.h"
+﻿#include "Vulkan/lesson1_triangle/vulkan1_triangle.h"
 
 int main()
 {
-	return lesson_6n3::lesson_main();
+    vulkan_1_triangle::HelloTriangleApplication::main();
 }
 
 
