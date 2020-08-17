@@ -159,6 +159,7 @@
     <ClCompile Include="System\Frustum.cpp" />
     <ClCompile Include="System\Plane.cpp" />
     <ClCompile Include="Vulkan\lesson1_triangle\vulkan1_triangle.cpp" />
+    <ClCompile Include="Vulkan\lesson2_load3Dmodel\vulkan2_loadModel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lessons\1n3\main1n3.h" />
@@ -236,6 +237,7 @@
     <ClInclude Include="ThirdParty\include\stb_image\stb_image.h" />
     <ClInclude Include="Vulkan\lesson1_init\vulkan_1_init.h" />
     <ClInclude Include="Vulkan\lesson1_triangle\vulkan1_triangle.h" />
+    <ClInclude Include="Vulkan\lesson2_load3Dmodel\vulkan2_loadModel.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />
