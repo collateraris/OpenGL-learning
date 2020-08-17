@@ -278,6 +278,9 @@
     <ClInclude Include="Vulkan\lesson2_load3Dmodel\vulkan2_loadModel.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="ThirdParty\include\tinyobjloader\tiny_obj_loader.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />

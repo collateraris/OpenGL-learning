@@ -235,6 +235,7 @@
     <ClInclude Include="ThirdParty\include\glm\vec4.hpp" />
     <ClInclude Include="ThirdParty\include\glm\vector_relational.hpp" />
     <ClInclude Include="ThirdParty\include\stb_image\stb_image.h" />
+    <ClInclude Include="ThirdParty\include\tinyobjloader\tiny_obj_loader.h" />
     <ClInclude Include="Vulkan\lesson1_init\vulkan_1_init.h" />
     <ClInclude Include="Vulkan\lesson1_triangle\vulkan1_triangle.h" />
     <ClInclude Include="Vulkan\lesson2_load3Dmodel\vulkan2_loadModel.h" />
