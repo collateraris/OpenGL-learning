@@ -204,6 +204,7 @@
     <ClInclude Include="Lessons\6n3_pbr_image_based_lighting\main6n3.h" />
     <ClInclude Include="OpenCL\1n1_init\opencl_main1n1.h" />
     <ClInclude Include="OpenCL\1n2_image_sobel_filter\opencl_main1n2.h" />
+    <ClInclude Include="Projects\Montains\proj_montains_ogl.h" />
     <ClInclude Include="Projects\Real_time_volumetric_clouds\proj_vol_clouds_opengl.h" />
     <ClInclude Include="Projects\Sponza\proj_sponza_ogl.h" />
     <ClInclude Include="System\Box.h" />

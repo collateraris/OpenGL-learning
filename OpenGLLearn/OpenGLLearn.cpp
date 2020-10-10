@@ -1,8 +1,7 @@
-﻿#include "Vulkan/lesson1_triangle/vulkan1_triangle.h"
-
+﻿#include "Projects/Montains/proj_montains_ogl.h"
 int main()
 {
-    vulkan_1_triangle::HelloTriangleApplication::main();
+	proj_mointains_ogl::lesson_main();
 }
 
 

@@ -272,6 +272,9 @@
     <ClInclude Include="Vulkan\lesson1_triangle\vulkan1_triangle.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="Projects\Montains\proj_montains_ogl.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />
