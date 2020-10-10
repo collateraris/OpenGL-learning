@@ -2,7 +2,6 @@
 out float FragColor;
 
 in vec2 vTexCoords;
-in mat3 vViewMatrix;
 
 uniform sampler2D uPosition;
 uniform sampler2D uNormal;
@@ -19,8 +18,8 @@ uniform mat4 uProjection;
 void main()
 {
     // transform to view space
-    vec3 fragPos = vViewMatrix * texture(uPosition, vTexCoords).xyz;
-    vec3 normal =  vViewMatrix * normalize(texture(uNormal, vTexCoords).rgb);
+    vec3 fragPos = texture(uPosition, vTexCoords).xyz;
+    vec3 normal =  normalize(texture(uNormal, vTexCoords).rgb);
     // 
     vec3 randomVec = normalize(texture(uNoise, vTexCoords * uNoiseScale).xyz);
 

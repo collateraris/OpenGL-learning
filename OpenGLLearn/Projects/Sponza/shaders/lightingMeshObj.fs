@@ -11,6 +11,7 @@ uniform vec3 uLightDir;
 uniform mat4 uLightSpaceMatrix;
 
 uniform vec3 uViewPos;
+uniform mat3 uInvView;
 
 uniform samplerCube uIrradianceMap;
 uniform samplerCube uPrefilterMap;
@@ -21,8 +22,9 @@ uniform sampler2D uNormal;
 uniform sampler2D uAlbedo;
 uniform sampler2D uRoughnessMetallic;
 uniform sampler2D uAO;
+uniform sampler2D uNormalInView;
 
-void CalculateTBN(in sampler2D normalMap, in vec3 worldPos, out mat3 TBN);
+void CalculateTBN(in sampler2D normalMap, in vec3 Normal, in vec3 worldPos, out mat3 TBN);
 
 vec3 fresnelSchlick(float cosTheta, in vec3 F0);
 
@@ -43,14 +45,15 @@ void main()
     vec3 WorldPos = texture(uPosition, vTexCoords).xyz;
 
     mat3 TBN;
-    CalculateTBN(uNormal, WorldPos, TBN);
+    vec3 NormalFromGBuffer = texture(uNormalInView, vTexCoords).xyz * uInvView;
+    CalculateTBN(uNormal, NormalFromGBuffer, WorldPos, TBN);
 
     vec4 FragPosLightSpace = uLightSpaceMatrix * vec4(WorldPos, 1.0);
 
     vec3 albedo = pow(texture(uAlbedo, vTexCoords).rgb, vec3(2.2));
     vec3 normal = GetNormalFromMap(uNormal, TBN);
     vec3 irradiance = texture(uIrradianceMap, normal).rgb;
-    vec3 color = irradiance * albedo * 0.15;
+    vec3 color = irradiance * albedo * 0.10;
     float shadow = ShadowCalculation(FragPosLightSpace);
     if (shadow >= 0.99)
     {
@@ -65,7 +68,9 @@ void main()
     float metallic = roughnessMetallic.y;
     float ao = texture(uAO, vTexCoords).r;
 
-    vec3 viewDir = normalize(uViewPos - WorldPos);
+    mat3 transposeTBN = transpose(TBN);
+    vec3 lightDir = transposeTBN * uLightDir;
+    vec3 viewDir = TBN * normalize(uViewPos - WorldPos);
 
     float invPI = 1. / PI;
 
@@ -75,7 +80,7 @@ void main()
     vec3 Lo = vec3(0.);
     for (int i = 0; i < NR_POINT_LIGHTS; ++i)
     {
-        vec3 halfwayDir = normalize(viewDir + uLightDir);
+        vec3 halfwayDir = normalize(viewDir + lightDir);
 
         float distance = length(uLightPosition - WorldPos);
         float attenuation = 1. / (distance * distance);
@@ -83,17 +88,17 @@ void main()
 
         vec3 F = fresnelSchlick(max(dot(halfwayDir, viewDir), 0.), F0);
         float NDF = DistributionGGX(normal, halfwayDir, roughness);
-        float G = GeometrySmith(normal, viewDir, uLightDir, roughness);
+        float G = GeometrySmith(normal, viewDir, lightDir, roughness);
 
         vec3 numeratorBRDF = NDF * G * F;
-        float denominatorBRDF = 4. * max(dot(normal, viewDir), 0.) * max(dot(normal, uLightDir), 0.) + 0.001;
+        float denominatorBRDF = 4. * max(dot(normal, viewDir), 0.) * max(dot(normal, lightDir), 0.) + 0.001;
         vec3 specular = numeratorBRDF / denominatorBRDF;
 
         vec3 kS = F;
         vec3 kD = 1. - kS;
         kD *= 1. - metallic;
 
-        float NdotL = max(dot(normal, uLightDir), 0.);
+        float NdotL = max(dot(normal, lightDir), 0.);
         Lo += (kD * albedo * invPI + specular) * radiance * NdotL;
     }
 
@@ -112,15 +117,14 @@ void main()
     vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
     vec3 ambient = (kD * diffuse + specular) * ao;
-    //ambient = vec3(0.3) * albedo * ao;
+    ambient = vec3(0.3) * albedo * ao;
     color = ambient + Lo;
     color = color / (color + vec3(1.));
     color = pow(color, vec3(1./ 2.2));
-
     gl_FragColor = vec4(color, 1.0);
 }
 
-void CalculateTBN(in sampler2D normalMap, in vec3 worldPos, out mat3 TBN)
+void CalculateTBN(in sampler2D normalMap, in vec3 Normal, in vec3 worldPos, out mat3 TBN)
 {
     vec3 tangentNormal = texture(normalMap, vTexCoords).xyz * 2. - 1.;
 
@@ -129,7 +133,7 @@ void CalculateTBN(in sampler2D normalMap, in vec3 worldPos, out mat3 TBN)
     vec2 st1 = dFdx(vTexCoords);
     vec2 st2 = dFdy(vTexCoords);
 
-    vec3 N = normalize(tangentNormal);
+    vec3 N = normalize(Normal);
     vec3 T = normalize(Q1 * st2.t - Q2 * st1.t);
     vec3 B = -normalize(cross(N, T));
     TBN = mat3(T, B, N);
@@ -204,7 +208,7 @@ float ShadowCalculation(in vec4 fragPosLightSpace)
 
     float closestDepth = texture(uShadowMap, projCoords.xy).r;
     float currentDepth = projCoords.z;
-    float bias = 0.005;
+    float bias = 0.0005;
     float shadow = currentDepth - bias > closestDepth  ? 1.0f : 0.0f;
     return shadow;
 }

@@ -107,6 +107,7 @@ int SponzaScene::lesson_main()
 	lightingShader.setInt("uAlbedo", 6);
 	lightingShader.setInt("uRoughnessMetallic", 7);
 	lightingShader.setInt("uAO", 8);
+	lightingShader.setInt("uNormalInView", 9);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
@@ -249,7 +250,7 @@ int SponzaScene::lesson_main()
 
 	glm::vec3 lightPos = glm::vec3(-18.09f, 21.17f, -3.85f);
 	glm::vec3 lightDir = glm::vec3(0.67f, -0.73f, 0.13f);
-	glm::vec3 lightColor = glm::vec3(300.0f, 300.0f, 300.0f);
+	glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
 	lesson_1n9::CCamera::Get().SetCameraPosition(lightPos);
 	lesson_1n9::CCamera::Get().SetCameraFront(lightDir);
@@ -262,6 +263,7 @@ int SponzaScene::lesson_main()
 	const std::string uProjectionViewStr = "uProjectionView";
 	const std::string uProjectionStr = "uProjection";
 	const std::string uViewStr = "uView";
+	const std::string uInvViewStr = "uInvView";
 
 	SSAORenderPass.GetShader().Use();
 	SSAORenderPass.GetShader().setInt("uPosition", 0);
@@ -273,10 +275,15 @@ int SponzaScene::lesson_main()
 
 	while (!glfwWindowShouldClose(window))
 	{
+		
 		deltaTime = GetDeltaTime();
 		std::cout << "FPS " << 1.f / deltaTime << std::endl;
 		lesson_1n9::CCamera::Get().Movement(deltaTime);
 
+		const glm::mat4 view = lesson_1n9::CCamera::Get().GetView();
+		const glm::mat4 inv_view = glm::inverse(view);
+		const glm::mat4 proj_view = projection * view;
+		
 		glm::mat4 model;
 		depthBufferShader.Use();
 		glm::mat4 lightView = glm::lookAt(lightPos,
@@ -287,7 +294,8 @@ int SponzaScene::lesson_main()
 		model = glm::translate(model, glm::vec3(0.));
 		glm::mat4 lightSpaceModelMatrix = lightSpaceMatrix * model;
 		depthBufferShader.setMatrix4fv("uLightSpaceModelMatrix", lightSpaceModelMatrix);
-		frustum.calculateFrustum(lightView, lightProjection);
+		///*
+		frustum.calculateFrustum(lightProjection, lightView);
 		glViewport(0, 0, shadowWidth, shadowHeight);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
@@ -301,21 +309,19 @@ int SponzaScene::lesson_main()
 			}
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//*/
 
 		glViewport(0, 0, g_screenWidth, g_screenHeight);
 		glCullFace(GL_BACK);
 
 		//
 		{
-			//lesson_1n9::CCamera::Get().SetCameraPosition({ 0, 0, 0 });
-			const glm::mat4& view = lesson_1n9::CCamera::Get().GetView();
-			glm::mat4 proj_view = projection * view;
-
 			//
 			GBufferRenderPass.StartDrawInBuffer();
 			GBufferRenderPass.GetShader().setMatrix4fv(uModelStr.c_str(), model);
+			SSAORenderPass.GetShader().setMatrix4fv(uViewStr.c_str(), view);
 			GBufferRenderPass.GetShader().setMatrix4fv(uProjectionViewStr.c_str(), proj_view);
-			frustum.calculateFrustum(lesson_1n9::CCamera::Get().GetView(), projection);
+			frustum.calculateFrustum(projection, view);
 			for (const lesson_3n1::SMesh& mesh : meshObj.meshes)
 			{
 				if (frustum.boxInFrustum(mesh.GetMinBB(), mesh.GetMaxBB()))
@@ -329,11 +335,10 @@ int SponzaScene::lesson_main()
 			
 			SSAORenderPass.StartDrawInBuffer();
 			SSAORenderPass.GetShader().setMatrix4fv(uProjectionStr.c_str(), projection);
-			SSAORenderPass.GetShader().setMatrix4fv(uViewStr.c_str(), view);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, GBufferRenderPass.GetPositionGBuffer());
+			glBindTexture(GL_TEXTURE_2D, GBufferRenderPass.GetPositionInViewGBuffer());
 			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, GBufferRenderPass.GetNormalGBuffer());
+			glBindTexture(GL_TEXTURE_2D, GBufferRenderPass.GetNormalInViewGBuffer());
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, SSAORenderPass.GetNoiseTex());
 			renderQuad();
@@ -349,9 +354,8 @@ int SponzaScene::lesson_main()
 		///*
 		{
 			lightingShader.Use();
-			const glm::mat4& view = lesson_1n9::CCamera::Get().GetView();
-			glm::mat4 proj_view = projection * view;
 			lightingShader.setMatrix4fv("uProjectionView", proj_view);
+			lightingShader.setMatrix4fv(uInvViewStr.c_str(), inv_view);
 			lightingShader.setVec3f("uViewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
 
 			lightingShader.setVec3f("lightPosition", lightPos);
@@ -376,6 +380,8 @@ int SponzaScene::lesson_main()
 			glBindTexture(GL_TEXTURE_2D, GBufferRenderPass.GetRoughnessMetallic());
 			glActiveTexture(GL_TEXTURE8);
 			glBindTexture(GL_TEXTURE_2D, SSAORenderPass.GetSSAOColorBuffer());
+			glActiveTexture(GL_TEXTURE9);
+			glBindTexture(GL_TEXTURE_2D, GBufferRenderPass.GetNormalInViewGBuffer());
 			lightingShader.setMatrix4fv("uLightSpaceMatrix", lightSpaceModelMatrix);
 			renderQuad();
 		}
