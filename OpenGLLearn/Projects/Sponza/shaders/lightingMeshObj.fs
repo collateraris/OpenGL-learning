@@ -2,33 +2,27 @@
 precision mediump float;
 const float PI = 3.1415926535897932384626; 
 
-
-  
-in mat3 vTBN;
-in vec3 vWorldPos;
 in vec2 vTexCoords;
-in vec4 vFragPosLightSpace;
-
-uniform vec3 uViewPos;
 
 #define NR_POINT_LIGHTS 1  
 uniform vec3 uLightPosition;
 uniform vec3 uLightColor;
 uniform vec3 uLightDir;
+uniform mat4 uLightSpaceMatrix;
 
-struct Material {
-    sampler2D texture_diffuse_0;
-    sampler2D texture_specular_0;
-    sampler2D texture_normal_0;
-    sampler2D texture_ambient_0;
-};
-
-uniform Material material;
+uniform vec3 uViewPos;
 
 uniform samplerCube uIrradianceMap;
 uniform samplerCube uPrefilterMap;
 uniform sampler2D   uBrdfLUT;
 uniform sampler2D   uShadowMap;
+uniform sampler2D uPosition;
+uniform sampler2D uNormal;
+uniform sampler2D uAlbedo;
+uniform sampler2D uRoughnessMetallic;
+uniform sampler2D uAO;
+
+void CalculateTBN(in sampler2D normalMap, in vec3 worldPos, out mat3 TBN);
 
 vec3 fresnelSchlick(float cosTheta, in vec3 F0);
 
@@ -40,17 +34,24 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 
 float GeometrySmith(in vec3 normal, in vec3 viewDir, in vec3 lightDir, float roughness);
 
-vec3 GetNormalFromMap(in sampler2D normalMap);
+vec3 GetNormalFromMap(in sampler2D normalMap, in mat3 TBN);
 
 float ShadowCalculation(in vec4 fragPosLightSpace);
 
 void main()
 {
-    vec3 albedo = pow(texture(material.texture_diffuse_0, vTexCoords).rgb, vec3(2.2));
-    vec3 normal = GetNormalFromMap(material.texture_normal_0);
+    vec3 WorldPos = texture(uPosition, vTexCoords).xyz;
+
+    mat3 TBN;
+    CalculateTBN(uNormal, WorldPos, TBN);
+
+    vec4 FragPosLightSpace = uLightSpaceMatrix * vec4(WorldPos, 1.0);
+
+    vec3 albedo = pow(texture(uAlbedo, vTexCoords).rgb, vec3(2.2));
+    vec3 normal = GetNormalFromMap(uNormal, TBN);
     vec3 irradiance = texture(uIrradianceMap, normal).rgb;
     vec3 color = irradiance * albedo * 0.15;
-    float shadow = ShadowCalculation(vFragPosLightSpace);
+    float shadow = ShadowCalculation(FragPosLightSpace);
     if (shadow >= 0.99)
     {
         color = color / (color + vec3(1.));
@@ -59,11 +60,12 @@ void main()
         return;
     }
 
-    float metallic = texture(material.texture_ambient_0, vTexCoords).r;
-    float roughness = texture(material.texture_specular_0, vTexCoords).r;
-    float ao = 1.;
+    vec2 roughnessMetallic = texture(uRoughnessMetallic, vTexCoords).xy;
+    float roughness = roughnessMetallic.x;
+    float metallic = roughnessMetallic.y;
+    float ao = texture(uAO, vTexCoords).r;
 
-    vec3 viewDir = normalize(uViewPos - vWorldPos);
+    vec3 viewDir = normalize(uViewPos - WorldPos);
 
     float invPI = 1. / PI;
 
@@ -75,7 +77,7 @@ void main()
     {
         vec3 halfwayDir = normalize(viewDir + uLightDir);
 
-        float distance = length(uLightPosition - vWorldPos);
+        float distance = length(uLightPosition - WorldPos);
         float attenuation = 1. / (distance * distance);
         vec3 radiance = uLightColor * attenuation;
 
@@ -116,6 +118,21 @@ void main()
     color = pow(color, vec3(1./ 2.2));
 
     gl_FragColor = vec4(color, 1.0);
+}
+
+void CalculateTBN(in sampler2D normalMap, in vec3 worldPos, out mat3 TBN)
+{
+    vec3 tangentNormal = texture(normalMap, vTexCoords).xyz * 2. - 1.;
+
+    vec3 Q1 = dFdx(worldPos);
+    vec3 Q2 = dFdy(worldPos);
+    vec2 st1 = dFdx(vTexCoords);
+    vec2 st2 = dFdy(vTexCoords);
+
+    vec3 N = normalize(tangentNormal);
+    vec3 T = normalize(Q1 * st2.t - Q2 * st1.t);
+    vec3 B = -normalize(cross(N, T));
+    TBN = mat3(T, B, N);
 }
 
 vec3 fresnelSchlick(float cosTheta, in vec3 F0)
@@ -171,10 +188,10 @@ float GeometrySmith(in vec3 normal, in vec3 viewDir, in vec3 lightDir, float rou
     return ggx1 * ggx2;
 }
 
-vec3 GetNormalFromMap(in sampler2D normalMap)
+vec3 GetNormalFromMap(in sampler2D normalMap, in mat3 TBN)
 {
     vec3 tangentNormal = texture(normalMap, vTexCoords).xyz * 2. - 1.;
-    return normalize(vTBN * tangentNormal);
+    return normalize(TBN * tangentNormal);
 }
 
 float ShadowCalculation(in vec4 fragPosLightSpace)

@@ -3,7 +3,7 @@
 
 int main()
 {
-	return proj_sponza_ogl::lesson_main();
+	return proj_sponza_ogl::SponzaScene::lesson_main();
 }
 
 
