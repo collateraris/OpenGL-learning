@@ -38,7 +38,7 @@ namespace System
 		std::vector<glm::vec3> m_SsaoKernel;
 
 		const int m_KernelSize = 64;
-		const float m_Radius = 0.5f;
+		const float m_Radius = 0.15f;
 		const float m_Bias = 0.0025f;
 
 		std::vector<std::string> m_KernelUniforms;

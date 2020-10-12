@@ -29,8 +29,9 @@
 
 using namespace proj_sponza_ogl;
 
-GLfloat g_screenWidth = 800.0f;
-GLfloat g_screenHeight = 600.0f;
+GLfloat g_screenWidth = 1200.0f;
+GLfloat g_screenHeight = 800.0f;
+const unsigned int shadowWidth = 1024, shadowHeight = 1024;
 
 enum class EDemoState
 {
@@ -96,8 +97,7 @@ int SponzaScene::lesson_main()
 
 	System::ShadowMapBufferPass shadowMapRenderPass;
 	if (!shadowMapRenderPass.LoadShader("Projects/Sponza/shaders/shadowMapBuffer.vs", "Projects/Sponza/shaders/depthBuffer.fs")) return -1;
-
-	shadowMapRenderPass.InitBuffer(g_screenWidth, g_screenHeight);
+	shadowMapRenderPass.InitBuffer(shadowWidth, shadowHeight);
 
 	System::GBufferPass GBufferRenderPass;
 	if (!GBufferRenderPass.LoadShader("Projects/Sponza/shaders/gbuffer.vs", "Projects/Sponza/shaders/gbuffer.fs")) return -1;
@@ -249,16 +249,17 @@ int SponzaScene::lesson_main()
 	renderQuad();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	glm::vec3 lightPos = glm::vec3(-18.09f, 21.17f, -3.85f);
+	glm::vec3 lightPos = glm::vec3(-18.09f, 21.17f, -10.85f);
 	glm::vec3 lightDir = glm::vec3(0.67f, -0.73f, 0.13f);
-	glm::vec3 lightColor = glm::vec3(300.0f, 300.0f, 300.0f);
+	glm::vec3 lightColor = glm::vec3(800.0f, 800.0f, 800.0f);
 
 	lesson_1n9::CCamera::Get().SetCameraPosition(lightPos);
 	lesson_1n9::CCamera::Get().SetCameraFront(lightDir);
 
 	float deltaTime;
 	lesson_3n1::CDrawFileMeshData::Init(sponzaScene);
-	glViewport(0, 0, g_screenWidth, g_screenHeight);
+
+	unsigned int fogNoiseTex = lesson_3n1::CLoadTexture::GetTexture(g_screenWidth, g_screenHeight);
 
 	const std::string uModelStr = "uModel";
 	const std::string uProjectionViewStr = "uProjectionView";
@@ -274,6 +275,7 @@ int SponzaScene::lesson_main()
 	const std::string uAspectRatioStr = "uAspectRatio";
 	const std::string uTanHalfFOVStr = "uTanHalfFOV";
 	const std::string uAOIncludeStr = "uAOInclude";
+	const std::string uFogNoiseStr = "uFogNoise";
 
 	SSAORenderPass.GetShader().Use();
 	SSAORenderPass.GetShader().setInt("uDepthMap", 0);
@@ -292,7 +294,8 @@ int SponzaScene::lesson_main()
 	lightingShader.setInt("uAlbedo", 5);
 	lightingShader.setInt("uRoughnessMetallic", 6);
 	lightingShader.setInt("uAO", 7);
-	lightingShader.setInt("uShadowMap", 8);
+	lightingShader.setInt("uShadowMap", 8); 
+	lightingShader.setInt(uFogNoiseStr.c_str(), 9);
 
 	SSAORenderPass.GetShader().Use();
 	auto& ssaoShaderRef = SSAORenderPass.GetShader();
@@ -303,11 +306,17 @@ int SponzaScene::lesson_main()
 	ssaoShaderRef.setFloat(SSAORenderPass.m_RadiusUniformStr.c_str(), SSAORenderPass.m_Radius);
 	ssaoShaderRef.setFloat(SSAORenderPass.m_BiasUniformStr.c_str(), SSAORenderPass.m_Bias);
 
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.));
 	const glm::mat4 lightView = glm::lookAt(lightPos,
 		lightDir,
 		glm::vec3(0.0f, 1.0f, 0.0f));
-	const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+	const glm::mat4 lightSpaceMatrix = lightProjection * lightView * model;
 
+	frustum.calculateFrustum(lightProjection, lightView);
+	glViewport(0, 0, shadowWidth, shadowHeight);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
 	shadowMapRenderPass.StartDrawInBuffer();
 	shadowMapRenderPass.GetShader().setMatrix4fv(uLightSpaceModelStr.c_str(), lightSpaceMatrix);
 	for (const lesson_3n1::SMesh& mesh : sponzaScene.meshes)
@@ -321,6 +330,7 @@ int SponzaScene::lesson_main()
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+	glViewport(0, 0, g_screenWidth, g_screenHeight);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -432,6 +442,8 @@ int SponzaScene::lesson_main()
 			glBindTexture(GL_TEXTURE_2D, SSAORenderPass.GetSSAOColorBuffer());
 			glActiveTexture(GL_TEXTURE8);
 			glBindTexture(GL_TEXTURE_2D, shadowMapRenderPass.GetShadowMap());
+			glActiveTexture(GL_TEXTURE9);
+			glBindTexture(GL_TEXTURE_2D, fogNoiseTex);
 			renderQuad();
 		}
 			break;

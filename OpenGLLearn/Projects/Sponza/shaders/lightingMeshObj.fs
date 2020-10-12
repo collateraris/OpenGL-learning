@@ -11,7 +11,7 @@ uniform vec3 uLightDir;
 
 uniform vec3 uViewPos;
 uniform int uAOInclude;
-uniform mat4 uLightSpaceMatrix;
+uniform mat4 uLightSpaceModel;
 
 uniform samplerCube uIrradianceMap;
 uniform samplerCube uPrefilterMap;
@@ -22,6 +22,7 @@ uniform sampler2D uAlbedo;
 uniform sampler2D uRoughnessMetallic;
 uniform sampler2D uAO;
 uniform sampler2D uShadowMap;
+uniform sampler2D uFogNoise;
 
 vec3 fresnelSchlick(float cosTheta, in vec3 F0);
 
@@ -35,6 +36,10 @@ float GeometrySmith(in vec3 normal, in vec3 viewDir, in vec3 lightDir, float rou
 
 bool InShadow(in vec3 position);
 
+float SoftShadow(in vec3 position);
+
+float Fog(in vec3 fragPos);
+
 void main()
 {
     vec3 WorldPos = texture(uPosition, vTexCoords).xyz;
@@ -43,14 +48,7 @@ void main()
     vec3 normal = texture(uNormal, vTexCoords).xyz;
     vec3 irradiance = texture(uIrradianceMap, normal).rgb;
 
-    if (InShadow(WorldPos))
-    {
-        vec3 color = irradiance * albedo * 0.10;
-        color = color / (color + vec3(1.));
-        color = pow(color, vec3(1./ 2.2));
-        gl_FragColor = vec4(color, 1.0);
-        return;
-    }
+    float in_shadow = InShadow(WorldPos) ? 0.25 : 1.;
 
     vec2 roughnessMetallic = texture(uRoughnessMetallic, vTexCoords).xy;
     float roughness = roughnessMetallic.x;
@@ -84,7 +82,7 @@ void main()
 
         vec3 numeratorBRDF = NDF * G * F;
         float denominatorBRDF = 4. * max(dot(normal, viewDir), 0.) * max(dot(normal, lightDir), 0.) + 0.001;
-        vec3 specular = numeratorBRDF / denominatorBRDF;
+        vec3 specular = numeratorBRDF / denominatorBRDF * in_shadow;
 
         vec3 kS = F;
         vec3 kD = 1. - kS;
@@ -108,8 +106,11 @@ void main()
     vec2 envBRDF = texture(uBrdfLUT, vec2(VdotN, roughness)).rg;
     vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
-    vec3 ambient = (kD * diffuse + specular) * ao;
+    vec3 ambient = (kD * diffuse + specular) * ao * in_shadow;
     vec3 color = ambient + Lo;
+    
+    float fog = Fog(WorldPos);
+    color = mix(color, vec3(0.07, 0.06, 0.03), fog);
 
     color = color / (color + vec3(1.));
     color = pow(color, vec3(1./ 2.2));
@@ -172,15 +173,62 @@ float GeometrySmith(in vec3 normal, in vec3 viewDir, in vec3 lightDir, float rou
 bool InShadow(in vec3 position)
 {
     // perform perspective divide
-    vec4 fragPosLightSpace = uLightSpaceMatrix * vec4(position, 1.0);
+    vec4 fragPosLightSpace = uLightSpaceModel * vec4(position, 1.0);
     vec3 shadow_clip = fragPosLightSpace.xyz / fragPosLightSpace.w;
     shadow_clip = shadow_clip * 0.5 + 0.5;    
     float closestDepth = texture(uShadowMap, shadow_clip.xy).r;
-
-    bool inLight = dot(uLightDir, position - closestDepth) > -0.1;
-    bool inShadowMap = shadow_clip.x > 0.0 && shadow_clip.y > 0.0 && shadow_clip.x < 1.0 && shadow_clip.y < 1.0;
-
-    return inLight && inShadowMap;
+    float currentDepth = shadow_clip.z;
+    float bias = 0.0005;
+    return currentDepth - bias > closestDepth  ? true : false;
 }
+
+float SoftShadow(in vec3 position)
+{
+    vec4 fragPosLightSpace = uLightSpaceModel * vec4(position, 1.0);
+    vec3 shadow_clip = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    shadow_clip = shadow_clip * 0.5 + 0.5; 
+    float shadow = 0.0;
+    float bias = 0.0005;
+    vec2 texelSize = 1.0 / textureSize(uShadowMap, 0);
+    float currentDepth = shadow_clip.z;
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(uShadowMap, shadow_clip.xy + vec2(x, y) * texelSize).r;
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+        }
+    }
+    return shadow /= 9.0;
+}
+
+float Fog(in vec3 fragPos)
+{
+    const float fogDistance = 16.0;
+    const float fogSamples = 64.0;
+
+    vec3 fogOrigin = uViewPos;
+    vec3 fogDirection = fragPos - uViewPos;
+    float fogDistanceToPoint = length(fogDirection);
+    float fogStep = fogDistanceToPoint / fogSamples;
+    fogDirection /= fogDistanceToPoint;
+
+    float random = texture(uFogNoise, vTexCoords).r;
+
+    float fog = 0.0;
+    float minDist = min(fogDistanceToPoint, fogDistance);
+    for (float t = 0.0; t < minDist; t += fogStep)
+    {
+        vec3 currentPosition = fogOrigin + fogDirection * (t + fogStep * random);
+        
+        if (!InShadow(currentPosition))
+        {
+            fog += 1.0 / fogSamples;
+        }
+    }
+
+    return clamp(fog, 0.0, 1.0);
+}
+
 
 

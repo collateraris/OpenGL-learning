@@ -1,4 +1,5 @@
 #version 430 core
+precision highp float;
 out float FragColor;
 
 in vec2 vTexCoords;
@@ -7,9 +8,9 @@ in vec2 vViewRay;
 uniform sampler2D uDepthMap;
 
 uniform vec3 uSamples[64];
-uniform int uKernelSize;// = 32;
-uniform float uRadius;// = 0.5;
-uniform float uBias;// = 0.0025;
+uniform int uKernelSize;
+uniform float uRadius;
+uniform float uBias;
 
 uniform mat4 uProjection;
 
