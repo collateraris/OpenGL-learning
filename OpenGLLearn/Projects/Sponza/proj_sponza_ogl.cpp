@@ -1,5 +1,10 @@
 #include "proj_sponza_ogl.h"
 
+#define GLEW_STATIC
+#include <GL/glew.h>
+
+#include <GLFW\glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -11,6 +16,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#include "../../System/DepthBufferPass.h"
+#include "../../System/ShadowMapBufferPass.h"
 #include "../../System/GBufferPass.h"
 #include "../../System/SSAO_Pass.h"
 #include "../../Lessons/1n9_camera/Camera.h"
@@ -24,7 +31,17 @@ using namespace proj_sponza_ogl;
 
 GLfloat g_screenWidth = 800.0f;
 GLfloat g_screenHeight = 600.0f;
-bool g_blinn = false;
+
+enum class EDemoState
+{
+	SSAO,
+	PBRwithAO,
+	PBRwithoutAO,
+	DepthMap,
+	ShadowMap,
+};
+
+EDemoState g_demoState = EDemoState::SSAO;
 
 GLFWwindow* init();
 
@@ -69,11 +86,18 @@ int SponzaScene::lesson_main()
 	lesson_1n5::CShader integrateBRDFMapShader;
 	if (!integrateBRDFMapShader.Init("Projects/Sponza/shaders/integrateBRDFMap.vs", "Projects/Sponza/shaders/integrateBRDFMap.fs")) return -1;
 
-	lesson_1n5::CShader quadShader;
-	if (!quadShader.Init("Projects/Sponza/shaders/quad.vs", "Projects/Sponza/shaders/quad.fs")) return -1;
+	lesson_1n5::CShader ssaoDebugShader;
+	if (!ssaoDebugShader.Init("Projects/Sponza/shaders/quad.vs", "Projects/Sponza/shaders/quad.fs")) return -1;
 
-	lesson_1n5::CShader depthBufferShader;
-	if (!depthBufferShader.Init("Projects/Sponza/shaders/depthBuffer.vs", "Projects/Sponza/shaders/depthBuffer.fs")) return -1;
+	System::DepthBufferPass depthBufferRenderPass;
+	if (!depthBufferRenderPass.LoadShader("Projects/Sponza/shaders/depthBuffer.vs", "Projects/Sponza/shaders/depthBuffer.fs")) return -1;
+
+	depthBufferRenderPass.InitBuffer(g_screenWidth, g_screenHeight);
+
+	System::ShadowMapBufferPass shadowMapRenderPass;
+	if (!shadowMapRenderPass.LoadShader("Projects/Sponza/shaders/shadowMapBuffer.vs", "Projects/Sponza/shaders/depthBuffer.fs")) return -1;
+
+	shadowMapRenderPass.InitBuffer(g_screenWidth, g_screenHeight);
 
 	System::GBufferPass GBufferRenderPass;
 	if (!GBufferRenderPass.LoadShader("Projects/Sponza/shaders/gbuffer.vs", "Projects/Sponza/shaders/gbuffer.fs")) return -1;
@@ -85,29 +109,20 @@ int SponzaScene::lesson_main()
 
 	SSAORenderPass.InitBuffer(g_screenWidth, g_screenHeight);
 
-	lesson_3n1::SFileMeshData meshObj;
-	lesson_3n1::CLoadAssimpFile::Load("content/model/sponza/sponza.obj", meshObj);
+	lesson_3n1::SFileMeshData sponzaScene;
+	lesson_3n1::CLoadAssimpFile::Load("content/model/sponza/sponza.obj", sponzaScene);
 
 	GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
 	float nearDist = 0.1f;
-	float farDist = 100.f;
+	float farDist = 1000.f;
 	glm::mat4 projection;
 	projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, nearDist, farDist);
 
-	System::CFrustum frustum;
+	float lightNearPlane = 0.1f, lightFarPlane = 90.5f;
+	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, lightNearPlane, lightFarPlane);
 
-	lightingShader.Use();
-	lightingShader.setInt("uIrradianceMap", 0);
-	lightingShader.setInt("uPrefilterMap", 1);
-	lightingShader.setInt("uBrdfLUT", 2);
-	lightingShader.setInt("uShadowMap", 3);
-	lightingShader.setInt("uPosition", 4);
-	lightingShader.setInt("uNormal", 5);
-	lightingShader.setInt("uAlbedo", 6);
-	lightingShader.setInt("uRoughnessMetallic", 7);
-	lightingShader.setInt("uAO", 8);
-	lightingShader.setInt("uNormalInView", 9);
+	System::CFrustum frustum;
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
@@ -234,44 +249,78 @@ int SponzaScene::lesson_main()
 	renderQuad();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	unsigned int depthMapFBO;
-	glGenFramebuffers(1, &depthMapFBO);
-
-	const unsigned int shadowWidth = 1024, shadowHeight = 1024;
-	unsigned int depthMap = lesson_3n1::CLoadTexture::GetDepthMap(shadowWidth, shadowHeight);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	float lightNearPlane = 0.1f, lightFarPlane = 90.5f;
-	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, lightNearPlane, lightFarPlane);
-
 	glm::vec3 lightPos = glm::vec3(-18.09f, 21.17f, -3.85f);
 	glm::vec3 lightDir = glm::vec3(0.67f, -0.73f, 0.13f);
-	glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+	glm::vec3 lightColor = glm::vec3(300.0f, 300.0f, 300.0f);
 
 	lesson_1n9::CCamera::Get().SetCameraPosition(lightPos);
 	lesson_1n9::CCamera::Get().SetCameraFront(lightDir);
 
 	float deltaTime;
-	lesson_3n1::CDrawFileMeshData::Init(meshObj);
+	lesson_3n1::CDrawFileMeshData::Init(sponzaScene);
 	glViewport(0, 0, g_screenWidth, g_screenHeight);
 
 	const std::string uModelStr = "uModel";
 	const std::string uProjectionViewStr = "uProjectionView";
+	const std::string uMVPStr = "uMVP";
 	const std::string uProjectionStr = "uProjection";
 	const std::string uViewStr = "uView";
+	const std::string uViewPosStr = "uViewPos";
 	const std::string uInvViewStr = "uInvView";
+	const std::string uLightSpaceModelStr = "uLightSpaceModel";
+	const std::string uLightPositionStr = "uLightPosition";
+	const std::string uLightColorStr = "uLightColor";
+	const std::string uLightDirStr = "uLightDir";
+	const std::string uAspectRatioStr = "uAspectRatio";
+	const std::string uTanHalfFOVStr = "uTanHalfFOV";
+	const std::string uAOIncludeStr = "uAOInclude";
 
 	SSAORenderPass.GetShader().Use();
-	SSAORenderPass.GetShader().setInt("uPosition", 0);
-	SSAORenderPass.GetShader().setInt("uNormal", 1);
-	SSAORenderPass.GetShader().setInt("uNoise", 2);
+	SSAORenderPass.GetShader().setInt("uDepthMap", 0);
+	SSAORenderPass.GetShader().setFloat(uAspectRatioStr.c_str(), aspectRatio);
+	SSAORenderPass.GetShader().setFloat(uTanHalfFOVStr.c_str(), glm::tan(glm::radians(lesson_1n9::CCamera::Get().GetFov())));
 
-	quadShader.Use();
-	quadShader.setInt("uTexture", 0);
+	ssaoDebugShader.Use();
+	ssaoDebugShader.setInt("uTexture", 0);
+
+	lightingShader.Use();
+	lightingShader.setInt("uIrradianceMap", 0);
+	lightingShader.setInt("uPrefilterMap", 1);
+	lightingShader.setInt("uBrdfLUT", 2);
+	lightingShader.setInt("uPosition", 3);
+	lightingShader.setInt("uNormal", 4);
+	lightingShader.setInt("uAlbedo", 5);
+	lightingShader.setInt("uRoughnessMetallic", 6);
+	lightingShader.setInt("uAO", 7);
+	lightingShader.setInt("uShadowMap", 8);
+
+	SSAORenderPass.GetShader().Use();
+	auto& ssaoShaderRef = SSAORenderPass.GetShader();
+	for (unsigned int i = 0; i < SSAORenderPass.m_KernelSize; ++i)
+		ssaoShaderRef.setVec3f(SSAORenderPass.m_KernelUniforms[i].c_str(), SSAORenderPass.m_SsaoKernel[i]);
+
+	ssaoShaderRef.setInt(SSAORenderPass.m_KernelSizeUniformStr.c_str(), SSAORenderPass.m_KernelSize);
+	ssaoShaderRef.setFloat(SSAORenderPass.m_RadiusUniformStr.c_str(), SSAORenderPass.m_Radius);
+	ssaoShaderRef.setFloat(SSAORenderPass.m_BiasUniformStr.c_str(), SSAORenderPass.m_Bias);
+
+	const glm::mat4 lightView = glm::lookAt(lightPos,
+		lightDir,
+		glm::vec3(0.0f, 1.0f, 0.0f));
+	const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+	shadowMapRenderPass.StartDrawInBuffer();
+	shadowMapRenderPass.GetShader().setMatrix4fv(uLightSpaceModelStr.c_str(), lightSpaceMatrix);
+	for (const lesson_3n1::SMesh& mesh : sponzaScene.meshes)
+	{
+		if (frustum.boxInFrustum(mesh.GetMinBB(), mesh.GetMaxBB()))
+		{
+			lesson_3n1::CDrawFileMeshData::MeshDraw(shadowMapRenderPass.GetShader(), mesh);
+		}
+	}
+	shadowMapRenderPass.EndDrawInBuffer();
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -280,49 +329,35 @@ int SponzaScene::lesson_main()
 		std::cout << "FPS " << 1.f / deltaTime << std::endl;
 		lesson_1n9::CCamera::Get().Movement(deltaTime);
 
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		const glm::mat4 model = glm::mat4(1.0f);
 		const glm::mat4 view = lesson_1n9::CCamera::Get().GetView();
-		const glm::mat4 inv_view = glm::inverse(view);
 		const glm::mat4 proj_view = projection * view;
-		
-		glm::mat4 model;
-		depthBufferShader.Use();
-		glm::mat4 lightView = glm::lookAt(lightPos,
-			lightDir,
-			glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.));
-		glm::mat4 lightSpaceModelMatrix = lightSpaceMatrix * model;
-		depthBufferShader.setMatrix4fv("uLightSpaceModelMatrix", lightSpaceModelMatrix);
-		///*
-		frustum.calculateFrustum(lightProjection, lightView);
-		glViewport(0, 0, shadowWidth, shadowHeight);
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_FRONT);
-		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-		glClear(GL_DEPTH_BUFFER_BIT);
-		for (const lesson_3n1::SMesh& mesh : meshObj.meshes)
+		const glm::mat4 mvp = proj_view;// * model;
+
+		frustum.calculateFrustum(projection, view);
+
+		depthBufferRenderPass.StartDrawInBuffer();
+		depthBufferRenderPass.GetShader().setMatrix4fv(uMVPStr.c_str(), mvp);
+		for (const lesson_3n1::SMesh& mesh : sponzaScene.meshes)
 		{
 			if (frustum.boxInFrustum(mesh.GetMinBB(), mesh.GetMaxBB()))
 			{
-				lesson_3n1::CDrawFileMeshData::MeshDraw(depthBufferShader, mesh);
+				lesson_3n1::CDrawFileMeshData::MeshDraw(depthBufferRenderPass.GetShader(), mesh);
 			}
 		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//*/
-
-		glViewport(0, 0, g_screenWidth, g_screenHeight);
-		glCullFace(GL_BACK);
+		depthBufferRenderPass.EndDrawInBuffer();
 
 		//
 		{
-			//
+			
 			GBufferRenderPass.StartDrawInBuffer();
 			GBufferRenderPass.GetShader().setMatrix4fv(uModelStr.c_str(), model);
 			SSAORenderPass.GetShader().setMatrix4fv(uViewStr.c_str(), view);
 			GBufferRenderPass.GetShader().setMatrix4fv(uProjectionViewStr.c_str(), proj_view);
-			frustum.calculateFrustum(projection, view);
-			for (const lesson_3n1::SMesh& mesh : meshObj.meshes)
+			for (const lesson_3n1::SMesh& mesh : sponzaScene.meshes)
 			{
 				if (frustum.boxInFrustum(mesh.GetMinBB(), mesh.GetMaxBB()))
 				{
@@ -331,36 +366,53 @@ int SponzaScene::lesson_main()
 			}
 			GBufferRenderPass.EndDrawInBuffer();
 
-			//
-			
 			SSAORenderPass.StartDrawInBuffer();
 			SSAORenderPass.GetShader().setMatrix4fv(uProjectionStr.c_str(), projection);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, GBufferRenderPass.GetPositionInViewGBuffer());
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, GBufferRenderPass.GetNormalInViewGBuffer());
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, SSAORenderPass.GetNoiseTex());
+			glBindTexture(GL_TEXTURE_2D, depthBufferRenderPass.GetDepthMap());
 			renderQuad();
 			SSAORenderPass.EndDrawInBuffer();
+				
+		}
 
-			/*
-			quadShader.Use();
+		bool bAOInclude = true;
+
+		switch (g_demoState)
+		{
+		case EDemoState::SSAO:
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			ssaoDebugShader.Use();
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, SSAORenderPass.GetSSAOColorBuffer());
 			renderQuad();
-			*/
-		}
-		///*
+			break;
+		case EDemoState::DepthMap:
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			ssaoDebugShader.Use();
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, depthBufferRenderPass.GetDepthMap());
+			renderQuad();
+			break;
+		case EDemoState::ShadowMap:
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			ssaoDebugShader.Use();
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, shadowMapRenderPass.GetShadowMap());
+			renderQuad();
+			break;
+		case EDemoState::PBRwithoutAO:
+			bAOInclude = false;
+		case EDemoState::PBRwithAO:
 		{
 			lightingShader.Use();
-			lightingShader.setMatrix4fv("uProjectionView", proj_view);
-			lightingShader.setMatrix4fv(uInvViewStr.c_str(), inv_view);
-			lightingShader.setVec3f("uViewPos", lesson_1n9::CCamera::Get().GetCameraPosition());
+			lightingShader.setInt(uAOIncludeStr.c_str(), bAOInclude);
+			lightingShader.setMatrix4fv(uProjectionViewStr.c_str(), proj_view);
+			lightingShader.setMatrix4fv(uLightSpaceModelStr.c_str(), lightSpaceMatrix);
+			lightingShader.setVec3f(uViewPosStr.c_str(), lesson_1n9::CCamera::Get().GetCameraPosition());
 
-			lightingShader.setVec3f("lightPosition", lightPos);
-			lightingShader.setVec3f("lightColor", lightColor);
-			lightingShader.setVec3f("lightDir", lightDir);
+			lightingShader.setVec3f(uLightPositionStr.c_str(), lightPos);
+			lightingShader.setVec3f(uLightColorStr.c_str(), lightColor);
+			lightingShader.setVec3f(uLightDirStr.c_str(), lightDir);
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
@@ -369,29 +421,30 @@ int SponzaScene::lesson_main()
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
 			glActiveTexture(GL_TEXTURE3);
-			glBindTexture(GL_TEXTURE_2D, depthMap);
-			glActiveTexture(GL_TEXTURE4);
 			glBindTexture(GL_TEXTURE_2D, GBufferRenderPass.GetPositionGBuffer());
-			glActiveTexture(GL_TEXTURE5);
+			glActiveTexture(GL_TEXTURE4);
 			glBindTexture(GL_TEXTURE_2D, GBufferRenderPass.GetNormalGBuffer());
-			glActiveTexture(GL_TEXTURE6);
+			glActiveTexture(GL_TEXTURE5);
 			glBindTexture(GL_TEXTURE_2D, GBufferRenderPass.GetAlbedoGBuffer());
-			glActiveTexture(GL_TEXTURE7);
+			glActiveTexture(GL_TEXTURE6);
 			glBindTexture(GL_TEXTURE_2D, GBufferRenderPass.GetRoughnessMetallic());
-			glActiveTexture(GL_TEXTURE8);
+			glActiveTexture(GL_TEXTURE7);
 			glBindTexture(GL_TEXTURE_2D, SSAORenderPass.GetSSAOColorBuffer());
-			glActiveTexture(GL_TEXTURE9);
-			glBindTexture(GL_TEXTURE_2D, GBufferRenderPass.GetNormalInViewGBuffer());
-			lightingShader.setMatrix4fv("uLightSpaceMatrix", lightSpaceModelMatrix);
+			glActiveTexture(GL_TEXTURE8);
+			glBindTexture(GL_TEXTURE_2D, shadowMapRenderPass.GetShadowMap());
 			renderQuad();
 		}
-		//*/
+			break;
+		default:
+			break;
+		}
+
 		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-	lesson_3n1::CDrawFileMeshData::DeleteAfterLoop(meshObj);
+	lesson_3n1::CDrawFileMeshData::DeleteAfterLoop(sponzaScene);
 	glfwTerminate();
 	return 0;
 }
@@ -452,8 +505,31 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 
-	if (key == GLFW_KEY_B && action == GLFW_PRESS)
-		g_blinn = !g_blinn;
+	if (action == GLFW_PRESS)
+	{
+		switch (key)
+		{
+		case GLFW_KEY_1:
+			g_demoState = EDemoState::SSAO;
+			break;
+		case GLFW_KEY_2:
+			g_demoState = EDemoState::PBRwithAO;
+			break;
+		case GLFW_KEY_3:
+			g_demoState = EDemoState::PBRwithoutAO;
+			break;
+		case GLFW_KEY_4:
+			g_demoState = EDemoState::DepthMap;
+			break;
+		case GLFW_KEY_5:
+			g_demoState = EDemoState::ShadowMap;
+			break;
+		default:
+			break;
+		}
+	}
+
+
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)

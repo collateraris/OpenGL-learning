@@ -95,11 +95,15 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <Optimization>MaxSpeed</Optimization>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>FreeImage.lib;glfw3.lib;opengl32.lib;glew32s.lib;assimp-vc142-mtd.lib;opencl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>FreeImage.lib;glfw3.lib;opengl32.lib;glew32s.lib;assimp-vc142-mtd.lib;opencl.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -158,9 +162,11 @@
     <ClCompile Include="Projects\Sponza\proj_sponza_ogl.cpp" />
     <ClCompile Include="System\Box.cpp" />
     <ClCompile Include="System\BufferPass.cpp" />
+    <ClCompile Include="System\DepthBufferPass.cpp" />
     <ClCompile Include="System\Frustum.cpp" />
     <ClCompile Include="System\GBufferPass.cpp" />
     <ClCompile Include="System\Plane.cpp" />
+    <ClCompile Include="System\ShadowMapBufferPass.cpp" />
     <ClCompile Include="System\SSAO_Pass.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -211,9 +217,11 @@
     <ClInclude Include="Projects\Sponza\proj_sponza_ogl.h" />
     <ClInclude Include="System\Box.h" />
     <ClInclude Include="System\BufferPass.h" />
+    <ClInclude Include="System\DepthBufferPass.h" />
     <ClInclude Include="System\Frustum.h" />
     <ClInclude Include="System\GBufferPass.h" />
     <ClInclude Include="System\Plane.h" />
+    <ClInclude Include="System\ShadowMapBufferPass.h" />
     <ClInclude Include="System\SSAO_Pass.h" />
     <ClInclude Include="ThirdParty\include\FreeImage\FreeImage.h" />
     <ClInclude Include="ThirdParty\include\glm\common.hpp" />

@@ -34,6 +34,16 @@ void SSAOPass::InitBuffer(const float& screenW, const float& screenH)
 	std::default_random_engine generator;
 	for (unsigned int i = 0; i < m_KernelSize; ++i)
 	{
+		float scale = static_cast<float>(i) / m_KernelSize;
+		glm::vec3 v;
+		v.x = 2.0f * (float)rand() / RAND_MAX - 1.0f;
+		v.y = 2.0f * (float)rand() / RAND_MAX - 1.0f;
+		v.z = 2.0f * (float)rand() / RAND_MAX - 1.0f;
+		// Use an acceleration function so more points are
+		// located closer to the origin
+		v *= (0.1f + 0.9f * scale * scale);
+		m_SsaoKernel.emplace_back(v);
+		/*
 		glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
 		sample = glm::normalize(sample);
 		sample *= randomFloats(generator);
@@ -43,30 +53,13 @@ void SSAOPass::InitBuffer(const float& screenW, const float& screenH)
 		scale = lerp(0.1f, 1.0f, scale * scale);
 		sample *= scale;
 		m_SsaoKernel.push_back(sample);
+		*/
 	}
 
 	for (unsigned int i = 0; i < m_KernelSize; ++i)
 	{
 		m_KernelUniforms.push_back("uSamples[" + std::to_string(i) + "]");
 	}
-
-	// generate noise texture
-	// ----------------------
-	for (unsigned int i = 0; i < 16; i++)
-	{
-		glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f); // rotate around z-axis (in tangent space)
-		m_SsaoNoise.push_back(noise);
-	}
-
-	glGenTextures(1, &m_NoiseTexture);
-	glBindTexture(GL_TEXTURE_2D, m_NoiseTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, &m_SsaoNoise[0]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	m_NoiseScale = {screenW / 4, screenH / 4};
 
 }
 
@@ -75,16 +68,6 @@ void SSAOPass::StartDrawInBuffer()
 	glBindFramebuffer(GL_FRAMEBUFFER, m_SsaoFBO);
 	glClear(GL_COLOR_BUFFER_BIT);
 	m_BufferShader.Use();
-
-	// Send kernel + rotation 
-	for (unsigned int i = 0; i < m_KernelSize; ++i)
-		m_BufferShader.setVec3f(m_KernelUniforms[i].c_str(), m_SsaoKernel[i]);
-
-	m_BufferShader.setVec2f(m_NoiseScaleUniformStr.c_str(), m_NoiseScale);
-	m_BufferShader.setInt(m_KernelSizeUniformStr.c_str(), m_KernelSize);
-	m_BufferShader.setFloat(m_RadiusUniformStr.c_str(), m_Radius);
-	m_BufferShader.setFloat(m_BiasUniformStr.c_str(), m_Bias);
-
 }
 
 void SSAOPass::EndDrawInBuffer()

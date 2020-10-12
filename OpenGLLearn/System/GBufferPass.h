@@ -22,16 +22,6 @@ namespace System
 			return m_NormalGBuffer;
 		}
 
-		unsigned int GetPositionInViewGBuffer() const
-		{
-			return m_PositionInViewGBuffer;
-		}
-
-		unsigned int GetNormalInViewGBuffer() const
-		{
-			return m_NormalInViewGBuffer;
-		}
-
 		unsigned int GetAlbedoGBuffer() const
 		{
 			return m_AlbedoGBuffer;
@@ -46,8 +36,6 @@ namespace System
 		unsigned int m_GBuffer;
 		unsigned int m_PositionGBuffer;
 		unsigned int m_NormalGBuffer;
-		unsigned int m_PositionInViewGBuffer;
-		unsigned int m_NormalInViewGBuffer;
 		unsigned int m_AlbedoGBuffer;
 		unsigned int m_RoughnessMetallic;
 	};

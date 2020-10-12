@@ -16,10 +16,6 @@ namespace System
 		void StartDrawInBuffer();
 		void EndDrawInBuffer();
 
-		unsigned int GetNoiseTex() const
-		{
-			return m_NoiseTexture;
-		}
 
 		const glm::vec2& GetNoiseScale() const
 		{
@@ -36,13 +32,14 @@ namespace System
 		unsigned int m_SsaoFBO;
 		unsigned int m_SsaoColorBuffer;
 
-		unsigned int m_NoiseTexture;
+	public:
+
+		//unsigned int m_NoiseTexture;
 		std::vector<glm::vec3> m_SsaoKernel;
-		std::vector<glm::vec3> m_SsaoNoise;
 
 		const int m_KernelSize = 64;
 		const float m_Radius = 0.5f;
-		const float m_Bias = 0.025f;
+		const float m_Bias = 0.0025f;
 
 		std::vector<std::string> m_KernelUniforms;
 		const std::string m_KernelSizeUniformStr = "uKernelSize";

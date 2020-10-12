@@ -1,5 +1,5 @@
 #version 430 core
-precision mediump float;
+precision highp float;
 const float PI = 3.1415926535897932384626; 
 
 in vec2 vTexCoords;
@@ -8,23 +8,20 @@ in vec2 vTexCoords;
 uniform vec3 uLightPosition;
 uniform vec3 uLightColor;
 uniform vec3 uLightDir;
-uniform mat4 uLightSpaceMatrix;
 
 uniform vec3 uViewPos;
-uniform mat3 uInvView;
+uniform int uAOInclude;
+uniform mat4 uLightSpaceMatrix;
 
 uniform samplerCube uIrradianceMap;
 uniform samplerCube uPrefilterMap;
 uniform sampler2D   uBrdfLUT;
-uniform sampler2D   uShadowMap;
 uniform sampler2D uPosition;
 uniform sampler2D uNormal;
 uniform sampler2D uAlbedo;
 uniform sampler2D uRoughnessMetallic;
 uniform sampler2D uAO;
-uniform sampler2D uNormalInView;
-
-void CalculateTBN(in sampler2D normalMap, in vec3 Normal, in vec3 worldPos, out mat3 TBN);
+uniform sampler2D uShadowMap;
 
 vec3 fresnelSchlick(float cosTheta, in vec3 F0);
 
@@ -36,27 +33,19 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 
 float GeometrySmith(in vec3 normal, in vec3 viewDir, in vec3 lightDir, float roughness);
 
-vec3 GetNormalFromMap(in sampler2D normalMap, in mat3 TBN);
-
-float ShadowCalculation(in vec4 fragPosLightSpace);
+bool InShadow(in vec3 position);
 
 void main()
 {
     vec3 WorldPos = texture(uPosition, vTexCoords).xyz;
 
-    mat3 TBN;
-    vec3 NormalFromGBuffer = texture(uNormalInView, vTexCoords).xyz * uInvView;
-    CalculateTBN(uNormal, NormalFromGBuffer, WorldPos, TBN);
-
-    vec4 FragPosLightSpace = uLightSpaceMatrix * vec4(WorldPos, 1.0);
-
     vec3 albedo = pow(texture(uAlbedo, vTexCoords).rgb, vec3(2.2));
-    vec3 normal = GetNormalFromMap(uNormal, TBN);
+    vec3 normal = texture(uNormal, vTexCoords).xyz;
     vec3 irradiance = texture(uIrradianceMap, normal).rgb;
-    vec3 color = irradiance * albedo * 0.10;
-    float shadow = ShadowCalculation(FragPosLightSpace);
-    if (shadow >= 0.99)
+
+    if (InShadow(WorldPos))
     {
+        vec3 color = irradiance * albedo * 0.10;
         color = color / (color + vec3(1.));
         color = pow(color, vec3(1./ 2.2));
         gl_FragColor = vec4(color, 1.0);
@@ -66,11 +55,14 @@ void main()
     vec2 roughnessMetallic = texture(uRoughnessMetallic, vTexCoords).xy;
     float roughness = roughnessMetallic.x;
     float metallic = roughnessMetallic.y;
-    float ao = texture(uAO, vTexCoords).r;
+    float ao = 1.0;
+    if (uAOInclude != 0)
+    {
+        ao = texture(uAO, vTexCoords).r;
+    }
 
-    mat3 transposeTBN = transpose(TBN);
-    vec3 lightDir = transposeTBN * uLightDir;
-    vec3 viewDir = TBN * normalize(uViewPos - WorldPos);
+    vec3 lightDir = uLightDir;
+    vec3 viewDir = normalize(uViewPos - WorldPos);
 
     float invPI = 1. / PI;
 
@@ -83,7 +75,7 @@ void main()
         vec3 halfwayDir = normalize(viewDir + lightDir);
 
         float distance = length(uLightPosition - WorldPos);
-        float attenuation = 1. / (distance * distance);
+        float attenuation = 1.0 / (distance * distance);
         vec3 radiance = uLightColor * attenuation;
 
         vec3 F = fresnelSchlick(max(dot(halfwayDir, viewDir), 0.), F0);
@@ -117,26 +109,11 @@ void main()
     vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
     vec3 ambient = (kD * diffuse + specular) * ao;
-    ambient = vec3(0.3) * albedo * ao;
-    color = ambient + Lo;
+    vec3 color = ambient + Lo;
+
     color = color / (color + vec3(1.));
     color = pow(color, vec3(1./ 2.2));
     gl_FragColor = vec4(color, 1.0);
-}
-
-void CalculateTBN(in sampler2D normalMap, in vec3 Normal, in vec3 worldPos, out mat3 TBN)
-{
-    vec3 tangentNormal = texture(normalMap, vTexCoords).xyz * 2. - 1.;
-
-    vec3 Q1 = dFdx(worldPos);
-    vec3 Q2 = dFdy(worldPos);
-    vec2 st1 = dFdx(vTexCoords);
-    vec2 st2 = dFdy(vTexCoords);
-
-    vec3 N = normalize(Normal);
-    vec3 T = normalize(Q1 * st2.t - Q2 * st1.t);
-    vec3 B = -normalize(cross(N, T));
-    TBN = mat3(T, B, N);
 }
 
 vec3 fresnelSchlick(float cosTheta, in vec3 F0)
@@ -192,24 +169,18 @@ float GeometrySmith(in vec3 normal, in vec3 viewDir, in vec3 lightDir, float rou
     return ggx1 * ggx2;
 }
 
-vec3 GetNormalFromMap(in sampler2D normalMap, in mat3 TBN)
-{
-    vec3 tangentNormal = texture(normalMap, vTexCoords).xyz * 2. - 1.;
-    return normalize(TBN * tangentNormal);
-}
-
-float ShadowCalculation(in vec4 fragPosLightSpace)
+bool InShadow(in vec3 position)
 {
     // perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    projCoords = projCoords * 0.5 + 0.5;
-    if(projCoords.z > 1.0)
-        return 0.;
+    vec4 fragPosLightSpace = uLightSpaceMatrix * vec4(position, 1.0);
+    vec3 shadow_clip = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    shadow_clip = shadow_clip * 0.5 + 0.5;    
+    float closestDepth = texture(uShadowMap, shadow_clip.xy).r;
 
-    float closestDepth = texture(uShadowMap, projCoords.xy).r;
-    float currentDepth = projCoords.z;
-    float bias = 0.0005;
-    float shadow = currentDepth - bias > closestDepth  ? 1.0f : 0.0f;
-    return shadow;
+    bool inLight = dot(uLightDir, position - closestDepth) > -0.1;
+    bool inShadowMap = shadow_clip.x > 0.0 && shadow_clip.y > 0.0 && shadow_clip.x < 1.0 && shadow_clip.y < 1.0;
+
+    return inLight && inShadowMap;
 }
+
 
