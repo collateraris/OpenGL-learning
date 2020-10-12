@@ -14,7 +14,7 @@ CFrustum::CFrustum()
 
 void CFrustum::calculateFrustum(const glm::mat4& projection, const glm::mat4& view)
 {
-	glm::mat4 clipMatrix = view * projection;
+	glm::mat4 clipMatrix = projection * view;
 	float clip[16] = { 0.0 };
 
 	const float* pSource = (const float*)glm::value_ptr(clipMatrix);

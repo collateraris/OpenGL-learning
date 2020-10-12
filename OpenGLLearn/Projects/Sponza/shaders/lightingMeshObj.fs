@@ -1,34 +1,28 @@
 #version 430 core
-precision mediump float;
+precision highp float;
 const float PI = 3.1415926535897932384626; 
 
-
-  
-in mat3 vTBN;
-in vec3 vWorldPos;
 in vec2 vTexCoords;
-in vec4 vFragPosLightSpace;
-
-uniform vec3 uViewPos;
 
 #define NR_POINT_LIGHTS 1  
 uniform vec3 uLightPosition;
 uniform vec3 uLightColor;
 uniform vec3 uLightDir;
 
-struct Material {
-    sampler2D texture_diffuse_0;
-    sampler2D texture_specular_0;
-    sampler2D texture_normal_0;
-    sampler2D texture_ambient_0;
-};
-
-uniform Material material;
+uniform vec3 uViewPos;
+uniform int uAOInclude;
+uniform mat4 uLightSpaceModel;
 
 uniform samplerCube uIrradianceMap;
 uniform samplerCube uPrefilterMap;
 uniform sampler2D   uBrdfLUT;
-uniform sampler2D   uShadowMap;
+uniform sampler2D uPosition;
+uniform sampler2D uNormal;
+uniform sampler2D uAlbedo;
+uniform sampler2D uRoughnessMetallic;
+uniform sampler2D uAO;
+uniform sampler2D uShadowMap;
+uniform sampler2D uFogNoise;
 
 vec3 fresnelSchlick(float cosTheta, in vec3 F0);
 
@@ -40,30 +34,33 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 
 float GeometrySmith(in vec3 normal, in vec3 viewDir, in vec3 lightDir, float roughness);
 
-vec3 GetNormalFromMap(in sampler2D normalMap);
+bool InShadow(in vec3 position);
 
-float ShadowCalculation(in vec4 fragPosLightSpace);
+float SoftShadow(in vec3 position);
+
+float Fog(in vec3 fragPos);
 
 void main()
 {
-    vec3 albedo = pow(texture(material.texture_diffuse_0, vTexCoords).rgb, vec3(2.2));
-    vec3 normal = GetNormalFromMap(material.texture_normal_0);
+    vec3 WorldPos = texture(uPosition, vTexCoords).xyz;
+
+    vec3 albedo = pow(texture(uAlbedo, vTexCoords).rgb, vec3(2.2));
+    vec3 normal = texture(uNormal, vTexCoords).xyz;
     vec3 irradiance = texture(uIrradianceMap, normal).rgb;
-    vec3 color = irradiance * albedo * 0.15;
-    float shadow = ShadowCalculation(vFragPosLightSpace);
-    if (shadow >= 0.99)
+
+    float in_shadow = InShadow(WorldPos) ? 0.25 : 1.;
+
+    vec2 roughnessMetallic = texture(uRoughnessMetallic, vTexCoords).xy;
+    float roughness = roughnessMetallic.x;
+    float metallic = roughnessMetallic.y;
+    float ao = 1.0;
+    if (uAOInclude != 0)
     {
-        color = color / (color + vec3(1.));
-        color = pow(color, vec3(1./ 2.2));
-        gl_FragColor = vec4(color, 1.0);
-        return;
+        ao = texture(uAO, vTexCoords).r;
     }
 
-    float metallic = texture(material.texture_ambient_0, vTexCoords).r;
-    float roughness = texture(material.texture_specular_0, vTexCoords).r;
-    float ao = 1.;
-
-    vec3 viewDir = normalize(uViewPos - vWorldPos);
+    vec3 lightDir = uLightDir;
+    vec3 viewDir = normalize(uViewPos - WorldPos);
 
     float invPI = 1. / PI;
 
@@ -73,25 +70,25 @@ void main()
     vec3 Lo = vec3(0.);
     for (int i = 0; i < NR_POINT_LIGHTS; ++i)
     {
-        vec3 halfwayDir = normalize(viewDir + uLightDir);
+        vec3 halfwayDir = normalize(viewDir + lightDir);
 
-        float distance = length(uLightPosition - vWorldPos);
-        float attenuation = 1. / (distance * distance);
+        float distance = length(uLightPosition - WorldPos);
+        float attenuation = 1.0 / (distance * distance);
         vec3 radiance = uLightColor * attenuation;
 
         vec3 F = fresnelSchlick(max(dot(halfwayDir, viewDir), 0.), F0);
         float NDF = DistributionGGX(normal, halfwayDir, roughness);
-        float G = GeometrySmith(normal, viewDir, uLightDir, roughness);
+        float G = GeometrySmith(normal, viewDir, lightDir, roughness);
 
         vec3 numeratorBRDF = NDF * G * F;
-        float denominatorBRDF = 4. * max(dot(normal, viewDir), 0.) * max(dot(normal, uLightDir), 0.) + 0.001;
-        vec3 specular = numeratorBRDF / denominatorBRDF;
+        float denominatorBRDF = 4. * max(dot(normal, viewDir), 0.) * max(dot(normal, lightDir), 0.) + 0.001;
+        vec3 specular = numeratorBRDF / denominatorBRDF * in_shadow;
 
         vec3 kS = F;
         vec3 kD = 1. - kS;
         kD *= 1. - metallic;
 
-        float NdotL = max(dot(normal, uLightDir), 0.);
+        float NdotL = max(dot(normal, lightDir), 0.);
         Lo += (kD * albedo * invPI + specular) * radiance * NdotL;
     }
 
@@ -109,12 +106,14 @@ void main()
     vec2 envBRDF = texture(uBrdfLUT, vec2(VdotN, roughness)).rg;
     vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
-    vec3 ambient = (kD * diffuse + specular) * ao;
-    //ambient = vec3(0.3) * albedo * ao;
-    color = ambient + Lo;
+    vec3 ambient = (kD * diffuse + specular) * ao * in_shadow;
+    vec3 color = ambient + Lo;
+    
+    float fog = Fog(WorldPos);
+    color = mix(color, vec3(0.07, 0.06, 0.03), fog);
+
     color = color / (color + vec3(1.));
     color = pow(color, vec3(1./ 2.2));
-
     gl_FragColor = vec4(color, 1.0);
 }
 
@@ -171,24 +170,65 @@ float GeometrySmith(in vec3 normal, in vec3 viewDir, in vec3 lightDir, float rou
     return ggx1 * ggx2;
 }
 
-vec3 GetNormalFromMap(in sampler2D normalMap)
-{
-    vec3 tangentNormal = texture(normalMap, vTexCoords).xyz * 2. - 1.;
-    return normalize(vTBN * tangentNormal);
-}
-
-float ShadowCalculation(in vec4 fragPosLightSpace)
+bool InShadow(in vec3 position)
 {
     // perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    projCoords = projCoords * 0.5 + 0.5;
-    if(projCoords.z > 1.0)
-        return 0.;
-
-    float closestDepth = texture(uShadowMap, projCoords.xy).r;
-    float currentDepth = projCoords.z;
-    float bias = 0.005;
-    float shadow = currentDepth - bias > closestDepth  ? 1.0f : 0.0f;
-    return shadow;
+    vec4 fragPosLightSpace = uLightSpaceModel * vec4(position, 1.0);
+    vec3 shadow_clip = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    shadow_clip = shadow_clip * 0.5 + 0.5;    
+    float closestDepth = texture(uShadowMap, shadow_clip.xy).r;
+    float currentDepth = shadow_clip.z;
+    float bias = 0.0005;
+    return currentDepth - bias > closestDepth  ? true : false;
 }
+
+float SoftShadow(in vec3 position)
+{
+    vec4 fragPosLightSpace = uLightSpaceModel * vec4(position, 1.0);
+    vec3 shadow_clip = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    shadow_clip = shadow_clip * 0.5 + 0.5; 
+    float shadow = 0.0;
+    float bias = 0.0005;
+    vec2 texelSize = 1.0 / textureSize(uShadowMap, 0);
+    float currentDepth = shadow_clip.z;
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(uShadowMap, shadow_clip.xy + vec2(x, y) * texelSize).r;
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+        }
+    }
+    return shadow /= 9.0;
+}
+
+float Fog(in vec3 fragPos)
+{
+    const float fogDistance = 16.0;
+    const float fogSamples = 64.0;
+
+    vec3 fogOrigin = uViewPos;
+    vec3 fogDirection = fragPos - uViewPos;
+    float fogDistanceToPoint = length(fogDirection);
+    float fogStep = fogDistanceToPoint / fogSamples;
+    fogDirection /= fogDistanceToPoint;
+
+    float random = texture(uFogNoise, vTexCoords).r;
+
+    float fog = 0.0;
+    float minDist = min(fogDistanceToPoint, fogDistance);
+    for (float t = 0.0; t < minDist; t += fogStep)
+    {
+        vec3 currentPosition = fogOrigin + fogDirection * (t + fogStep * random);
+        
+        if (!InShadow(currentPosition))
+        {
+            fog += 1.0 / fogSamples;
+        }
+    }
+
+    return clamp(fog, 0.0, 1.0);
+}
+
+
 

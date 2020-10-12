@@ -77,6 +77,7 @@ bool CShader::Init(const GLchar* vertexPath, const GLchar* fragmentPath, const G
     {
         glGetShaderInfoLog(vertex, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+        std::cout << vertexPath << infoLog << std::endl;
         return false;
     };
 
@@ -90,6 +91,7 @@ bool CShader::Init(const GLchar* vertexPath, const GLchar* fragmentPath, const G
     {
         glGetShaderInfoLog(fragment, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+        std::cout << fragmentPath << infoLog << std::endl;
         return false;
     };
 
@@ -107,6 +109,7 @@ bool CShader::Init(const GLchar* vertexPath, const GLchar* fragmentPath, const G
         {
             glGetShaderInfoLog(geometry, 512, NULL, infoLog);
             std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << std::endl;
+            std::cout << geometryPath << infoLog << std::endl;
             return false;
         };
     }
@@ -125,6 +128,7 @@ bool CShader::Init(const GLchar* vertexPath, const GLchar* fragmentPath, const G
     {
         glGetProgramInfoLog(this->mProgramID, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        std::cout << fragmentPath << infoLog << std::endl;
         return false;
     }
 

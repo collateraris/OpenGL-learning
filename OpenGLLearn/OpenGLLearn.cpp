@@ -1,8 +1,8 @@
-﻿#include "Vulkan/lesson1_triangle/vulkan1_triangle.h"
+#include "Projects/Sponza/proj_sponza_ogl.h"
 
 int main()
 {
-    vulkan_1_triangle::HelloTriangleApplication::main();
+	return proj_sponza_ogl::SponzaScene::lesson_main();
 }
 
 
