@@ -1,4 +1,3 @@
-﻿
 #include "Projects/Sponza/proj_sponza_ogl.h"
 
 int main()

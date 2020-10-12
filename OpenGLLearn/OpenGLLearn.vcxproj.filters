@@ -58,6 +58,7 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="System\ShadowMapBufferPass.cpp">
+    <ClCompile Include="Vulkan\lesson1_triangle\vulkan1_triangle.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -294,6 +295,10 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="System\ShadowMapBufferPass.h">
+    <ClInclude Include="Vulkan\lesson1_init\vulkan_1_init.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\lesson1_triangle\vulkan1_triangle.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
