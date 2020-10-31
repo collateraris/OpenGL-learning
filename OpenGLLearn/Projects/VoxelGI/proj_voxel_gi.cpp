@@ -1,4 +1,4 @@
-#include "proj_sponza_ogl.h"
+#include "proj_voxel_gi.h"
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -26,45 +26,50 @@
 #include "../../Lessons/2n6_multy_lights/LightStates.h"
 #include "../../System/Frustum.h"
 #include "../../System/Box.h"
+#include "../../System/SparseVoxelOctree.h"
 
-using namespace proj_sponza_ogl;
-
-GLfloat g_screenWidth = 1200.0f;
-GLfloat g_screenHeight = 800.0f;
-const unsigned int shadowWidth = 1024, shadowHeight = 1024;
-
-enum class EDemoState
+namespace proj_voxel_gi
 {
-	SSAO,
-	PBRwithAO,
-	PBRwithoutAO,
-	DepthMap,
-	ShadowMap,
-};
+	GLfloat g_screenWidth = 1200.0f;
+	GLfloat g_screenHeight = 800.0f;
+	const unsigned int shadowWidth = 1024, shadowHeight = 1024;
 
-EDemoState g_demoState = EDemoState::SSAO;
+	enum class EDemoState
+	{
+		SSAO,
+		PBRwithAO,
+		PBRwithoutAO,
+		DepthMap,
+		ShadowMap,
+	};
 
-GLFWwindow* init();
+	EDemoState g_demoState = EDemoState::SSAO;
 
-void APIENTRY debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const* message, void const* user_param);
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+	GLFWwindow* init();
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+	void APIENTRY debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const* message, void const* user_param);
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
-float GetDeltaTime();
+	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-void renderSphere();
+	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-void renderCube();
+	float GetDeltaTime();
 
-void renderQuad();
+	void renderSphere();
 
-GLFWwindow* init();
+	void renderCube();
+
+	void renderQuad();
+
+	GLFWwindow* init();
+}
+
+using namespace proj_voxel_gi;
 
 int SponzaScene::lesson_main()
 {
@@ -138,7 +143,6 @@ int SponzaScene::lesson_main()
 	unsigned int captureWidth = 512, captureHeight = 512;
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, captureWidth, captureHeight);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
-
 
 	glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
 	std::vector<glm::mat4> captureViews =
@@ -260,6 +264,8 @@ int SponzaScene::lesson_main()
 
 	float deltaTime;
 	lesson_3n1::CDrawFileMeshData::Init(sponzaScene);
+	System::SparseVoxelOctree octree;
+	octree.Init(sponzaScene.meshes, 5);
 
 	unsigned int fogNoiseTex = lesson_3n1::CLoadTexture::GetTexture(g_screenWidth, g_screenHeight);
 
@@ -463,360 +469,363 @@ int SponzaScene::lesson_main()
 	return 0;
 }
 
-GLFWwindow* init()
+namespace proj_voxel_gi
 {
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-
-	GLFWwindow* window = glfwCreateWindow(g_screenWidth, g_screenHeight, "LearnOpenGL", nullptr, nullptr);
-	if (window == nullptr)
+	GLFWwindow* init()
 	{
-		std::cout << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-		return nullptr;
-	}
-	glfwMakeContextCurrent(window);
+		glfwInit();
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-	//keycallback
-	glfwSetKeyCallback(window, key_callback);
-
-	//mousecallback
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(window, mouse_callback);
-
-	//scrollcallback
-	glfwSetScrollCallback(window, scroll_callback);
-
-	//framebuffer
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-	glewExperimental = GL_TRUE;
-	if (glewInit() != GLEW_OK)
-	{
-		std::cout << "Failed to initialize GLEW" << std::endl;
-		return nullptr;
-	}
-
-	//Viewport
-	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
-
-	glViewport(0, 0, width, height);
-
-	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-
-	glEnable(GL_DEBUG_OUTPUT);
-	glDebugMessageCallback(debug_message_callback, nullptr);
-
-	return window;
-}
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
-{
-	lesson_1n9::CCamera::Get().KeyProcessing(key, action);
-
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GL_TRUE);
-
-	if (action == GLFW_PRESS)
-	{
-		switch (key)
+		GLFWwindow* window = glfwCreateWindow(g_screenWidth, g_screenHeight, "LearnOpenGL", nullptr, nullptr);
+		if (window == nullptr)
 		{
-		case GLFW_KEY_1:
-			g_demoState = EDemoState::SSAO;
-			break;
-		case GLFW_KEY_2:
-			g_demoState = EDemoState::PBRwithAO;
-			break;
-		case GLFW_KEY_3:
-			g_demoState = EDemoState::PBRwithoutAO;
-			break;
-		case GLFW_KEY_4:
-			g_demoState = EDemoState::DepthMap;
-			break;
-		case GLFW_KEY_5:
-			g_demoState = EDemoState::ShadowMap;
-			break;
-		default:
-			break;
+			std::cout << "Failed to create GLFW window" << std::endl;
+			glfwTerminate();
+			return nullptr;
 		}
+		glfwMakeContextCurrent(window);
+
+		//keycallback
+		glfwSetKeyCallback(window, key_callback);
+
+		//mousecallback
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		glfwSetCursorPosCallback(window, mouse_callback);
+
+		//scrollcallback
+		glfwSetScrollCallback(window, scroll_callback);
+
+		//framebuffer
+		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+		glewExperimental = GL_TRUE;
+		if (glewInit() != GLEW_OK)
+		{
+			std::cout << "Failed to initialize GLEW" << std::endl;
+			return nullptr;
+		}
+
+		//Viewport
+		int width, height;
+		glfwGetFramebufferSize(window, &width, &height);
+
+		glViewport(0, 0, width, height);
+
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+		glEnable(GL_DEBUG_OUTPUT);
+		glDebugMessageCallback(debug_message_callback, nullptr);
+
+		return window;
 	}
 
-
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-	lesson_1n9::CCamera::Get().MouseProcessing(xpos, ypos);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	lesson_1n9::CCamera::Get().ScrollProcessing(xoffset, yoffset);
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, g_screenWidth, g_screenHeight);
-}
-
-float GetDeltaTime()
-{
-	static float deltaTime = 0.0f;	// Time between current frame and last frame
-	static float lastFrame = 0.0f; // Time of last frame
-
-	GLfloat currentFrame = glfwGetTime();
-	deltaTime = currentFrame - lastFrame;
-	lastFrame = currentFrame;
-	return deltaTime;
-}
-
-void renderSphere()
-{
-	static unsigned int sphereVAO = 0;
-	static unsigned int indexCount;
-
-	if (sphereVAO == 0)
+	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 	{
-		glGenVertexArrays(1, &sphereVAO);
+		lesson_1n9::CCamera::Get().KeyProcessing(key, action);
 
-		unsigned int vbo, ebo;
-		glGenBuffers(1, &vbo);
-		glGenBuffers(1, &ebo);
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+			glfwSetWindowShouldClose(window, GL_TRUE);
 
-		std::vector<glm::vec3> positions = {};
-		std::vector<glm::vec2> uv = {};
-		std::vector<glm::vec3> normals = {};
-		std::vector<unsigned int> indices = {};
-
-		const unsigned int X_SEGMENTS = 64;
-		const unsigned int Y_SEGMENTS = 64;
-		for (unsigned int y = 0; y <= Y_SEGMENTS; ++y)
+		if (action == GLFW_PRESS)
 		{
-			for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
+			switch (key)
 			{
-				double xSegment = static_cast<double>(x) / X_SEGMENTS;
-				double ySegment = static_cast<double>(y) / Y_SEGMENTS;
-				float xPos = std::cos(xSegment * 2.0 * M_PI) * std::sin(ySegment * M_PI);
-				float yPos = std::cos(ySegment * M_PI);
-				float zPos = std::sin(xSegment * 2.0 * M_PI) * std::sin(ySegment * M_PI);
-
-				positions.emplace_back(glm::vec3(xPos, yPos, zPos));
-				uv.emplace_back(glm::vec2(xSegment, ySegment));
-				normals.emplace_back(glm::vec3(xPos, yPos, zPos));
+			case GLFW_KEY_1:
+				g_demoState = EDemoState::SSAO;
+				break;
+			case GLFW_KEY_2:
+				g_demoState = EDemoState::PBRwithAO;
+				break;
+			case GLFW_KEY_3:
+				g_demoState = EDemoState::PBRwithoutAO;
+				break;
+			case GLFW_KEY_4:
+				g_demoState = EDemoState::DepthMap;
+				break;
+			case GLFW_KEY_5:
+				g_demoState = EDemoState::ShadowMap;
+				break;
+			default:
+				break;
 			}
 		}
 
-		bool oddRow = false;
-		for (unsigned int y = 0; y < Y_SEGMENTS; ++y)
+
+	}
+
+	void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+	{
+		lesson_1n9::CCamera::Get().MouseProcessing(xpos, ypos);
+	}
+
+	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+	{
+		lesson_1n9::CCamera::Get().ScrollProcessing(xoffset, yoffset);
+	}
+
+	void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+	{
+		glViewport(0, 0, g_screenWidth, g_screenHeight);
+	}
+
+	float GetDeltaTime()
+	{
+		static float deltaTime = 0.0f;	// Time between current frame and last frame
+		static float lastFrame = 0.0f; // Time of last frame
+
+		GLfloat currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+		return deltaTime;
+	}
+
+	void renderSphere()
+	{
+		static unsigned int sphereVAO = 0;
+		static unsigned int indexCount;
+
+		if (sphereVAO == 0)
 		{
-			if (!oddRow) // even rows: y == 0, y == 2; and so on
+			glGenVertexArrays(1, &sphereVAO);
+
+			unsigned int vbo, ebo;
+			glGenBuffers(1, &vbo);
+			glGenBuffers(1, &ebo);
+
+			std::vector<glm::vec3> positions = {};
+			std::vector<glm::vec2> uv = {};
+			std::vector<glm::vec3> normals = {};
+			std::vector<unsigned int> indices = {};
+
+			const unsigned int X_SEGMENTS = 64;
+			const unsigned int Y_SEGMENTS = 64;
+			for (unsigned int y = 0; y <= Y_SEGMENTS; ++y)
 			{
 				for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
 				{
-					indices.push_back(y * (X_SEGMENTS + 1) + x);
-					indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
-				}
-			}
-			else
-			{
-				for (int x = X_SEGMENTS; x >= 0; --x)
-				{
-					indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
-					indices.push_back(y * (X_SEGMENTS + 1) + x);
-				}
-			}
-			oddRow = !oddRow;
-		}
-		indexCount = indices.size();
+					double xSegment = static_cast<double>(x) / X_SEGMENTS;
+					double ySegment = static_cast<double>(y) / Y_SEGMENTS;
+					float xPos = std::cos(xSegment * 2.0 * M_PI) * std::sin(ySegment * M_PI);
+					float yPos = std::cos(ySegment * M_PI);
+					float zPos = std::sin(xSegment * 2.0 * M_PI) * std::sin(ySegment * M_PI);
 
-		std::vector<float> data = {};
-		for (unsigned int i = 0; i < positions.size(); ++i)
-		{
-			data.push_back(positions[i].x);
-			data.push_back(positions[i].y);
-			data.push_back(positions[i].z);
-			if (normals.size() > 0)
-			{
-				data.push_back(normals[i].x);
-				data.push_back(normals[i].y);
-				data.push_back(normals[i].z);
+					positions.emplace_back(glm::vec3(xPos, yPos, zPos));
+					uv.emplace_back(glm::vec2(xSegment, ySegment));
+					normals.emplace_back(glm::vec3(xPos, yPos, zPos));
+				}
 			}
-			if (uv.size() > 0)
+
+			bool oddRow = false;
+			for (unsigned int y = 0; y < Y_SEGMENTS; ++y)
 			{
-				data.push_back(uv[i].x);
-				data.push_back(uv[i].y);
+				if (!oddRow) // even rows: y == 0, y == 2; and so on
+				{
+					for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
+					{
+						indices.push_back(y * (X_SEGMENTS + 1) + x);
+						indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
+					}
+				}
+				else
+				{
+					for (int x = X_SEGMENTS; x >= 0; --x)
+					{
+						indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
+						indices.push_back(y * (X_SEGMENTS + 1) + x);
+					}
+				}
+				oddRow = !oddRow;
 			}
+			indexCount = indices.size();
+
+			std::vector<float> data = {};
+			for (unsigned int i = 0; i < positions.size(); ++i)
+			{
+				data.push_back(positions[i].x);
+				data.push_back(positions[i].y);
+				data.push_back(positions[i].z);
+				if (normals.size() > 0)
+				{
+					data.push_back(normals[i].x);
+					data.push_back(normals[i].y);
+					data.push_back(normals[i].z);
+				}
+				if (uv.size() > 0)
+				{
+					data.push_back(uv[i].x);
+					data.push_back(uv[i].y);
+				}
+			}
+
+			glBindVertexArray(sphereVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+			float stride = (3 + 3 + 2) * sizeof(float);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
+			glEnableVertexAttribArray(2);
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));
 		}
 
 		glBindVertexArray(sphereVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-		float stride = (3 + 3 + 2) * sizeof(float);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));
+		glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);
 	}
 
-	glBindVertexArray(sphereVAO);
-	glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);
-}
-
-void renderCube()
-{
-	static unsigned int cubeVAO = 0;
-	static unsigned int cubeVBO = 0;
-
-	if (cubeVAO == 0)
+	void renderCube()
 	{
-		float vertices[] = {
-			-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-			 1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-			 1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
-			 1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-			-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-			-1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
-			// front face
-			-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-			 1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
-			 1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-			 1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-			-1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
-			-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-			// left face
-			-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-			-1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
-			-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-			-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-			-1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-			-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-			// right face
-			 1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-			 1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-			 1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
-			 1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-			 1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-			 1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
-			// bottom face
-			-1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-			 1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
-			 1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-			 1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-			-1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-			-1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-			// top face
-			-1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-			 1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-			 1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
-			 1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-			-1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-			-1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left         
-		};
-		glGenVertexArrays(1, &cubeVAO);
-		glGenBuffers(1, &cubeVBO);
-		// fill buffer
-		glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		// link vertex attributes
+		static unsigned int cubeVAO = 0;
+		static unsigned int cubeVBO = 0;
+
+		if (cubeVAO == 0)
+		{
+			float vertices[] = {
+				-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+				 1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+				 1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
+				 1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+				-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+				-1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
+				// front face
+				-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+				 1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
+				 1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+				 1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+				-1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
+				-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+				// left face
+				-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+				-1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
+				-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+				-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+				-1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+				-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+				// right face
+				 1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+				 1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+				 1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
+				 1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+				 1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+				 1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
+				// bottom face
+				-1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+				 1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
+				 1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+				 1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+				-1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+				-1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+				// top face
+				-1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+				 1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+				 1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
+				 1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+				-1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+				-1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left         
+			};
+			glGenVertexArrays(1, &cubeVAO);
+			glGenBuffers(1, &cubeVBO);
+			// fill buffer
+			glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+			// link vertex attributes
+			glBindVertexArray(cubeVAO);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+			glEnableVertexAttribArray(2);
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindVertexArray(0);
+		}
+		// render Cube
 		glBindVertexArray(cubeVAO);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 	}
-	// render Cube
-	glBindVertexArray(cubeVAO);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glBindVertexArray(0);
-}
 
-void renderQuad()
-{
-	static unsigned int quadVAO = 0;
-	static unsigned int quadVBO = 0;
-
-	if (quadVAO == 0)
+	void renderQuad()
 	{
-		float quadVertices[] = {
-			// positions        // texture Coords
-			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-		};
-		// setup plane VAO
-		glGenVertexArrays(1, &quadVAO);
-		glGenBuffers(1, &quadVBO);
+		static unsigned int quadVAO = 0;
+		static unsigned int quadVBO = 0;
+
+		if (quadVAO == 0)
+		{
+			float quadVertices[] = {
+				// positions        // texture Coords
+				-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+				-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+				 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+				 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+			};
+			// setup plane VAO
+			glGenVertexArrays(1, &quadVAO);
+			glGenBuffers(1, &quadVBO);
+			glBindVertexArray(quadVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+		}
 		glBindVertexArray(quadVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		glBindVertexArray(0);
 	}
-	glBindVertexArray(quadVAO);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindVertexArray(0);
-}
 
-void APIENTRY debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const* message, void const* user_param)
-{
-	auto source_str = [source]() -> std::string {
-		switch (source)
-		{
-		case GL_DEBUG_SOURCE_API: return "API";
-		case GL_DEBUG_SOURCE_WINDOW_SYSTEM: return "WINDOW SYSTEM";
-		case GL_DEBUG_SOURCE_SHADER_COMPILER: return "SHADER COMPILER";
-		case GL_DEBUG_SOURCE_THIRD_PARTY:  return "THIRD PARTY";
-		case GL_DEBUG_SOURCE_APPLICATION: return "APPLICATION";
-		case GL_DEBUG_SOURCE_OTHER: return "OTHER";
-		default: return "UNKNOWN";
-		}
-	}();
+	void APIENTRY debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const* message, void const* user_param)
+	{
+		auto source_str = [source]() -> std::string {
+			switch (source)
+			{
+			case GL_DEBUG_SOURCE_API: return "API";
+			case GL_DEBUG_SOURCE_WINDOW_SYSTEM: return "WINDOW SYSTEM";
+			case GL_DEBUG_SOURCE_SHADER_COMPILER: return "SHADER COMPILER";
+			case GL_DEBUG_SOURCE_THIRD_PARTY:  return "THIRD PARTY";
+			case GL_DEBUG_SOURCE_APPLICATION: return "APPLICATION";
+			case GL_DEBUG_SOURCE_OTHER: return "OTHER";
+			default: return "UNKNOWN";
+			}
+		}();
 
-	auto type_str = [type]() {
-		switch (type)
-		{
-		case GL_DEBUG_TYPE_ERROR: return "ERROR";
-		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: return "DEPRECATED_BEHAVIOR";
-		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: return "UNDEFINED_BEHAVIOR";
-		case GL_DEBUG_TYPE_PORTABILITY: return "PORTABILITY";
-		case GL_DEBUG_TYPE_PERFORMANCE: return "PERFORMANCE";
-		case GL_DEBUG_TYPE_MARKER:  return "MARKER";
-		case GL_DEBUG_TYPE_OTHER: return "OTHER";
-		default: return "UNKNOWN";
-		}
-	}();
+		auto type_str = [type]() {
+			switch (type)
+			{
+			case GL_DEBUG_TYPE_ERROR: return "ERROR";
+			case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: return "DEPRECATED_BEHAVIOR";
+			case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: return "UNDEFINED_BEHAVIOR";
+			case GL_DEBUG_TYPE_PORTABILITY: return "PORTABILITY";
+			case GL_DEBUG_TYPE_PERFORMANCE: return "PERFORMANCE";
+			case GL_DEBUG_TYPE_MARKER:  return "MARKER";
+			case GL_DEBUG_TYPE_OTHER: return "OTHER";
+			default: return "UNKNOWN";
+			}
+		}();
 
-	auto severity_str = [severity]() {
-		switch (severity) {
-		case GL_DEBUG_SEVERITY_NOTIFICATION: return "NOTIFICATION";
-		case GL_DEBUG_SEVERITY_LOW: return "LOW";
-		case GL_DEBUG_SEVERITY_MEDIUM: return "MEDIUM";
-		case GL_DEBUG_SEVERITY_HIGH: return "HIGH";
-		default: return "UNKNOWN";
-		}
-	}();
+		auto severity_str = [severity]() {
+			switch (severity) {
+			case GL_DEBUG_SEVERITY_NOTIFICATION: return "NOTIFICATION";
+			case GL_DEBUG_SEVERITY_LOW: return "LOW";
+			case GL_DEBUG_SEVERITY_MEDIUM: return "MEDIUM";
+			case GL_DEBUG_SEVERITY_HIGH: return "HIGH";
+			default: return "UNKNOWN";
+			}
+		}();
 
-	std::cout << source_str << ", "
-		<< type_str << ", "
-		<< severity_str << ", "
-		<< id << ": "
-		<< message << std::endl;
+		std::cout << source_str << ", "
+			<< type_str << ", "
+			<< severity_str << ", "
+			<< id << ": "
+			<< message << std::endl;
+	}
 }
 
 

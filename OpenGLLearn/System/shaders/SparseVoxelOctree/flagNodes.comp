@@ -1,0 +1,49 @@
+#version 450 core
+
+layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+layout(binding = 0, std430) buffer voxelFragmentList_buffer
+{
+    vec4 aVoxelFragmentList[];
+};
+
+layout(binding = 2, std430) buffer nodePool_buffer
+{
+    int aNodePool[];
+};
+
+void TraverseOctree(in vec3 voxelPos);
+
+void main()
+{
+    uint index = gl_WorkGroupID.x * gl_WorkGroupSize.x + gl_LocalInvocationID.x;
+    vec4 voxelPos = aVoxelFragmentList[index];
+
+    if(voxelPos.w > 0.f) TraverseOctree(voxelPos.xyz);
+}
+
+void TraverseOctree(in vec3 voxelPos)
+{
+    vec3 nodePos = vec3(0.f);
+    vec3 nodeSize = vec3(1.f);
+    int bufferIndex = 0;
+
+    const bool trueState = true;
+    while(trueState)
+    {
+        ivec3 octant = ivec3(greaterThanEqual(voxelPos, nodePos + 0.5f * nodeSize));
+        int tileIndex = octant.z * 4 + octant.y * 2 + octant.x;
+        bufferIndex = aNodePool[bufferIndex] + tileIndex;
+
+        if(aNodePool[bufferIndex] > 0) //has subnode --> step into
+        { 
+            nodeSize *= 0.5f;
+            nodePos += octant * nodeSize;
+        } 
+        else //current node is leaf --> fill data
+        { 
+            aNodePool[bufferIndex] = 0;
+            return;
+        }
+    }
+}

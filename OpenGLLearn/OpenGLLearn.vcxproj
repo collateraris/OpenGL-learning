@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <Optimization>MaxSpeed</Optimization>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
@@ -102,7 +102,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>FreeImage.lib;glfw3.lib;opengl32.lib;glew32s.lib;assimp-vc142-mtd.lib;opencl.lib;%(AdditionalDependencies)</AdditionalDependencies>   
+      <AdditionalDependencies>FreeImage.lib;glfw3.lib;opengl32.lib;glew32s.lib;assimp-vc142-mtd.lib;opencl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -159,15 +159,17 @@
     <ClCompile Include="Lessons\3n1_assimp\LoadTexture.cpp" />
     <ClCompile Include="OpenGLLearn.cpp" />
     <ClCompile Include="Projects\Sponza\proj_sponza_ogl.cpp" />
+    <ClCompile Include="Projects\VoxelGI\proj_voxel_gi.cpp" />
     <ClCompile Include="System\Box.cpp" />
+    <ClCompile Include="System\Buffer.cpp" />
     <ClCompile Include="System\BufferPass.cpp" />
     <ClCompile Include="System\DepthBufferPass.cpp" />
     <ClCompile Include="System\Frustum.cpp" />
     <ClCompile Include="System\GBufferPass.cpp" />
     <ClCompile Include="System\Plane.cpp" />
     <ClCompile Include="System\ShadowMapBufferPass.cpp" />
+    <ClCompile Include="System\SparseVoxelOctree.cpp" />
     <ClCompile Include="System\SSAO_Pass.cpp" />
-    <ClCompile Include="Vulkan\lesson1_triangle\vulkan1_triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lessons\1n3\main1n3.h" />
@@ -215,14 +217,18 @@
     <ClInclude Include="OpenCL\1n2_image_sobel_filter\opencl_main1n2.h" />
     <ClInclude Include="Projects\Real_time_volumetric_clouds\proj_vol_clouds_opengl.h" />
     <ClInclude Include="Projects\Sponza\proj_sponza_ogl.h" />
+    <ClInclude Include="Projects\VoxelGI\proj_voxel_gi.h" />
     <ClInclude Include="System\Box.h" />
+    <ClInclude Include="System\Buffer.h" />
     <ClInclude Include="System\BufferPass.h" />
     <ClInclude Include="System\DepthBufferPass.h" />
     <ClInclude Include="System\Frustum.h" />
     <ClInclude Include="System\GBufferPass.h" />
     <ClInclude Include="System\Plane.h" />
     <ClInclude Include="System\ShadowMapBufferPass.h" />
+    <ClInclude Include="System\SparseVoxelOctree.h" />
     <ClInclude Include="System\SSAO_Pass.h" />
+    <ClInclude Include="System\StringConst.h" />
     <ClInclude Include="ThirdParty\include\FreeImage\FreeImage.h" />
     <ClInclude Include="ThirdParty\include\glm\common.hpp" />
     <ClInclude Include="ThirdParty\include\glm\exponential.hpp" />
@@ -248,8 +254,6 @@
     <ClInclude Include="ThirdParty\include\glm\vec4.hpp" />
     <ClInclude Include="ThirdParty\include\glm\vector_relational.hpp" />
     <ClInclude Include="ThirdParty\include\stb_image\stb_image.h" />
-    <ClInclude Include="Vulkan\lesson1_init\vulkan_1_init.h" />
-    <ClInclude Include="Vulkan\lesson1_triangle\vulkan1_triangle.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />

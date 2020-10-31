@@ -72,11 +72,15 @@ namespace lesson_3n1
 
     public:
         /*  Functions  */
+        SMesh() = default;
         SMesh(std::vector<SVertex>& vertices, std::vector<unsigned int>& indices, std::vector<STexture>& textures);
 
         const std::vector<SVertex>& GetVertices() const { return mVertices; };
         const std::vector<unsigned int>& GetIndices() const { return mIndices; };
         const std::vector<STexture>& GetTextures() const { return mTextures; }
+
+        void SetModelTransform(const glm::mat4& model);
+        const glm::mat4& GetModelTransform() const;
 
         unsigned int GetVAO() const { return VAO; };
         unsigned int GetVBO() const { return VBO; };
@@ -103,6 +107,8 @@ namespace lesson_3n1
         unsigned int VAO, VBO, EBO;
         /*  Functions    */
         System::CBox mBoundingBox;
+
+        glm::mat4 mModelTransform;
     };
 
     struct SFileMeshData

@@ -26,6 +26,16 @@ SMesh::SMesh(std::vector<SVertex>& vertices, std::vector<unsigned int>& indices,
     BoundingBox();
 }
 
+void SMesh::SetModelTransform(const glm::mat4& model)
+{
+    mModelTransform = model;
+}
+
+const glm::mat4& SMesh::GetModelTransform() const
+{
+    return mModelTransform;
+}
+
 void SMesh::BoundingBox()
 {
     for (const auto& v : mVertices)

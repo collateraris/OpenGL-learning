@@ -1,8 +1,8 @@
-#include "Projects/Sponza/proj_sponza_ogl.h"
+#include "Projects/VoxelGI/proj_voxel_gi.h"
 
 int main()
 {
-	return proj_sponza_ogl::SponzaScene::lesson_main();
+	return proj_voxel_gi::SponzaScene::lesson_main();
 }
 
 

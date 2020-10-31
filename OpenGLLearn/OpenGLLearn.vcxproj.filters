@@ -1,306 +1,108 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Исходные файлы">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Файлы заголовков">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Файлы ресурсов">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
+    <ClCompile Include="Lessons\1n5_shaders\Shader.cpp" />
+    <ClCompile Include="Lessons\1n9_camera\Camera.cpp" />
+    <ClCompile Include="Lessons\2n6_multy_lights\LightStates.cpp" />
+    <ClCompile Include="Lessons\3n1_assimp\AssimpData.cpp" />
+    <ClCompile Include="Lessons\3n1_assimp\LoadTexture.cpp" />
+    <ClCompile Include="OpenGLLearn.cpp" />
+    <ClCompile Include="Projects\Sponza\proj_sponza_ogl.cpp" />
+    <ClCompile Include="System\Box.cpp" />
+    <ClCompile Include="System\BufferPass.cpp" />
+    <ClCompile Include="System\DepthBufferPass.cpp" />
+    <ClCompile Include="System\Frustum.cpp" />
+    <ClCompile Include="System\GBufferPass.cpp" />
+    <ClCompile Include="System\Plane.cpp" />
+    <ClCompile Include="System\ShadowMapBufferPass.cpp" />
+    <ClCompile Include="System\SSAO_Pass.cpp" />
+    <ClCompile Include="System\SparseVoxelOctree.cpp" />
+    <ClCompile Include="Projects\VoxelGI\proj_voxel_gi.cpp" />
+    <ClCompile Include="System\Buffer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="OpenGLLearn.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Lessons\1n5_shaders\Shader.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Lessons\1n9_camera\Camera.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Lessons\2n6_multy_lights\LightStates.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Lessons\3n1_assimp\AssimpData.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Lessons\3n1_assimp\LoadTexture.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="System\Box.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="System\Frustum.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="System\Plane.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Projects\Sponza\proj_sponza_ogl.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="System\BufferPass.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="System\GBufferPass.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="System\SSAO_Pass.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="System\DepthBufferPass.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="System\ShadowMapBufferPass.cpp">
-    <ClCompile Include="Vulkan\lesson1_triangle\vulkan1_triangle.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Lessons\1n3\main1n3.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\1n4\main1n4.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\1n5_shaders\main1n5.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\1n5_shaders\Shader.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\1n6_textures\main1n6.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\stb_image\stb_image.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\1n7_transformation\main1n7.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\common.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\exponential.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\ext.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\fwd.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\geometric.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\glm.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\integer.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\mat2x2.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\mat2x3.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\mat2x4.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\mat3x2.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\mat3x3.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\mat3x4.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\mat4x2.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\mat4x3.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\mat4x4.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\matrix.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\packing.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\trigonometric.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\vec2.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\vec3.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\vec4.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\glm\vector_relational.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\1n8_coordsystem\main1n8.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\1n9_camera\main1n9.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\1n9_camera\Camera.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\2n1_colors\main2n1.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\2n2_lighting_base\main2n2.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\2n3_materials\main2n3.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\2n4_textures\main2n4.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\2n5_light_casters\main2n5.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\2n6_multy_lights\main2n6.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\2n6_multy_lights\LightStates.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\3n1_assimp\main3n1.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\3n1_assimp\AssimpData.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\3n1_assimp\LoadTexture.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\4n1_depth_testing\main4n1.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\4n2_stencil_testing\main4n2.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\4n3_blending\main4n3.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\4n4_face_culing\main4n4.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\4n5_framebuffer\main4n5.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\4n6_cubemaps\main4n6.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\4n8_advanced_glsl\main4n8.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\4n9_geometry_shader\main4n9.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\4n10_instansing\main4n10.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\4n11_anti_aliasing\main4n11.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenCL\1n1_init\opencl_main1n1.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\5n1_advanced_lighting\main5n1.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\5n2_gamma_correction\main5n2.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\5n3_shadow_mapping\main5n3.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\5n4_points_shadow\main5n4.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\5n5_normal_mapping\main5n5.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\5n6_parallax_mapping\main5n6.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\5n7_hdr\main5n7.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\5n8_bloom\main5n8.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\5n9_deffered_shading\main5n9.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenCL\1n2_image_sobel_filter\opencl_main1n2.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\FreeImage\FreeImage.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\5n10_ssao\main5n10.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Projects\Real_time_volumetric_clouds\proj_vol_clouds_opengl.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\6n2_pbr_lighting\main6n2.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Lessons\6n3_pbr_image_based_lighting\main6n3.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Projects\Sponza\proj_sponza_ogl.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="System\Box.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="System\Frustum.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="System\Plane.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="System\BufferPass.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="System\GBufferPass.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="System\SSAO_Pass.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="System\DepthBufferPass.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="System\ShadowMapBufferPass.h">
-    <ClInclude Include="Vulkan\lesson1_init\vulkan_1_init.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\lesson1_triangle\vulkan1_triangle.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
+    <ClInclude Include="Lessons\1n3\main1n3.h" />
+    <ClInclude Include="Lessons\1n4\main1n4.h" />
+    <ClInclude Include="Lessons\1n5_shaders\main1n5.h" />
+    <ClInclude Include="Lessons\1n5_shaders\Shader.h" />
+    <ClInclude Include="Lessons\1n6_textures\main1n6.h" />
+    <ClInclude Include="Lessons\1n7_transformation\main1n7.h" />
+    <ClInclude Include="Lessons\1n8_coordsystem\main1n8.h" />
+    <ClInclude Include="Lessons\1n9_camera\Camera.h" />
+    <ClInclude Include="Lessons\1n9_camera\main1n9.h" />
+    <ClInclude Include="Lessons\2n1_colors\main2n1.h" />
+    <ClInclude Include="Lessons\2n2_lighting_base\main2n2.h" />
+    <ClInclude Include="Lessons\2n3_materials\main2n3.h" />
+    <ClInclude Include="Lessons\2n4_textures\main2n4.h" />
+    <ClInclude Include="Lessons\2n5_light_casters\main2n5.h" />
+    <ClInclude Include="Lessons\2n6_multy_lights\LightStates.h" />
+    <ClInclude Include="Lessons\2n6_multy_lights\main2n6.h" />
+    <ClInclude Include="Lessons\3n1_assimp\AssimpData.h" />
+    <ClInclude Include="Lessons\3n1_assimp\LoadTexture.h" />
+    <ClInclude Include="Lessons\3n1_assimp\main3n1.h" />
+    <ClInclude Include="Lessons\4n10_instansing\main4n10.h" />
+    <ClInclude Include="Lessons\4n11_anti_aliasing\main4n11.h" />
+    <ClInclude Include="Lessons\4n1_depth_testing\main4n1.h" />
+    <ClInclude Include="Lessons\4n2_stencil_testing\main4n2.h" />
+    <ClInclude Include="Lessons\4n3_blending\main4n3.h" />
+    <ClInclude Include="Lessons\4n4_face_culing\main4n4.h" />
+    <ClInclude Include="Lessons\4n5_framebuffer\main4n5.h" />
+    <ClInclude Include="Lessons\4n6_cubemaps\main4n6.h" />
+    <ClInclude Include="Lessons\4n8_advanced_glsl\main4n8.h" />
+    <ClInclude Include="Lessons\4n9_geometry_shader\main4n9.h" />
+    <ClInclude Include="Lessons\5n10_ssao\main5n10.h" />
+    <ClInclude Include="Lessons\5n1_advanced_lighting\main5n1.h" />
+    <ClInclude Include="Lessons\5n2_gamma_correction\main5n2.h" />
+    <ClInclude Include="Lessons\5n3_shadow_mapping\main5n3.h" />
+    <ClInclude Include="Lessons\5n4_points_shadow\main5n4.h" />
+    <ClInclude Include="Lessons\5n5_normal_mapping\main5n5.h" />
+    <ClInclude Include="Lessons\5n6_parallax_mapping\main5n6.h" />
+    <ClInclude Include="Lessons\5n7_hdr\main5n7.h" />
+    <ClInclude Include="Lessons\5n8_bloom\main5n8.h" />
+    <ClInclude Include="Lessons\5n9_deffered_shading\main5n9.h" />
+    <ClInclude Include="Lessons\6n2_pbr_lighting\main6n2.h" />
+    <ClInclude Include="Lessons\6n3_pbr_image_based_lighting\main6n3.h" />
+    <ClInclude Include="OpenCL\1n1_init\opencl_main1n1.h" />
+    <ClInclude Include="OpenCL\1n2_image_sobel_filter\opencl_main1n2.h" />
+    <ClInclude Include="Projects\Real_time_volumetric_clouds\proj_vol_clouds_opengl.h" />
+    <ClInclude Include="Projects\Sponza\proj_sponza_ogl.h" />
+    <ClInclude Include="System\Box.h" />
+    <ClInclude Include="System\BufferPass.h" />
+    <ClInclude Include="System\DepthBufferPass.h" />
+    <ClInclude Include="System\Frustum.h" />
+    <ClInclude Include="System\GBufferPass.h" />
+    <ClInclude Include="System\Plane.h" />
+    <ClInclude Include="System\ShadowMapBufferPass.h" />
+    <ClInclude Include="System\SSAO_Pass.h" />
+    <ClInclude Include="ThirdParty\include\FreeImage\FreeImage.h" />
+    <ClInclude Include="ThirdParty\include\glm\common.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\exponential.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\ext.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\fwd.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\geometric.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\glm.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\integer.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat2x2.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat2x3.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat2x4.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat3x2.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat3x3.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat3x4.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat4x2.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat4x3.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\mat4x4.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\matrix.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\packing.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\trigonometric.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\vec2.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\vec3.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\vec4.hpp" />
+    <ClInclude Include="ThirdParty\include\glm\vector_relational.hpp" />
+    <ClInclude Include="ThirdParty\include\stb_image\stb_image.h" />
+    <ClInclude Include="System\SparseVoxelOctree.h" />
+    <ClInclude Include="Projects\VoxelGI\proj_voxel_gi.h" />
+    <ClInclude Include="System\Buffer.h" />
+    <ClInclude Include="System\StringConst.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />

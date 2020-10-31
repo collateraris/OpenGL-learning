@@ -1,0 +1,19 @@
+#version 450 core
+
+layout (local_size_x = 8, local_size_y = 1, local_size_z = 1) in;
+
+layout(binding = 2, std430) buffer nodePool_buffer
+{
+    int aNodePool[];
+};
+
+layout (binding = 1, offset = 0) uniform atomic_uint aNodeCounter;
+
+uniform int uStartIndex;
+
+void main() 
+{
+    uint index = uStartIndex + gl_WorkGroupID.x * gl_WorkGroupSize.x + gl_LocalInvocationID.x;
+    if(aNodePool[index] == 0) //node flagged
+        aNodePool[index] = int(atomicCounterIncrement(aNodeCounter)+1) * 8;
+}
