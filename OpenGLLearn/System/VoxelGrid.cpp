@@ -91,7 +91,7 @@ void VoxelGrid::UpdateGrid(lesson_1n9::CCamera& camera)
 	m_GridParamsBuffer.SetContentSubData(m_GridBufferData, 0);
 
 	glDisable(GL_DEPTH_TEST);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	m_VoxelGridFillShader.Use();
 
 }

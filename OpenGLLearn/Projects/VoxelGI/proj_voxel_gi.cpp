@@ -25,11 +25,15 @@
 #include "../../System/VoxelGrid.h"
 #include "../../System/StringConst.h"
 #include "../../System/DepthBufferPass.h"
+#include "../../System/Frustum.h"
+#include "../../System/Box.h"
 
 namespace proj_voxel_gi
 {
 	GLfloat g_screenWidth = 1200.0f;
 	GLfloat g_screenHeight = 800.0f;
+	const float g_nearDist = 0.1f;
+	const float g_farDist = 1000.f;
 	const unsigned int shadowWidth = 1024, shadowHeight = 1024;
 
 	GLFWwindow* init();
@@ -58,55 +62,40 @@ int SponzaScene::lesson_main()
 	GLFWwindow* window;
 	if ((window = init()) == nullptr) return -1;
 
-	lesson_1n5::CShader traverseOctreeShader;
-	if (!traverseOctreeShader.Init("Projects/VoxelGI/shaders/traceSparseVoxelOctree.vert", "Projects/VoxelGI/shaders/traceSparseVoxelOctree.frag")) return -1;
-
-	lesson_1n5::CShader voxelGridShader;
-	if (!voxelGridShader.Init("System/shaders/VoxelGrid/voxelGridFill.vert", "System/shaders/VoxelGrid/voxelGridFill.frag", 
-		"System/shaders/VoxelGrid/voxelGridFill.geom")) return -1;
-
-	lesson_1n5::CShader voxelGridVisShader;
-	if (!voxelGridVisShader.Init("System/shaders/VoxelGrid/voxelGridVisible.vert", "System/shaders/VoxelGrid/voxelGridVisible.frag")) return -1;
-
-	System::DepthBufferPass depthRenderPass;
+	System::DepthBufferPassInfo depthInfo;
+	depthInfo.screenFar = g_farDist;
+	depthInfo.screenNear = g_nearDist;
+	System::DepthBufferPass depthRenderPass(depthInfo);
+	depthRenderPass.LoadShader("System/shaders/DepthBuffer/depthBuffer.vert", "System/shaders/DepthBuffer/depthBuffer.frag");
 	depthRenderPass.InitBuffer(g_screenWidth, g_screenHeight);
 
 	System::VoxelGridInfo info;
 	info.depthMapId = depthRenderPass.GetDepthMap();
-	System::VoxelGrid voxelGrid(info);
-	return -1;
+	System::VoxelGrid voxelGridRenderPass(info);
 
 	lesson_3n1::SFileMeshData sponzaScene;
 	lesson_3n1::CLoadAssimpFile::Load("content/model/sponza/sponza.obj", sponzaScene);
+	lesson_3n1::CDrawFileMeshData::Init(sponzaScene);
 
 	GLfloat aspectRatio = g_screenWidth / g_screenHeight;
 
-	float nearDist = 0.1f;
-	float farDist = 1000.f;
-	glm::mat4 projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, nearDist, farDist);
+	glm::mat4 projection = glm::perspective(glm::radians(lesson_1n9::CCamera::Get().GetFov()), aspectRatio, g_nearDist, g_farDist);
 	glm::mat4 invProj = glm::inverse(projection);
 
 	glm::vec3 lightPos = glm::vec3(-18.09f, 21.17f, -10.85f);
 	glm::vec3 lightDir = glm::vec3(0.67f, -0.73f, 0.13f);
 	glm::vec3 lightColor = glm::vec3(800.0f, 800.0f, 800.0f);
 
-	lesson_1n9::CCamera::Get().SetCameraPosition(lightPos);
+	lesson_1n9::CCamera::Get().SetCameraPosition({ 0., 0., 0, });
 	lesson_1n9::CCamera::Get().SetCameraFront(lightDir);
 
 	float deltaTime;
-	lesson_3n1::CDrawFileMeshData::Init(sponzaScene);
-	System::SparseVoxelOctree octree;
-	octree.Init(sponzaScene.meshes, 5);
-
-	traverseOctreeShader.Use();
-	traverseOctreeShader.setVec3f(System::uBminStr.c_str(), octree.GetBMin());
-	traverseOctreeShader.setVec3f(System::uBmaxStr.c_str(), octree.GetBMax());
-	traverseOctreeShader.setInt(System::uMaxLevelStr.c_str(), 10);
-	traverseOctreeShader.setMatrix4fv(System::uInvProjectionMatrixStr.c_str(), invProj);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glViewport(0, 0, g_screenWidth, g_screenHeight);
+
+	System::CFrustum frustum;
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -121,13 +110,38 @@ int SponzaScene::lesson_main()
 		const glm::mat4 model = glm::mat4(1.0f);
 		const glm::mat4 view = lesson_1n9::CCamera::Get().GetView();
 		const glm::mat4 invView = glm::inverse(view);
-		const glm::vec3& camPos = lesson_1n9::CCamera::Get().GetCameraPosition();
+		const glm::mat4 invViewProj = invView * invProj;
+		//const glm::vec3& camPos = lesson_1n9::CCamera::Get().GetCameraPosition();
+		const auto& voxelProj = voxelGridRenderPass.GetProj();
+		const glm::mat4 mvp = voxelProj * view;// *model;
 
-		octree.Update();
-		traverseOctreeShader.Use();
-		octree.Bind();
-		traverseOctreeShader.setMatrix4fv(System::uInvViewMatrixStr.c_str(), invView);
-		traverseOctreeShader.setVec3f(System::uCamPosStr.c_str(), camPos);
+		frustum.calculateFrustum(projection, view);
+
+		depthRenderPass.StartDrawInBuffer();
+		depthRenderPass.SetMVP(mvp);
+		for (const lesson_3n1::SMesh& mesh : sponzaScene.meshes)
+		{
+			if (frustum.boxInFrustum(mesh.GetMinBB(), mesh.GetMaxBB()))
+			{
+				lesson_3n1::CDrawFileMeshData::MeshDraw(depthRenderPass.GetShader(), mesh);
+			}
+		}
+		depthRenderPass.EndDrawInBuffer();
+
+		///*
+		voxelGridRenderPass.UpdateGrid(lesson_1n9::CCamera::Get());
+		voxelGridRenderPass.GetVoxelGridFillShader().setMatrix4fv(System::uModelMatrixStr.c_str(), model);
+		for (const lesson_3n1::SMesh& mesh : sponzaScene.meshes)
+		{
+			//if (frustum.boxInFrustum(mesh.GetMinBB(), mesh.GetMaxBB()))
+			{
+				lesson_3n1::CDrawFileMeshData::MeshDraw(voxelGridRenderPass.GetVoxelGridFillShader(), mesh);
+			}
+		}
+		//*/
+
+		//depthRenderPass.Debug();
+		voxelGridRenderPass.Debug(invViewProj);
 		renderQuad();
 	
 		glfwSwapBuffers(window);

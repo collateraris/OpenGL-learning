@@ -9,6 +9,7 @@ namespace System
 	const std::string uInvViewMatrixStr = "uInvViewMatrix";
 	const std::string uInvProjectionMatrixStr = "uInvProjectionMatrix";
 	const std::string uInvViewProjMatrixStr = "uInvViewProjMatrix";
+	const std::string uMVPStr = "uMVP";
 
 	const std::string uResolutionStr = "uResolution";
 	const std::string uStartIndexStr = "uStartIndex";
@@ -16,6 +17,8 @@ namespace System
 	const std::string uBminStr = "uBmin";
 	const std::string uBmaxStr = "uBmax";
 	const std::string uMaxLevelStr = "uMaxLevel";
+	const std::string uFarStr = "uFar";
+	const std::string uNearStr = "uNear";
 
 	const std::string uDepthTexStr = "uDepthTex";
 }

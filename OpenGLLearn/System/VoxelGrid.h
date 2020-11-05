@@ -37,7 +37,7 @@ namespace System
 
 		~VoxelGrid();
 
-		__declspec(align(sizeof(glm::mat4))) 
+		//__declspec(align(sizeof(glm::mat4))) 
 		struct GRID_PARAMS
 		{
 			glm::mat4 gridViewProjMatrices[3];  // viewProjMatrices for generating the voxel-grids
@@ -48,7 +48,7 @@ namespace System
 			float invGridCellSizes;
 		};
 
-		__declspec(align(sizeof(glm::uvec4))) 
+		//__declspec(align(sizeof(glm::uvec4))) 
 		struct VOXEL
 		{
 			glm::uvec4 normalMasks = {0, 0, 0, 0}; // encoded normals
@@ -58,7 +58,17 @@ namespace System
 
 		void UpdateGrid(lesson_1n9::CCamera& camera);
 
+		lesson_1n5::CShader& GetVoxelGridFillShader()
+		{
+			return m_VoxelGridFillShader;
+		}
+
 		void Debug(const glm::mat4& invViewProjMatrix);
+
+		const glm::mat4& GetProj() const
+		{
+			return m_GridProjMatrix;
+		}
 
 	private:
 
