@@ -25,6 +25,9 @@ namespace System
 
 		void Update();
 
+		const glm::vec3& GetBMin() const;
+		const glm::vec3& GetBMax() const;
+
 	private:
 
 		lesson_1n5::CShader m_VoxelGenShader;
@@ -37,9 +40,15 @@ namespace System
 		Buffer m_VoxelCounter{ GL_ATOMIC_COUNTER_BUFFER };        // uint32
 		Buffer m_VoxelFragmentColor{ GL_SHADER_STORAGE_BUFFER };  // vec4
 
+		size_t m_VoxelFragmentListBufferSize = 0;
+		size_t m_VoxelFragmentColorBufferSize = 0;
+
 		Buffer m_NodePool{ GL_SHADER_STORAGE_BUFFER };        // int32
 		Buffer m_NodeCounter{ GL_ATOMIC_COUNTER_BUFFER };     // uint32
 		Buffer m_NodeColor{ GL_SHADER_STORAGE_BUFFER };       // vec4
+
+		size_t m_NodePoolBufferSize = 0;
+		size_t m_NodeColorBufferSize = 0;
 
 		std::vector<lesson_3n1::SMesh> m_Scene;
 

@@ -53,11 +53,15 @@ void SparseVoxelOctree::Init(const std::vector<lesson_3n1::SMesh>& meshes, size_
 	
 	{
 		std::vector<glm::vec4> fragmentsNum(triangleNum * 4, glm::vec4(0.f));
+		m_VoxelFragmentListBufferSize = fragmentsNum.size() * sizeof(glm::vec4);
+		m_VoxelFragmentColorBufferSize = m_VoxelFragmentListBufferSize;
 		m_VoxelFragmentList.SetStorage(fragmentsNum, GL_DYNAMIC_STORAGE_BIT);
 		m_VoxelFragmentColor.SetStorage(fragmentsNum, GL_DYNAMIC_STORAGE_BIT);
 
 		const int powNodeDepth3 = static_cast<int>(std::pow(m_NodeDepth, 3));
 
+		m_NodePoolBufferSize = powNodeDepth3 * sizeof(GLint);
+		m_NodeColorBufferSize = powNodeDepth3 * 2 * sizeof(glm::vec4);
 		m_NodePool.SetStorage(std::vector<GLint>(powNodeDepth3, -1), GL_DYNAMIC_STORAGE_BIT);
 		m_NodeColor.SetStorage(std::vector<glm::vec4>(powNodeDepth3 * 2, glm::vec4(0.f)), GL_DYNAMIC_STORAGE_BIT);
 
@@ -82,18 +86,21 @@ void SparseVoxelOctree::Init(const std::vector<lesson_3n1::SMesh>& meshes, size_
 		m_Bmax = c + halfSize;
 	}
 
-	auto Proj = glm::ortho(
+	glm::mat4 Proj = glm::ortho(
 		m_Bmin.x, m_Bmax.x,
 		m_Bmin.y, m_Bmax.y,
 		-m_Bmax.z, -m_Bmin.z
 	);
+	m_VoxelGenShader.Use();
 	m_VoxelGenShader.setMatrix4fv(uProjectionMatrixStr.c_str(), Proj);
 
-	auto Resolution = glm::vec3(m_NodeDepth, m_NodeDepth, m_NodeDepth);
+	glm::vec3 Resolution = glm::vec3(m_NodeDepth, m_NodeDepth, m_NodeDepth);
 	m_VoxelGenShader.setVec3f(uResolutionStr.c_str(), Resolution);
 
-	auto StartIndex = 0;
+	int StartIndex = 0;
+	m_NodeCreationShader.Use();
 	m_NodeCreationShader.setInt(uStartIndexStr.c_str(), StartIndex);
+	m_MipMapShader.Use();
 	m_MipMapShader.setInt(uStartIndexStr.c_str(), StartIndex);
 
 	Update();
@@ -125,10 +132,10 @@ void SparseVoxelOctree::Update()
 
 	glm::vec4 zero_vec = glm::vec4(0.f);
 	const GLint clear_val = -1;
-	glClearNamedBufferSubData(m_VoxelFragmentList.GetHandle(), GL_RGBA32F, 0, (voxelCount + 1) * 16 /*4 * 4*/, GL_RGBA, GL_FLOAT, glm::value_ptr(zero_vec));
-	glClearNamedBufferSubData(m_VoxelFragmentColor.GetHandle(), GL_RGBA32F, 0, (voxelCount + 1) * 16 /*4 * 4*/, GL_RGBA, GL_FLOAT, glm::value_ptr(zero_vec));
-	glClearNamedBufferSubData(m_NodeColor.GetHandle(), GL_RGBA32F, 0, (nodeCount + 1) * 128 /*8 * 4 * 4*/, GL_RGBA, GL_FLOAT, glm::value_ptr(zero_vec));
-	glClearNamedBufferSubData(m_NodePool.GetHandle(), GL_R32I, 0, (nodeCount + 1) * 32 /*8 * 4*/, GL_RED_INTEGER, GL_INT, &clear_val);
+	glClearNamedBufferSubData(m_VoxelFragmentList.GetHandle(), GL_RGBA32F, 0, m_VoxelFragmentListBufferSize, GL_RGBA, GL_FLOAT, glm::value_ptr(zero_vec));
+	glClearNamedBufferSubData(m_VoxelFragmentColor.GetHandle(), GL_RGBA32F, 0, m_VoxelFragmentColorBufferSize, GL_RGBA, GL_FLOAT, glm::value_ptr(zero_vec));
+	glClearNamedBufferSubData(m_NodeColor.GetHandle(), GL_RGBA32F, 0, m_NodeColorBufferSize, GL_RGBA, GL_FLOAT, glm::value_ptr(zero_vec));
+	glClearNamedBufferSubData(m_NodePool.GetHandle(), GL_R32I, 0, m_NodePoolBufferSize, GL_RED_INTEGER, GL_INT, &clear_val);
 
 	GLuint clear_val_atomic = 0u;
 	glClearNamedBufferSubData(m_VoxelCounter.GetHandle(), GL_R32UI, 0, 4, GL_RED_INTEGER, GL_UNSIGNED_INT, &clear_val_atomic);
@@ -144,7 +151,7 @@ void SparseVoxelOctree::Update()
 	// Voxelization into uniform grid, i.e. creation of voxel fragment list
 
 	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_CONSERVATIVE_RASTERIZATION_NV);
+	glEnable(GL_CONSERVATIVE_RASTERIZATION_INTEL);
 	const float Nf = static_cast<float>(m_NodeDepth);
 	glViewportIndexedf(1, 0.0f, 0.0f, Nf, Nf);
 	glViewportIndexedf(2, 0.0f, 0.0f, Nf, Nf);
@@ -159,7 +166,7 @@ void SparseVoxelOctree::Update()
 	});
 
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);
-	glDisable(GL_CONSERVATIVE_RASTERIZATION_NV);
+	glDisable(GL_CONSERVATIVE_RASTERIZATION_INTEL);
 
 	glGetNamedBufferSubData(m_VoxelCounter.GetHandle(), 0, 4, &voxelCount);
 
@@ -176,8 +183,8 @@ void SparseVoxelOctree::Update()
 
 		glGetNamedBufferSubData(m_NodeCounter.GetHandle(), 0, 4, &nodeCount);
 		levelStartIndices.push_back(static_cast<int>(nodeCount + 1) * 8);
-		m_NodeCreationShader.setInt(uStartIndexStr.c_str(), levelStartIndices[i - 1]);
 		m_NodeCreationShader.Use();
+		m_NodeCreationShader.setInt(uStartIndexStr.c_str(), levelStartIndices[i - 1]);
 		glDispatchCompute(static_cast<GLuint>(glm::pow(8, i - 1)), 1, 1);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);
 	}
@@ -205,4 +212,14 @@ void SparseVoxelOctree::Update()
 	m_MipMapShader.setInt(uStartIndexStr.c_str(), 0);
 	glDispatchCompute(1, 1, 1);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+}
+
+const glm::vec3& SparseVoxelOctree::GetBMin() const
+{
+	return m_Bmin;
+}
+
+const glm::vec3& SparseVoxelOctree::GetBMax() const
+{
+	return m_Bmax;
 }

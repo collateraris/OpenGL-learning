@@ -170,6 +170,7 @@
     <ClCompile Include="System\ShadowMapBufferPass.cpp" />
     <ClCompile Include="System\SparseVoxelOctree.cpp" />
     <ClCompile Include="System\SSAO_Pass.cpp" />
+    <ClCompile Include="System\VoxelGrid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lessons\1n3\main1n3.h" />
@@ -229,6 +230,7 @@
     <ClInclude Include="System\SparseVoxelOctree.h" />
     <ClInclude Include="System\SSAO_Pass.h" />
     <ClInclude Include="System\StringConst.h" />
+    <ClInclude Include="System\VoxelGrid.h" />
     <ClInclude Include="ThirdParty\include\FreeImage\FreeImage.h" />
     <ClInclude Include="ThirdParty\include\glm\common.hpp" />
     <ClInclude Include="ThirdParty\include\glm\exponential.hpp" />

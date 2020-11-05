@@ -108,7 +108,7 @@ namespace lesson_3n1
         /*  Functions    */
         System::CBox mBoundingBox;
 
-        glm::mat4 mModelTransform;
+        glm::mat4 mModelTransform = glm::mat4(1.);
     };
 
     struct SFileMeshData
