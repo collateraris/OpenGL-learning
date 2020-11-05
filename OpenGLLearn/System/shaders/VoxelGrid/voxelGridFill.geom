@@ -5,12 +5,12 @@ layout (triangle_strip, max_vertices = 3) out;
 
 struct GRID_PARAMS
 {
-    mat4 gridViewProjMatrices[6];     // viewProjMatrices for generating the voxel-grids
-    vec4 gridCellSizes;               // (inverse) sizes of grid-cells (FINE_GRID/ COARSE_GRID)
+    mat4 gridViewProjMatrices[3];  // viewProjMatrices for generating the voxel-grids
     vec4 gridPositions;            // center of FINE_GRID/
-    vec4 snappedGridPositions;     // center of FINE_GRID, snapped to the corresponding grid-cell extents 
-    vec4 lastSnappedGridPositions; // snapped grid positions of FINE_GRID from last frame (w-component = frame-interval)
-    vec4 globalIllumParams;           // x = flux amplifier, y = occlusion amplifier, z = diffuse GI-contribution power
+    vec4 globalIllumParams;        // x = flux amplifier, y = occlusion amplifier, z = diffuse GI-contribution power
+    vec3 snappedGridPositions;     // center of FINE_GRID, snapped to the corresponding grid-cell extents 
+    float gridCellSizes;            // (inverse) sizes of grid-cells FINE_GRID
+    float invGridCellSizes;
 };
 
 layout(binding = 0, std430) buffer gridParams_buffer

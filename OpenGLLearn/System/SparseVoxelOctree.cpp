@@ -42,7 +42,6 @@ void SparseVoxelOctree::Init(const std::vector<lesson_3n1::SMesh>& meshes, size_
 	std::copy(meshes.begin(), meshes.end(),
 		std::back_inserter(m_Scene));
 
-
 	size_t triangleNum = 0;
 	
 	std::for_each(m_Scene.begin(), m_Scene.end(), [&triangleNum](auto& mesh) {

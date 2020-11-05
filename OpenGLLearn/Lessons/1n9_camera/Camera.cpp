@@ -91,9 +91,14 @@ float CCamera::GetFov()
     return this->fov;
 }
 
-const glm::vec3& CCamera::GetCameraPosition()
+const glm::vec3& CCamera::GetCameraPosition() const
 {
     return this->mCameraPos;
+}
+
+const glm::vec3& CCamera::GetCameraDirection() const
+{
+    return GetCameraFront();
 }
 
 void CCamera::SetCameraPosition(const glm::vec3& pos)
@@ -101,7 +106,7 @@ void CCamera::SetCameraPosition(const glm::vec3& pos)
     this->mCameraPos = pos;
 }
 
-const glm::vec3& CCamera::GetCameraFront()
+const glm::vec3& CCamera::GetCameraFront() const
 {
     return this->mCameraFront;
 }
@@ -111,7 +116,7 @@ void CCamera::SetCameraFront(const glm::vec3& dir)
     this->mCameraFront = dir;
 }
 
-const glm::vec3& CCamera::GetCameraUp()
+const glm::vec3& CCamera::GetCameraUp() const
 {
     return this->mCameraUp;
 }

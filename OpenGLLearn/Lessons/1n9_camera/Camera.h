@@ -22,15 +22,18 @@ namespace lesson_1n9
 
 		float GetFov();
 
-		const glm::vec3& GetCameraPosition();
+		const glm::vec3& GetCameraPosition() const;
+
+		const glm::vec3& GetCameraDirection() const;
 
 		void SetCameraPosition(const glm::vec3& pos);
 
 		void SetCameraFront(const glm::vec3& dir);
 
-		const glm::vec3& GetCameraFront();
+		const glm::vec3& GetCameraFront() const;
 
-		const glm::vec3& GetCameraUp();
+		const glm::vec3& GetCameraUp() const;
+
 
 	private:
 

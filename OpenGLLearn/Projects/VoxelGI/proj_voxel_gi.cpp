@@ -22,7 +22,9 @@
 #include "../../Lessons/3n1_assimp/AssimpData.h"
 #include "../../Lessons/2n6_multy_lights/LightStates.h"
 #include "../../System/SparseVoxelOctree.h"
+#include "../../System/VoxelGrid.h"
 #include "../../System/StringConst.h"
+#include "../../System/DepthBufferPass.h"
 
 namespace proj_voxel_gi
 {
@@ -66,6 +68,12 @@ int SponzaScene::lesson_main()
 	lesson_1n5::CShader voxelGridVisShader;
 	if (!voxelGridVisShader.Init("System/shaders/VoxelGrid/voxelGridVisible.vert", "System/shaders/VoxelGrid/voxelGridVisible.frag")) return -1;
 
+	System::DepthBufferPass depthRenderPass;
+	depthRenderPass.InitBuffer(g_screenWidth, g_screenHeight);
+
+	System::VoxelGridInfo info;
+	info.depthMapId = depthRenderPass.GetDepthMap();
+	System::VoxelGrid voxelGrid(info);
 	return -1;
 
 	lesson_3n1::SFileMeshData sponzaScene;
@@ -95,8 +103,6 @@ int SponzaScene::lesson_main()
 	traverseOctreeShader.setVec3f(System::uBmaxStr.c_str(), octree.GetBMax());
 	traverseOctreeShader.setInt(System::uMaxLevelStr.c_str(), 10);
 	traverseOctreeShader.setMatrix4fv(System::uInvProjectionMatrixStr.c_str(), invProj);
-
-	unsigned int fogNoiseTex = lesson_3n1::CLoadTexture::GetTexture(g_screenWidth, g_screenHeight);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
