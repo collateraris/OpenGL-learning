@@ -22,8 +22,8 @@
 
 namespace lesson_5n10
 {
-	GLfloat g_screenWidth = 800.0f;
-	GLfloat g_screenHeight = 600.0f;
+	GLfloat g_screenWidth = 1600.0f;
+	GLfloat g_screenHeight = 1200.0f;
 	bool g_debug = false;
 
 	int lesson_main();

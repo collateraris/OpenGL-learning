@@ -1,8 +1,8 @@
-#include "Projects/Sponza/proj_sponza_ogl.h"
+#include "Lessons/5n10_ssao/main5n10.h"
 
 int main()
 {
-	return proj_sponza_ogl::SponzaScene::lesson_main();
+	return lesson_5n10::lesson_main();
 }
 
 
