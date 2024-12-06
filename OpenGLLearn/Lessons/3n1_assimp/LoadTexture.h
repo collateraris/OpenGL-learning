@@ -33,6 +33,8 @@ namespace lesson_3n1
 
 		static unsigned int GetTexture(unsigned int width = 1024, unsigned int height = 1024, GLenum internalFormat = GL_RGB, GLenum format = GL_RGB, GLenum type = GL_UNSIGNED_BYTE, int wrap_s_par = GL_CLAMP_TO_EDGE, int wrap_t_par = GL_CLAMP_TO_EDGE, int min_filter_par = GL_LINEAR, int max_filter_par = GL_LINEAR);
 
+		static unsigned int GetTexture3D(unsigned int width = 1024, unsigned int height = 1024, unsigned int depth = 1, GLenum internalFormat = GL_RGB, GLenum format = GL_RGB, GLenum type = GL_UNSIGNED_BYTE, int wrap_s_par = GL_CLAMP_TO_EDGE, int wrap_t_par = GL_CLAMP_TO_EDGE, int min_filter_par = GL_LINEAR, int max_filter_par = GL_LINEAR);
+
 		static unsigned int GetFBOTexture(unsigned int width, unsigned int height, GLenum internalFormat = GL_RGB, GLenum format = GL_RGB);
 
 		static unsigned int GetFloatingPointFBOTexture(unsigned int width, unsigned int height);

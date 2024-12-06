@@ -72,8 +72,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>ThirdParty\include;$(IncludePath)</IncludePath>
-    <LibraryPath>ThirdParty\libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\VulkanSDK\1.2.141.2\Include;ThirdParty\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\VulkanSDK\1.2.141.2\Lib32;ThirdParty\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -93,11 +93,13 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>FreeImage.lib;glfw3.lib;opengl32.lib;glew32s.lib;assimp-vc142-mtd.lib;opencl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;FreeImage.lib;glfw3.lib;opengl32.lib;glew32s.lib;assimp-vc142-mtd.lib;opencl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -153,6 +155,11 @@
     <ClCompile Include="Lessons\3n1_assimp\AssimpData.cpp" />
     <ClCompile Include="Lessons\3n1_assimp\LoadTexture.cpp" />
     <ClCompile Include="OpenGLLearn.cpp" />
+    <ClCompile Include="System\Box.cpp" />
+    <ClCompile Include="System\Frustum.cpp" />
+    <ClCompile Include="System\Plane.cpp" />
+    <ClCompile Include="Vulkan\lesson1_triangle\vulkan1_triangle.cpp" />
+    <ClCompile Include="Vulkan\lesson2_load3Dmodel\vulkan2_loadModel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lessons\1n3\main1n3.h" />
@@ -198,6 +205,11 @@
     <ClInclude Include="Lessons\6n3_pbr_image_based_lighting\main6n3.h" />
     <ClInclude Include="OpenCL\1n1_init\opencl_main1n1.h" />
     <ClInclude Include="OpenCL\1n2_image_sobel_filter\opencl_main1n2.h" />
+    <ClInclude Include="Projects\Real_time_volumetric_clouds\proj_vol_clouds_opengl.h" />
+    <ClInclude Include="Projects\Sponza\proj_sponza_ogl.h" />
+    <ClInclude Include="System\Box.h" />
+    <ClInclude Include="System\Frustum.h" />
+    <ClInclude Include="System\Plane.h" />
     <ClInclude Include="ThirdParty\include\FreeImage\FreeImage.h" />
     <ClInclude Include="ThirdParty\include\glm\common.hpp" />
     <ClInclude Include="ThirdParty\include\glm\exponential.hpp" />
@@ -223,6 +235,10 @@
     <ClInclude Include="ThirdParty\include\glm\vec4.hpp" />
     <ClInclude Include="ThirdParty\include\glm\vector_relational.hpp" />
     <ClInclude Include="ThirdParty\include\stb_image\stb_image.h" />
+    <ClInclude Include="ThirdParty\include\tinyobjloader\tiny_obj_loader.h" />
+    <ClInclude Include="Vulkan\lesson1_init\vulkan_1_init.h" />
+    <ClInclude Include="Vulkan\lesson1_triangle\vulkan1_triangle.h" />
+    <ClInclude Include="Vulkan\lesson2_load3Dmodel\vulkan2_loadModel.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ThirdParty\include\glm\CMakeLists.txt" />
